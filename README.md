@@ -11,32 +11,126 @@ Fok
 
 ```
 
+
+【内置基本类型】 值传递
 无        none       none            值为假（变量未初始化，函数无返回值，手动赋值）
 真假      bool       true, false
-
 整形      int        123              
 浮点      float      123.45           
 字符串    str        "abc"            
 
+
+【内置容器类型】 引用传递
 数组      array      ["foo", "bar"]   空数组
 元组      tuple      ("foo", "bar")
 集合      set        {"foo", "bar"}
 字典      dict       {"foo":123, "bar": 123}
 
-函数      func       func(){}
 
-类/对象   class/object  {
-  for = 123,
-  boo = func(foo, bar){
-    
-  },
-}
+【函数】 引用传递
+函数      fun        fun myFunc():
 
 
-关键字
+【类】 引用传递
+类        class          class MyType():
+对象      object
 
-return 函数/模块   返回值
-import 导入模块
+
+
+
+class MyType extend MyBase :
+    abc = 123
+    strs = "abc"
+    fun __init__(foo, bar=123):
+        this.f = foo
+        if "123" in foo:
+            pass
+        if foo is "123":
+            pass
+    fun __is__(value):
+        pass
+      
+    # if "123" in foo
+    fun __for_in__(val):
+        pass
+
+
+fun pump():
+  print(123)
+
+# 多线程
+fok pump();
+  
+
+      
+  
+
+
+
+import 导入模块 import math , import math as mt , import math.rand as rd
+
+
+= 赋值
+
+==
+>
+>=
+<
+<=
+
+def 定义 提升至作用域顶层
+
+global
+local
+
+import
+export
+
+fun
+class
+extend
+
+do
+when
+
+if
+elif
+else
+
+not
+is
+as
+or
+and
+
+del
+
+try
+catch
+throw
+assert
+
+for
+in
+
+from
+
+with
+this
+pass
+
+continue
+break
+return
+
+type
+
+yield
+
+
+
+
+
 
 
 
