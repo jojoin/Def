@@ -9,15 +9,35 @@ Fok
 4. 
 
 
-数组 array ["foo", "bar"] 
-元组 tuple ("foo", "bar")
-集合 set   {"foo", "bar"}
-字典 dict  {"foo":123, "bar": 123}
+```
 
-细胞 cell  {
+无        none       none            值为假（变量未初始化，函数无返回值，手动赋值）
+真假      bool       true, false
+
+整形      int        123              
+浮点      float      123.45           
+字符串    str        "abc"            
+
+数组      array      ["foo", "bar"]   空数组
+元组      tuple      ("foo", "bar")
+集合      set        {"foo", "bar"}
+字典      dict       {"foo":123, "bar": 123}
+
+函数      func       func(){}
+
+类/对象   class/object  {
   for = 123,
-  boo = ,
+  boo = func(foo, bar){
+    
+  },
 }
+
+
+关键字
+
+return 函数/模块   返回值
+import 导入模块
+
 
 
 
@@ -36,5 +56,6 @@ for one,ker,abc in kar
 
 if not :
   ok
-
+  
+```
 
