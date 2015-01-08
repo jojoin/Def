@@ -13,19 +13,23 @@ Fok
 
 
 【内置基本类型】 值传递
-无        none       none            值为假（变量未初始化，函数无返回值，手动赋值）
+无        none       none            值为假（变量初始化但未赋值，函数无返回值，手动赋值）
 真假      bool       true, false
 整形      int        123              
 浮点      float      123.45           
-字符串    str        "abc"            
+字符串    str        "abc" '123'           
 
 
 【内置容器类型】 引用传递
-数组      array      ["foo", "bar"]   空数组
-元组      tuple      ("foo", "bar")
-集合      set        {"foo", "bar"}
-字典      dict       {"foo":123, "bar": 123}
+元组      tuple      ("foo" "bar")           不能手写一个单变量元组（与优先级冲突），只能通过list转换
+数组      list       ["foo" "bar"]
+集合      set        {"foo" "bar" abc*2}
+字典      dict       {"foo":123 "bar":456}
 
+
+( 500 + 8 )*100
+
+【细胞】
 
 【函数】 引用传递
 函数      fun        fun myFunc():
@@ -35,6 +39,86 @@ Fok
 类        class          class MyType():
 对象      object
 
+
+
+【运算符】
++    -    *    /
++=   -=   *=   /=
+**   
+ 
+
+
+i = 0, p = '', k = 1
+i,p,k = 0,'',1
+
+obj = [k d e]
+
+a b c = "a" () 123
+
+# $ 求值操作符
+
+# 元组求值
+$(func x y)
+
+run = (func x y)
+$run
+
+[a b c]
+[a b c ...]
+[a:1 b:2 c:3]
+[a:1 b:2 c:3 ...]
+
+
+
+# 函数和匿名函数
+
+(x y):x*y;
+func(x y):x*y
+
+# 调用函数
+func(a b)
+
+# for 循环
+
+item(v k):v*=2 
+for(arr item)
+for(arr (v k) :v*=2)
+
+
+arr = [1 2 3]
+
+
+
+# 定义函数
+def func(foo bar=123)
+	val = 5;
+
+# 匿名函数
+def()return abc;
+
+# 调用函数
+func(foo bar)
+
+
+# 定义类
+def objc{foo bar=123}
+	val = 5
+	def __$__()
+		return ('abc' 123)
+	;
+;
+
+# 匿名类
+def{};
+
+# 新建类实例
+objc{foo bar}
+
+
+$(zhi 123)
+(zhi 123)
+
+func(abc 123)
 
 
 
@@ -69,6 +153,7 @@ fok pump();
 
 import 导入模块 import math , import math as mt , import math.rand as rd
 
+^ 解包（元组、数组、）
 
 = 赋值
 
