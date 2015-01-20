@@ -107,7 +107,7 @@ class Token {
 #define K(name, string, precedence) name,
 	enum class Keyword {
 		TOKEN_LIST(S, K)
-		_Num // 符号数量
+		_Num // 关键字数量
 	};
 #undef S
 #undef K
@@ -116,6 +116,7 @@ class Token {
 
 	static const char* const signs[(int)Sign::_Num];
 	static const char* const keywords[(int)Keyword::_Num];
+
 
 /////////////////////  方法   //////////////////////
 
