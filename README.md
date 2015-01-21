@@ -21,7 +21,7 @@ Def
 
 
 【内置容器类型】 引用传递
-元组      tuple      ("foo" "bar")           不能手写一个单变量元组（与优先级冲突），只能通过list转换
+元组      tuple      ("foo" "bar")           不能手写一个单变量元组（与优先级冲突），只能通过list转换或 tuple("bar")
 数组      list       ["foo" "bar"]
 集合      set        {"foo" "bar" abc*2}
 字典      dict       {"foo":123 "bar":456}
@@ -46,7 +46,7 @@ Def
 +=   -=   *=   /=
 **   
  
-
+自制编译器 自制脚本语言 自制编程语言
 
 i = 0, p = '', k = 1
 i,p,k = 0,'',1
@@ -63,11 +63,14 @@ $(func x y)
 run = (func x y)
 $run
 
-[a b c]
-[a b c ...]
-[a:1 b:2 c:3]
-[a:1 b:2 c:3 ...]
+元组 (a b c)
+数组 [a b c*d]
+字典 [a:1 b:2 c:3]
 
+### 包
+pkg = {
+  
+}
 
 
 # 函数和匿名函数

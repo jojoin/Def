@@ -3,10 +3,16 @@
 #define DEF_TOKEN_H
 
 
+///////
+#include <iostream>
+///////
 #include <string>
 
-using namespace std;
+#include "../Util/str.h"
 
+
+using namespace std;
+using namespace def::util;
 
 
 namespace def {
@@ -16,7 +22,7 @@ namespace token {
 									\
 	/* 符号 */						\
 	S(Assing, "=", 0)              \
-	S(Comma, ", ", 0)              \
+	S(Comma, ",", 0)              \
 	S(Dot, ".", 0)              \
 	S(Colon, ":", 0)              \
 	S(Semicolon, ";", 0)              \
@@ -30,7 +36,7 @@ namespace token {
 	S(Div, "/", 0)              \
 	S(Mod, "%", 0)              \
     							\
-	S(Lparen, ", ", 0)              \
+	S(Lparen, "(", 0)              \
 	S(Rparen, ")", 0)              \
 	S(Lbrack, "[", 0)              \
 	S(Rbrack, "]", 0)              \
@@ -72,12 +78,14 @@ class Token {
 	enum class State {
 		Normal,       // 默认
 		Identifier,   // 标识符 包含关键字
+		Letter,       // 英文字母
 		Sign,         // 符号
 		Number,       // 数字
 		String,       // 字符串
 		Annotation,   // 注释
 		Space,        // 空格、tab等制表符
 		NewLine,      // 换行
+		Unknow,       // 不明字符
 		End           // 结束符
 	};
 
@@ -121,12 +129,14 @@ class Token {
 /////////////////////  方法   //////////////////////
 
 	// 判断字符是否为符号
-	/*
-	static bool IsSign(Value tok) {
-		return value_type[tok] == 'S'; // tok is unsigned
-	}*/
+	static bool IsSign(wchar_t tok) {
+		string str = " ";
+		str[0] = tok;
+		return IsSign(str);
+	}
 	static bool IsSign(string tok) {
-		for(int i=0; i<(int)Sign::_Num; i++)
+		int num = (int)Sign::_Num;
+		for(int i=0; i<num; i++)
 		{
 			if(signs[i] == tok)
 			{
@@ -142,7 +152,8 @@ class Token {
 		return value_type[tok] == 'K'; // tok is unsigned
 	}*/
 	static bool IsKeyword(string tok) {
-		for(int i=0; i<(int)Keyword::_Num; i++)
+		int num = (int)Sign::_Num;
+		for(int i=0; i<num; i++)
 		{
 			if(keywords[i] == tok)
 			{
@@ -151,6 +162,42 @@ class Token {
 		}
 		return false;
 	}
+
+
+	// 判断字符所属状态
+	static State GetState(wchar_t tok) {
+
+		if( (tok>=L'a' && tok<=L'z') || 
+			(tok>=L'A' && tok<=L'Z') ||
+			tok==L'_'
+		){ //字母或下划线
+			return State::Letter;
+		}
+
+		if( tok==L'#' ){ //注释
+			return State::Annotation;
+		}
+
+		if( tok==L'\n' ){ //换行
+			return State::NewLine;
+		}
+
+		if( tok>=L'0' && tok<=L'9' ){ //数字
+			return State::Number;
+		}
+
+		if( IsSign(tok) ){ //有效符号
+
+			return State::Sign;
+		}
+
+		return State::Unknow;
+
+	}
+
+
+
+
 
 
 /*
