@@ -43,4 +43,4 @@ class Str {
 
 
 #endif
-// --end-- DEF_TOKEN_H
+// --end-- DEF_UTIL_STR_H

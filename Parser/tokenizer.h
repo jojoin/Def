@@ -55,9 +55,24 @@ class Tokenizer {
 
 	// 去除缓存的字符 作为一个单词保存 清空缓存
 	inline void PopBuf(){
+		if(buf==L""){
+			return;
+		}
 		words.push_back(buf);
 		buf = L"";
 	};
+
+
+	// 清理
+	inline void Clear(){
+		otok = L' ';
+		tok = L' ';
+		ptok = L' ';
+		pos = 0;
+		buf = L"";
+		words.clear();
+	};
+
 
 	// 扫描文本
 	vector <wstring> & Scan();

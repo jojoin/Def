@@ -29,6 +29,44 @@ namespace token {
 #undef K
 
 
+/**
+ * 判断字符所属状态
+ */
+Token::State Token::GetState(wchar_t tok) {
+
+	if( (tok>=L'a' && tok<=L'z') || 
+		(tok>=L'A' && tok<=L'Z') ||
+		tok==L'_'
+	){ //字母或下划线
+		return State::Letter;
+	}
+
+	if( tok==L'#' ){ //注释
+		return State::Annotation;
+	}
+
+	if( tok==L'\n' ){ //换行
+		return State::NewLine;
+	}
+
+	if( tok>=L'0' && tok<=L'9' ){ //数字
+		return State::Number;
+	}
+
+	if( IsSign(tok) ){ //有效符号
+		return State::Sign;
+	}
+
+	if( tok==L'\0' ){ //结束
+		return State::End;
+	}
+
+	return State::Unknow;
+
+}
+
+
+
 
 
 } // --end-- namespace token
