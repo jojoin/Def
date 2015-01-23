@@ -8,8 +8,10 @@
 ///////
 #include <iostream>
 #include <time.h>
+#include <cstdlib>
 ///////
 
+#include <fstream> 
 #include <string>
 #include <exception>
 
@@ -21,16 +23,80 @@ using namespace std;
 using namespace def::token;
 using namespace def::util;
 
+// Log::log
+#define ERR(str) cerr<<str<<endl;;exit(1);
+
+// Token::State
+#define S Token::State
 
 /**
  * 构造
+ * @isFile 是否为本地文件路径
  */
-Tokenizer::Tokenizer(wstring txt):
+Tokenizer::Tokenizer(string txt, bool isFile=false):
 	text(txt)
 {
+	// 读取本地文件
+	if(isFile){
+		//std::locale::global(std::locale("")); //设置语言环境，支持中文路径
+		//setlocale(LC_ALL,"Chinese-simplified"); 
+		ifstream inFile;
+    	inFile.open(txt);
+    	if(!inFile){
+    		ERR("S0001")
+    	}else{
+    		text = "";
+			string str;
+			while(!inFile.eof() && getline(inFile, str))
+			{
+				//cout<<str<<endl;
+				text += str+'\n';
+			}
+			//ERR("text:  "+text)
+    	}
+	}
+
 	// 清理 初始化数据
 	Clear(); 
 }
+
+
+/**
+ * 保存当前单词 清空缓存
+ */
+void Tokenizer::Push(S sta=S::Normal)
+{
+	if(buf==""){
+		return;
+	}
+
+	// 判断是否为关键字
+	if(sta==S::Identifier
+	   && Token::IsKeyword(buf)
+	){ 
+		sta = S::Keyword;
+	}
+
+	// 判断是整形还是浮点
+	if(sta==S::Number){
+		if(Token::IsFloat(buf)){
+			sta = S::Float;
+		}else{
+			sta = S::Int;
+		}
+	}
+
+
+	struct Word wd = {
+		line,
+		pos,
+		sta,
+		buf
+	};
+	words.push_back(wd);
+	buf = "";
+};
+
 
 
 /**
@@ -43,8 +109,6 @@ vector <Word> & Tokenizer::Scan()
 	Clear();
 
 	// 状态机状态
-
-#define S Token::State
 
 	S ss = S::Normal;
 	//Token::State status = Token::State::Normal;
@@ -82,6 +146,10 @@ vector <Word> & Tokenizer::Scan()
 			}else if(s==S::Sign){
 				Buf();
 				ss = S::Sign;
+			}else if(s==S::NewLine){ // 
+				//Buf();
+				//Push(S::NewLine);
+				//ss = S::Normal;
 			}else if(s==S::End){ // 结束
 				Push(S::End);
 				break;
@@ -98,8 +166,11 @@ vector <Word> & Tokenizer::Scan()
 
 		}else if(ss==S::Number){ // 数字
 
-			if(s==S::Number){
+			if(s==S::Number||tok=='.'){
 				Buf();
+			}else if(s==S::Character){
+				//TODO:: 【错误】数字后面不能跟字母
+				ERR("T0002");
 			}else{
 				Push(S::Number);
 				Back();
@@ -127,15 +198,18 @@ vector <Word> & Tokenizer::Scan()
 				ss = S::Normal;
 			}
 
+		}else if(ss==S::NewLine){ // 换行
+			//连续换行将被忽略
+			
 		}else if(ss==S::End){ // 结束
+
+
 			Push(S::End);
 			//TODO:: 不是普通状态的结束 错误
 			break;
-			cout<<123145<<endl;
+			//cout<<123145<<endl;
 		}
 
-
-#undef S
 
 	}
 
@@ -144,7 +218,8 @@ vector <Word> & Tokenizer::Scan()
 
 
 
-
+#undef S // Token::State
+#undef ERR // Log::log exit
 
 
 
@@ -155,16 +230,14 @@ vector <Word> & Tokenizer::Scan()
 
 int main()
 {
-    wcout << L"\n";
+    cout << "\n";
 
-    wstring text = L"if(a==12)#注释\n tup1 = tuple(tar get)\n\n#注释\n _count123 = 139 +num*2\n\n";
-
-    Tokenizer TK(text);
+    Tokenizer TK("./Parser/test.d", true);
     vector <Word> words = TK.Scan();
 
     for(int i=0; i<words.size(); i++){
     	Word wd = words[i];
-		wcout << wd.line << ","<< wd.pos << "  " << (int)wd.type << "  " << wd.value << endl;
+		cout << wd.line << ","<< wd.pos << "  " << (int)wd.type << "  " << wd.value << endl;
     }
 
 
@@ -186,7 +259,7 @@ int main()
     //cout << "num: "<<Token::keywords[0];
 
 
-    wcout << L"\n\n";
+    cout << "\n\n";
     //int end;
     //cout << "\n\n--- Enter Anything To Exit ---";
     //cin >> end;

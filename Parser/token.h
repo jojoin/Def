@@ -119,7 +119,7 @@ class Token {
 /////////////////////  方法   //////////////////////
 
 	// 判断字符是否为符号
-	static bool IsSign(wchar_t tok) {
+	static bool IsSign(char tok) {
 		string str = " ";
 		str[0] = tok;
 		return IsSign(str);
@@ -153,11 +153,19 @@ class Token {
 		return false;
 	}
 
+	//判断是否为浮点数
+	static bool IsFloat(string str) {
+		if(str.find('.'>0)){
+			return true;
+		}
+		return false;
+	}
+
 	// 获取转义字符
-	static wchar_t GetEscapeChat(wchar_t);
+	static wchar_t GetEscapeChat(char);
 
 	// 判断字符所属状态
-	static State GetState(wchar_t);
+	static State GetState(char);
 
 
 

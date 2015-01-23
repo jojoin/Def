@@ -25,7 +25,7 @@ struct Word {
 	unsigned int line;          // 代码行
 	unsigned int pos;           // 所属位置
 	S type; // 类型
-	wstring value;     // 值
+	string value;     // 值
 };
 
 
@@ -34,7 +34,7 @@ class Tokenizer {
 
 	public:
 
-	Tokenizer(wstring txt);
+	Tokenizer(string, bool);
 
 	// 读取一个字符 并移动指针
 	inline wchar_t Read(){
@@ -61,8 +61,8 @@ class Tokenizer {
 	};
 
 	// 缓存当前的字符
-	inline void Buf(wstring t=L""){
-		if(t!=L""){
+	inline void Buf(string t=""){
+		if(t!=""){
 			buf += t;
 		}else{
 			buf += tok;
@@ -70,30 +70,17 @@ class Tokenizer {
 	};
 
 	// 保存当前单词 清空缓存
-	inline void Push(S sta=S::Normal){
-		if(buf==L""){
-			return;
-		}
-		struct Word wd = {
-			line,
-			pos,
-			sta,
-			buf
-		};
-		words.push_back(wd);
-		buf = L"";
-	};
-
+	inline void Push(S);
 
 	// 清理
 	inline void Clear(){
 		line = 1; //开始第一行
 		pos = 0;
 		cursor = 0;
-		otok = L' ';
-		tok = L' ';
-		ptok = L' ';
-		buf = L"";
+		otok = ' ';
+		tok = ' ';
+		ptok = ' ';
+		buf = "";
 		words.clear();
 	};
 
@@ -107,13 +94,13 @@ class Tokenizer {
 	unsigned int line;  //当前所在行
 	unsigned int pos;  //当前所在行
 	
-	wstring text;  // 需要分析的文本
-	wchar_t otok;  // 上一个字符字符
-	wchar_t tok;   // 当前字符
-	wchar_t ptok;  // 预查看的字符
+	string text;  // 需要分析的文本
+	char otok;  // 上一个字符字符
+	char tok;   // 当前字符
+	char ptok;  // 预查看的字符
 	unsigned int cursor;  // 当前字符读取位置
 	
-	wstring buf;   // 缓存的字符
+	string buf;   // 缓存的字符
 	vector <Word> words;  // 词法分析后的单词列表
 
 }; // --end-- class Token

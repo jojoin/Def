@@ -32,7 +32,7 @@ namespace token {
 /**
  * 获取转义字符
  */
-wchar_t Token::GetEscapeChat(wchar_t tok)
+wchar_t Token::GetEscapeChat(char tok)
 {
 	switch (tok) {
 		case '\'':  // fall through
@@ -53,28 +53,28 @@ wchar_t Token::GetEscapeChat(wchar_t tok)
 /**
  * 判断字符所属状态
  */
-Token::State Token::GetState(wchar_t tok)
+Token::State Token::GetState(char tok)
 {
-	if( (tok>=L'a' && tok<=L'z') || 
-		(tok>=L'A' && tok<=L'Z') ||
-		tok==L'_'
+	if( (tok>='a' && tok<='z') || 
+		(tok>='A' && tok<='Z') ||
+		tok=='_'
 	){ //字母或下划线
 		return State::Character;
 	}
 
-	if( tok==L' ' || tok==L'	' ){ //空格或tab
+	if( tok==' ' || tok=='	'){ //空格或tab
 		return State::Space;
 	}
 
-	if( tok>=L'0' && tok<=L'9' ){ //数字
+	if( tok>='0' && tok<=L'9' ){ //数字
 		return State::Number;
 	}
 
-	if( tok==L'#' ){ //注释
+	if( tok=='#' ){ //注释
 		return State::Annotation;
 	}
 
-	if( tok==L'\n' ){ //换行
+	if( tok=='\n' ){ //换行
 		return State::NewLine;
 	}
 
@@ -82,7 +82,7 @@ Token::State Token::GetState(wchar_t tok)
 		return State::Sign;
 	}
 
-	if( tok==L'\0' ){ //结束
+	if( tok=='\0' ){ //结束
 		return State::End;
 	}
 
