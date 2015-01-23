@@ -56,6 +56,29 @@ class Log {
 		cout<<t0<<t1<<t2<<t3<<t4<<t5<<t6<<t7<<t8<<t9<<endl;
 	}
 
+	// 打印
+	inline static void log(
+		wchar_t t
+	){
+		wcout<<t<<endl;
+	}
+
+	// 打印
+	inline static void log(
+		wstring t0=L"",
+		wstring t1=L"",
+		wstring t2=L"",
+		wstring t3=L"",
+		wstring t4=L"",
+		wstring t5=L"",
+		wstring t6=L"",
+		wstring t7=L"",
+		wstring t8=L"",
+		wstring t9=L""
+	){
+		wcout<<t0<<t1<<t2<<t3<<t4<<t5<<t6<<t7<<t8<<t9<<endl;
+	}
+
 
 
 

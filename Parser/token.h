@@ -61,26 +61,16 @@ class Token {
 
 	public:
 
-	// 类型
-	enum class Type {
-		Keyword,      // 关键字
-		Sign,         // 符号
-		Number,       // 数字
-		String,       // 字符串
-		Identifier,   // 标识符
-		Annotation,   // 注释
-		Space,        // 空格、tab等制表符
-		NewLine,      // 换行
-		End           // 结束符
-	};
-
-	// 状态
+	// 状态 包含 word 类型
 	enum class State {
 		Normal,       // 默认
 		Identifier,   // 标识符 包含关键字
-		Letter,       // 英文字母
+		Keyword,         // 关键字
+		Character,       // 英文字母
 		Sign,         // 符号
 		Number,       // 数字
+		Int,             // 整形
+		Float,           // 浮点型
 		String,       // 字符串
 		Annotation,   // 注释
 		Space,        // 空格、tab等制表符
@@ -163,87 +153,18 @@ class Token {
 		return false;
 	}
 
+	// 获取转义字符
+	static wchar_t GetEscapeChat(wchar_t);
 
 	// 判断字符所属状态
 	static State GetState(wchar_t);
 
 
 
-
-
-/*
-	// 检查是否为符号或关键字
-	static const bool Check(string tok) {
-		for(int i=0; i<Value._Num; i++)
-		{
-			if(value_string[i] == tok)
-			{
-				return true
-			}
-		}
-		return false;
-	}
-
-
-	// 获取符号名称
-	static const char* Name(Value tok) {
-		return value_name[tok];
-	}
-
-	// 获取符号字符串
-	static const char* String(Value tok) {
-		return value_string[tok];
-	}
-
-
-
-	private:
-
-#define S(name, string, precedence) #name,
-	static const char* const value_name[] = {
-	  TOKEN_LIST(S, S)
-	};
-#undef S
-
-
-#define S(name, string, precedence) string,
-	static const char* const value_string[] = {
-	  TOKEN_LIST(S, S)
-	};
-#undef S
-
-
-#define S(name, string, precedence) precedence,
-	static const int8_t value_precedence[] = {
-	  TOKEN_LIST(S, S)
-	};
-#undef S
-
-
-#define KS(a, b, c) 'S',
-#define KK(a, b, c) 'K',
-	static const char value_type[] = {
-	  TOKEN_LIST(KS, KK)
-	};
-#undef KS
-#undef KK
-
-*/
-
-/*
-	private:
-
-	static const char* const ValueName[Tokens_num];
-	static const char* const ValueString[Tokens_num];
-	static const int8_t ValuePrecedence[Tokens_num];
-	static const char ValueType[Tokens_num];
-*/
-
 }; // --end-- class Token
 
 } // --end-- namespace token
 } // --end-- namespace def
-
 
 
 
