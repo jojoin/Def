@@ -32,7 +32,7 @@ namespace token {
 /**
  * 获取转义字符
  */
-wchar_t Token::GetEscapeChat(char tok)
+char Token::GetEscapeChat(char tok)
 {
 	switch (tok) {
 		case '\'':  // fall through
@@ -72,6 +72,12 @@ Token::State Token::GetState(char tok)
 
 	if( tok=='#' ){ //注释
 		return State::Annotation;
+	}
+
+	if( tok=='"' ){ //字符串
+		return State::DQuotation;
+	}else if( tok=='\'' ){
+		return State::Quotation;
 	}
 
 	if( tok=='\n' ){ //换行

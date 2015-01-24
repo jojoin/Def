@@ -40,18 +40,19 @@ Tokenizer::Tokenizer(string txt, bool isFile=false):
 	if(isFile){
 		//std::locale::global(std::locale("")); //设置语言环境，支持中文路径
 		//setlocale(LC_ALL,"Chinese-simplified"); 
-		ifstream inFile;
-    	inFile.open(txt);
-    	if(!inFile){
+		ifstream file;
+    	file.open(txt);
+    	if(!file){
     		ERR("S0001")
     	}else{
-    		text = "";
-			string str;
-			while(!inFile.eof() && getline(inFile, str))
-			{
+    		getline(file, text, '\0');
+    		//text = "";
+			//string str;
+			//while(!file.eof() && getline(file, text, '\0'))
+			//{
 				//cout<<str<<endl;
-				text += str+'\n';
-			}
+				//text = str;
+			//}
 			//ERR("text:  "+text)
     	}
 	}
@@ -66,17 +67,15 @@ Tokenizer::Tokenizer(string txt, bool isFile=false):
  */
 void Tokenizer::Push(S sta=S::Normal)
 {
-	if(buf==""){
+	if( sta!=S::NewLine && buf==""){
 		return;
 	}
-
 	// 判断是否为关键字
 	if(sta==S::Identifier
 	   && Token::IsKeyword(buf)
 	){ 
 		sta = S::Keyword;
 	}
-
 	// 判断是整形还是浮点
 	if(sta==S::Number){
 		if(Token::IsFloat(buf)){
@@ -85,16 +84,15 @@ void Tokenizer::Push(S sta=S::Normal)
 			sta = S::Int;
 		}
 	}
-
-
 	struct Word wd = {
 		line,
-		pos,
+		word_pos,
 		sta,
 		buf
 	};
 	words.push_back(wd);
 	buf = "";
+	word_pos++;
 };
 
 
@@ -116,16 +114,10 @@ vector <Word> & Tokenizer::Scan()
 	while(1){
 
     	Read(); //读取一个字符
+    	//cout << tok << endl;
 
 		// 当前字符状态
     	S s = Token::GetState(tok);
-
-    	// 换行
-		if(s==S::NewLine){
-			line++; //新行
-			pos = 0;
-		}
-		pos++;  //字符位置
 
 		//Log::log(tok);
 
@@ -138,29 +130,56 @@ vector <Word> & Tokenizer::Scan()
 			}else if(s==S::Number){
 				Buf();
 				ss = S::Number;
-			}else if(s==S::Annotation){
-				ss = S::Annotation;
+			}else if(s==S::Annotation){//注释
+				if(Peek()=='#'&&Peek(2)=='#'){
+					//块注释
+					do{ Jump(); }while(Peek()!='\n');
+					ss = S::BlockAnnotation;
+				}else{
+					ss = S::Annotation;
+				}
 			}else if(s==S::Character){
 				Buf();
 				ss = S::Character;
 			}else if(s==S::Sign){
 				Buf();
-				ss = S::Sign;
-			}else if(s==S::NewLine){ // 
+				char next = Peek();
+				if(Token::IsSign(next)&&Token::IsSign({tok,next})){
+					Buf(next);
+					Jump();
+				}
+				Push(S::Sign);
+				ss = S::Normal;
+			}else if(s==S::NewLine){
 				//Buf();
 				//Push(S::NewLine);
-				//ss = S::Normal;
+				ss = S::Normal;
+			}else if(s==S::DQuotation){
+				ss = S::DQuotation;
+			}else if(s==S::Quotation){
+				ss = S::Quotation;
 			}else if(s==S::End){ // 结束
 				Push(S::End);
 				break;
 			}
 
-		}else if(ss==S::Space){ // 空白符 忽略
+		}else if(ss==S::Space||ss==S::NewLine){ // 空白符 忽略
 
+				ss = S::Normal;
 
 		}else if(ss==S::Annotation){ // 注释 忽略
 
 			if(s==S::NewLine){
+				ss = S::Normal;
+			}else if(s==S::End){
+				break; //结束
+			}
+
+		}else if(ss==S::BlockAnnotation){ // 块注释 忽略
+
+			if(tok=='#'&&prev_tok=='#'&&pprev_tok=='#'){
+				//块注释结束
+				do{ Jump(); }while(Peek()!='\n');
 				ss = S::Normal;
 			}
 
@@ -173,7 +192,7 @@ vector <Word> & Tokenizer::Scan()
 				ERR("T0002");
 			}else{
 				Push(S::Number);
-				Back();
+				if(s!=S::NewLine) Back();
 				ss = S::Normal;
 			}
 
@@ -183,7 +202,7 @@ vector <Word> & Tokenizer::Scan()
 				Buf();
 			}else{
 				Push(S::Identifier);
-				Back();
+				if(s!=S::NewLine) Back();
 				ss = S::Normal;
 			}
 
@@ -191,24 +210,50 @@ vector <Word> & Tokenizer::Scan()
 
 			if(s==S::Sign){
 				Buf();
-				ss = S::Sign;
 			}else{
 				Push(S::Sign);
-				Back();
+				if(s!=S::NewLine) Back();
 				ss = S::Normal;
 			}
 
-		}else if(ss==S::NewLine){ // 换行
-			//连续换行将被忽略
-			
+		}else if(ss==S::DQuotation){ //双引号字符串
+
+			if(s==S::DQuotation){
+				Push(S::String);
+				ss = S::Normal;
+			}else if(tok=='\\'){//转义
+				Read();
+				Buf(Token::GetEscapeChat(tok));
+			}else{
+				Buf();
+			}
+
+		}else if(ss==S::Quotation){ //单引号字符串
+
+			if(s==S::Quotation){
+				Push(S::String);
+				ss = S::Normal;
+			}else if(tok=='\\'){//转义
+				Read();
+				Buf(Token::GetEscapeChat(tok));
+			}else{
+				Buf();
+			}
+
 		}else if(ss==S::End){ // 结束
 
-
 			Push(S::End);
-			//TODO:: 不是普通状态的结束 错误
-			break;
-			//cout<<123145<<endl;
+			break; //结束
 		}
+
+
+    	// 换行
+		if(s==S::NewLine){
+			//Log::log("line++");
+			line++; //新行
+			word_pos = 1;
+		}
+
 
 
 	}

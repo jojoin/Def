@@ -48,6 +48,9 @@ namespace token {
 									\
 	S(Pound, "#", 0)              \
 									\
+	S(Equal, "==", 0)              \
+	S(Array, ":[", 0)              \
+									\
 	/* 关键字 */					\
 	K(If, "if", 0)              \
 	K(While, "while", 0)              \
@@ -65,14 +68,17 @@ class Token {
 	enum class State {
 		Normal,       // 默认
 		Identifier,   // 标识符 包含关键字
-		Keyword,         // 关键字
-		Character,       // 英文字母
+		  Keyword,       // 关键字
+		Character,     // 英文字母
 		Sign,         // 符号
 		Number,       // 数字
-		Int,             // 整形
-		Float,           // 浮点型
+		  Int,           // 整形
+		  Float,         // 浮点型
 		String,       // 字符串
-		Annotation,   // 注释
+		  DQuotation,    //双引号
+		  Quotation,     //单引号
+		Annotation,   // 单行注释
+		BlockAnnotation,   // 块注释
 		Space,        // 空格、tab等制表符
 		NewLine,      // 换行
 		Unknow,       // 不明字符
@@ -119,16 +125,18 @@ class Token {
 /////////////////////  方法   //////////////////////
 
 	// 判断字符是否为符号
-	static bool IsSign(char tok) {
+	static bool IsSign(char tok)
+	{
 		string str = " ";
 		str[0] = tok;
 		return IsSign(str);
 	}
-	static bool IsSign(string tok) {
+	static bool IsSign(string str)
+	{
 		int num = (int)Sign::_Num;
 		for(int i=0; i<num; i++)
 		{
-			if(signs[i] == tok)
+			if(signs[i] == str)
 			{
 				return true;
 			}
@@ -141,7 +149,8 @@ class Token {
 	static bool IsKeyword(Value tok) {
 		return value_type[tok] == 'K'; // tok is unsigned
 	}*/
-	static bool IsKeyword(string tok) {
+	static bool IsKeyword(string tok)
+	{
 		int num = (int)Sign::_Num;
 		for(int i=0; i<num; i++)
 		{
@@ -154,7 +163,8 @@ class Token {
 	}
 
 	//判断是否为浮点数
-	static bool IsFloat(string str) {
+	static bool IsFloat(string str)
+	{
 		if(str.find('.'>0)){
 			return true;
 		}
@@ -162,7 +172,7 @@ class Token {
 	}
 
 	// 获取转义字符
-	static wchar_t GetEscapeChat(char);
+	static char GetEscapeChat(char);
 
 	// 判断字符所属状态
 	static State GetState(char);

@@ -37,32 +37,32 @@ class Tokenizer {
 	Tokenizer(string, bool);
 
 	// 读取一个字符 并移动指针
-	inline wchar_t Read(){
-		otok = tok; // 存储
+	inline char Read(){
+		pprev_tok = prev_tok; // 存储
+		prev_tok = tok; // 存储
 		tok = Peek();
-		cursor++; // 移动指针
+		Jump();
 		return tok;
 	};
 
 	// 预先查看后一个字符
-	inline wchar_t Peek(){
-		ptok = (wchar_t)text[cursor];
-		return ptok;
+	inline char Peek(unsigned int c=1){
+		return (char)text[cursor+(--c)];
 	};
 
 	// 向前一步
-	inline void Go(){
-		cursor++; // 向后移动指针
+	inline void Jump(unsigned int c=1){
+		cursor += c; // 向后移动指针
 	};
 
 	// 返回一步
-	inline void Back(){
-		cursor--; // 向后移动指针
+	inline void Back(unsigned int c=1){
+		cursor -= c; // 向后移动指针
 	};
 
 	// 缓存当前的字符
-	inline void Buf(string t=""){
-		if(t!=""){
+	inline void Buf(char t='\0'){
+		if(t!='\0'){
 			buf += t;
 		}else{
 			buf += tok;
@@ -75,11 +75,12 @@ class Tokenizer {
 	// 清理
 	inline void Clear(){
 		line = 1; //开始第一行
-		pos = 0;
+		line_old = 1;
+		word_pos = 1;
 		cursor = 0;
-		otok = ' ';
-		tok = ' ';
-		ptok = ' ';
+		pprev_tok = '\0';
+		prev_tok = '\0';
+		tok = '\0';
 		buf = "";
 		words.clear();
 	};
@@ -92,12 +93,13 @@ class Tokenizer {
 	private:
 
 	unsigned int line;  //当前所在行
-	unsigned int pos;  //当前所在行
-	
+	unsigned int line_old;  //当前所在行
+	unsigned int word_pos;  //上次预读字符位置
+
 	string text;  // 需要分析的文本
-	char otok;  // 上一个字符字符
-	char tok;   // 当前字符
-	char ptok;  // 预查看的字符
+	char pprev_tok; // 上上一个字符
+	char prev_tok; // 上一个字符
+	char tok;      // 当前字符
 	unsigned int cursor;  // 当前字符读取位置
 	
 	string buf;   // 缓存的字符
