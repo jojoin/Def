@@ -3,8 +3,8 @@
  * 工具类
  */
 
-#ifndef DEF_UTIL_CONSOLE_H
-#define DEF_UTIL_CONSOLE_H
+#ifndef DEF_UTIL_LOG_H
+#define DEF_UTIL_LOG_H
 
 
 #include <string>
@@ -93,8 +93,7 @@ class Log {
 
 }; // --end-- class Log
 
-
-map<string, clock_t> Log::times;
+//map<string, clock_t> Log::times;
 
 
 
@@ -103,4 +102,4 @@ map<string, clock_t> Log::times;
 
 
 #endif
-// --end-- DEF_CONSOLE_H
+// --end-- DEF_UTIL_LOG_H

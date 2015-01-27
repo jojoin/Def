@@ -17,7 +17,7 @@ Def
 真假      bool       true, false
 整形      int        123              
 浮点      float      123.45           
-字符串    str        "abc" '123'           
+字符串    str     "abc" '123'           
 
 
 【内置容器类型】 引用传递

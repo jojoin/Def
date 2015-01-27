@@ -33,8 +33,9 @@ using namespace def::util;
  * 构造
  * @isFile 是否为本地文件路径
  */
-Tokenizer::Tokenizer(string txt, bool isFile=false):
-	text(txt)
+Tokenizer::Tokenizer(bool isFile, string txt, vector<Word>& wds):
+	text(txt),
+	words(wds)
 {
 	// 读取本地文件
 	if(isFile){
@@ -46,16 +47,11 @@ Tokenizer::Tokenizer(string txt, bool isFile=false):
     		ERR("S0001")
     	}else{
     		getline(file, text, '\0');
-    		//text = "";
-			//string str;
-			//while(!file.eof() && getline(file, text, '\0'))
-			//{
-				//cout<<str<<endl;
-				//text = str;
-			//}
-			//ERR("text:  "+text)
     	}
 	}
+
+	// 末尾加上换行兼容模式
+	text += "\n\n\n";
 
 	// 清理 初始化数据
 	Clear(); 
@@ -85,12 +81,13 @@ void Tokenizer::Push(S sta=S::Normal)
 		}
 	}
 	struct Word wd = {
-		line,
+		line_start?line_start:line,
 		word_pos,
 		sta,
 		buf
 	};
 	words.push_back(wd);
+	line_start = 0;
 	buf = "";
 	word_pos++;
 };
@@ -100,7 +97,7 @@ void Tokenizer::Push(S sta=S::Normal)
 /**
  * 扫描
  */
-vector <Word> & Tokenizer::Scan()
+void Tokenizer::Scan()
 {
 
 	// 清理
@@ -155,9 +152,21 @@ vector <Word> & Tokenizer::Scan()
 				//Push(S::NewLine);
 				ss = S::Normal;
 			}else if(s==S::DQuotation){
-				ss = S::DQuotation;
+				if(Peek()=='"'&&Peek(2)=='"'){
+					Jump(2);
+					line_start = line; //记录开始行
+					ss = S::BlockDQuotation;
+				}else{
+					ss = S::DQuotation;
+				}
 			}else if(s==S::Quotation){
-				ss = S::Quotation;
+				if(Peek()=='\''&&Peek(2)=='\''){
+					Jump(2);
+					line_start = line; //记录开始行
+					ss = S::BlockQuotation;
+				}else{
+					ss = S::Quotation;
+				}
 			}else if(s==S::End){ // 结束
 				Push(S::End);
 				break;
@@ -177,10 +186,12 @@ vector <Word> & Tokenizer::Scan()
 
 		}else if(ss==S::BlockAnnotation){ // 块注释 忽略
 
-			if(tok=='#'&&prev_tok=='#'&&pprev_tok=='#'){
+			if(s==S::End){
+				break;
+			}else if(tok=='#'&&prev_tok=='#'&&pprev_tok=='#'){
 				//块注释结束
 				do{ Jump(); }while(Peek()!='\n');
-				ss = S::Normal;
+				ss = S::Normal;  // 结束
 			}
 
 		}else if(ss==S::Number){ // 数字
@@ -240,6 +251,26 @@ vector <Word> & Tokenizer::Scan()
 				Buf();
 			}
 
+		}else if(ss==S::BlockDQuotation){ //块字符串
+
+			if(tok=='"'&&prev_tok=='"'&&pprev_tok=='"'){
+				Pop(2); //删除引号
+				Push(S::BlockDQuotation);
+				ss = S::Normal;
+			}else{
+				Buf();
+			}
+
+		}else if(ss==S::BlockQuotation){ //块字符串
+
+			if(tok=='\''&&prev_tok=='\''&&pprev_tok=='\''){
+				Pop(2); //删除引号
+				Push(S::BlockQuotation);
+				ss = S::Normal;
+			}else{
+				Buf();
+			}
+
 		}else if(ss==S::End){ // 结束
 
 			Push(S::End);
@@ -253,12 +284,9 @@ vector <Word> & Tokenizer::Scan()
 			line++; //新行
 			word_pos = 1;
 		}
-
-
-
 	}
 
-	return words;
+	// 语法分析执行完毕
 }
 
 
@@ -266,49 +294,3 @@ vector <Word> & Tokenizer::Scan()
 #undef S // Token::State
 #undef ERR // Log::log exit
 
-
-
-
-
-/*******************  单元测试   ******************/
-
-
-int main()
-{
-    cout << "\n";
-
-    Tokenizer TK("./Parser/test.d", true);
-    vector <Word> words = TK.Scan();
-
-    for(int i=0; i<words.size(); i++){
-    	Word wd = words[i];
-		cout << wd.line << ","<< wd.pos << "  " << (int)wd.type << "  " << wd.value << endl;
-    }
-
-
-
-	//wcout << L"1: " << words[0] << endl;
-
-
-	//std::locale::global(std::locale("zh_CN.UTF-8"));
-	//setlocale(LC_ALL ,"zh_CN.UTF-8"); //显示中文
-	//wcout.imbue(locale("chs"));
-	//wcout.imbue(locale("zh_CN.UTF-8")); 
-
-
-	//wcout << L"txt: " << L"13 + x*2 //注释";
-	//wcout << L"txt: " << ttt.length() << endl;
-	//wcout << L"txt: " << tok << endl;
-	//wprintf(L"\nkkk: %s", L"13 + x*2 //注释");
-	//wprintf(L"\nkkk: %s", ttt);
-    //cout << "num: "<<Token::keywords[0];
-
-
-    cout << "\n\n";
-    //int end;
-    //cout << "\n\n--- Enter Anything To Exit ---";
-    //cin >> end;
-}
-
-
-/*******************  测试结束   ******************/

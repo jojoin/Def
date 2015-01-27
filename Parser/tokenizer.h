@@ -34,7 +34,7 @@ class Tokenizer {
 
 	public:
 
-	Tokenizer(string, bool);
+	Tokenizer(bool, string, vector<Word>&);
 
 	// 读取一个字符 并移动指针
 	inline char Read(){
@@ -69,13 +69,18 @@ class Tokenizer {
 		}
 	};
 
+	// 弹出一个缓存的字符
+	inline void Pop(unsigned int n=1){
+		buf.erase(buf.size()-n, n);
+	};
+
 	// 保存当前单词 清空缓存
 	inline void Push(S);
 
 	// 清理
 	inline void Clear(){
-		line = 1; //开始第一行
-		line_old = 1;
+		line = 1;
+		line_start = 0;
 		word_pos = 1;
 		cursor = 0;
 		pprev_tok = '\0';
@@ -87,13 +92,13 @@ class Tokenizer {
 
 
 	// 扫描文本
-	vector <Word> & Scan();
+	void Scan();
 
 
 	private:
 
-	unsigned int line;  //当前所在行
-	unsigned int line_old;  //当前所在行
+	unsigned int line;  //当前所在行号
+	unsigned int line_start;  //记录开始行号，用于跨行命令
 	unsigned int word_pos;  //上次预读字符位置
 
 	string text;  // 需要分析的文本
@@ -103,7 +108,7 @@ class Tokenizer {
 	unsigned int cursor;  // 当前字符读取位置
 	
 	string buf;   // 缓存的字符
-	vector <Word> words;  // 词法分析后的单词列表
+	vector<Word> & words;  // 词法分析后的单词列表
 
 }; // --end-- class Token
 

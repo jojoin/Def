@@ -26,15 +26,15 @@ namespace token {
 	S(Dot, ".", 0)              \
 	S(Colon, ":", 0)              \
 	S(Semicolon, ";", 0)              \
-	S(Conditional, "?", 0)              \
-	S(Exclamation, "!", 0)              \
-	S(Tilde, "~", 0)              \
+	/*S(Conditional, "?", 0)*/              \
+	/*S(Exclamation, "!", 0)*/              \
+	/*S(Tilde, "~", 0)*/              \
                                 \
 	S(Add, "+", 0)              \
 	S(Sub, "-", 0)              \
 	S(Mul, "*", 0)              \
 	S(Div, "/", 0)              \
-	S(Mod, "%", 0)              \
+	/*S(Mod, "%", 0)*/              \
     							\
 	S(Lparen, "(", 0)              \
 	S(Rparen, ")", 0)              \
@@ -49,7 +49,7 @@ namespace token {
 	S(Pound, "#", 0)              \
 									\
 	S(Equal, "==", 0)              \
-	S(Array, ":[", 0)              \
+	/*S(Array, ":[", 0)*/              \
 									\
 	/* 关键字 */					\
 	K(If, "if", 0)              \
@@ -77,6 +77,8 @@ class Token {
 		String,       // 字符串
 		  DQuotation,    //双引号
 		  Quotation,     //单引号
+		  BlockDQuotation,//块字符串
+		  BlockQuotation, //块字符串
 		Annotation,   // 单行注释
 		BlockAnnotation,   // 块注释
 		Space,        // 空格、tab等制表符
