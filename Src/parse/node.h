@@ -39,16 +39,31 @@ enum class Type
 }; // --end-- enum class Type
 
 
-// 节点类
-class Node{
-
-	public:
-
+// 节点
+struct Node{
 	Type type; //类型
-	Node* parent; //父节点指针
+	Node *parent; //父节点指针
+	Node(Type t):type(t){}
+};
+
+// 整数类
+struct NodeValueInt : public Node{
+	long value;
+};
+
+// 浮点数类
+struct NodeValueFloat : public Node{
+	double value;
+};
+
+// 字符串类
+struct NodeValueFloat : public Node{
+	string value;
+};
 
 
-}; // --end-- class Node
+
+
 
 
 } // --end-- namespace node
