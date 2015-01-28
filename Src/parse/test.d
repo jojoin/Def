@@ -8,11 +8,14 @@
 
 ####### 注释结束  #######
 
+
+###
 block_str = """
 <div class="">
 	<p class="line"> something </p>
 </div>
 """
+###
 
 
 if a is 12:

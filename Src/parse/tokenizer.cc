@@ -13,7 +13,7 @@
 
 #include <fstream> 
 #include <string>
-#include <exception>
+//#include <exception>
 
 #include "tokenizer.h"
 #include "../Util/log.h"

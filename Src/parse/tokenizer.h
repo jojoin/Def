@@ -23,7 +23,7 @@ namespace token {
 // 单词
 struct Word {
 	unsigned int line;          // 代码行
-	unsigned int pos;           // 所属位置
+	unsigned int posi;          // 所属位置
 	S type; // 类型
 	string value;     // 值
 };

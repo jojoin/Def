@@ -84,6 +84,7 @@ class Token {
 		Space,        // 空格、tab等制表符
 		NewLine,      // 换行
 		Unknow,       // 不明字符
+		Null,         // 不存在
 		End           // 结束符
 	};
 
