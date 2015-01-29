@@ -24,28 +24,38 @@ class Nodezer {
 	Nodezer(vector<Word>&);
 
 	void Read(){
-		prev = cur;
-		cur = next;
-		if(i==0){
-			cur = words[0];
-		}
+		//cout<<"i: "<<i<<endl;
 		try{
-			next = words.at(i);
+			if(i>0) prev = words.at(i-1);
+			cur = words.at(i);
+			next = words.at(i+1);
 		}catch(const exception& e){
-			next = nullword;
+			unsigned int sz = words.size();
+			if(i+1>=sz) next = nullword;
+			if(i>=sz) cur = nullword;
+			if(i-1>=sz) prev = nullword;
 		}
 	};
+
+	void Jump(unsigned int s=1){
+		i += s;
+        Read();
+	}
 
 	void Clear(){
 		i = 0;
 		nullword = Word{0,0,Token::State::Null,""};
 		prev = cur = next = nullword;
-		tn_stk.clear();
-		tn_stk.push_back(TypeNode::Expression);
+		ctn = TypeNode::Expression;
+		//tn_stk.clear();
+		//tn_stk.push_back(TypeNode::Expression);
 	};
 
 
 	Node* Scan(); // 扫描构建节点树
+
+	TypeNode JudgeTypeNode(); // 判断当前节点类型
+	void Judge(); //执行预判
 
 	private:
 
@@ -57,7 +67,8 @@ class Nodezer {
 	Word nullword;  // 空单词
 
 	vector<Word>& words; // 单词
-	vector<TypeNode> tn_stk; // 当前节点类型栈
+	//vector<TypeNode> tn_stk; // 当前节点类型栈
+	TypeNode ctn; // 当前节点类型栈
 
 }; // --end-- class Nodezer
 

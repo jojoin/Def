@@ -34,9 +34,8 @@ arr = [(abc 123) (xyz 456)] #ddd
 
 
 
-num = 5
+num1 = 1
+num2 = count
 
-name = "yangjie"
 
-count = num
 

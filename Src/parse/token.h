@@ -66,16 +66,16 @@ class Token {
 
 	// 状态 包含 word 类型
 	enum class State {
-		Normal,       // 默认
-		Identifier,   // 标识符 包含关键字
-		  Symbol,        // 变量名
-		  Keyword,       // 关键字
-		Character,     // 英文字母
-		Sign,         // 符号
-		Number,       // 数字
-		  Int,           // 整形
-		  Float,         // 浮点型
-		String,       // 字符串
+		Normal,                 // 0  默认
+		Identifier,             // 1  标识符 包含关键字
+		  Symbol,               // 2  变量名
+		  Keyword,              // 3  关键字
+		Character,              // 4  英文字母
+		Sign,                   // 5  符号
+		Number,                 // 6  数字
+		  Int,                  // 7  整形
+		  Float,                // 8 浮点型
+		String,                 // 字符串
 		  DQuotation,    //双引号
 		  Quotation,     //单引号
 		  BlockDQuotation,//块字符串
@@ -169,7 +169,8 @@ class Token {
 	//判断是否为浮点数
 	static bool IsFloat(string str)
 	{
-		if(str.find('.'>0)){
+		// npos 表示未找到
+		if(str.find(".")!=string::npos){
 			return true;
 		}
 		return false;

@@ -7,6 +7,7 @@
 #define DEF_UTIL_STR_H
 
 
+#include <sstream>
 #include <string>
 
 using namespace std;
@@ -32,6 +33,16 @@ class Str {
 		std::wstring wstr(str.length(),L' ');
         std::copy(str.begin(), str.end(), wstr.begin());
         return wstr; 
+	}
+
+	// string 转 long
+	static long s2l(const string& str){
+		long l=0;
+		stringstream ss;
+		ss << str;//从str输入
+		ss >> l;//输出到long
+		ss.clear();
+		return l;
 	}
 
 	
