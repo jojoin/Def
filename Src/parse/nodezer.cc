@@ -15,8 +15,8 @@ using namespace def::node;
 /**
  * 构造
  */
-Nodezer::Nodezer(vector<Word>& w, NodeTree& n):
-    words(w), node(n)
+Nodezer::Nodezer(vector<Word>& w):
+    words(w)
 {
     Clear();
 }
@@ -24,16 +24,50 @@ Nodezer::Nodezer(vector<Word>& w, NodeTree& n):
 
 /**
  * 扫描单词 构建语法树
+ * @param tn 期望return的表达式类型
  */
-void Nodezer::Scan()
+Node* Nodezer::Scan(TypeNode rtn=TypeNode::Expression)
 {
-    while(1){
-        Read();
-        if(cur.type==nullword.type){
-            break;
-        }
-        cout << cur.value << endl;
+
+#define S Token::State
+#define T TypeNode
+
+    Read(); //读取
+
+    S ct = cur.type; //当前单词类型
+    string cv = cur.value; //当前单词值
+    if(ct==nullword.type){
+        break;
     }
+
+    //S pT = prev.type; //下一个单词类型
+    //string pV = prev.value; //下一个单词值
+
+    NodeTree * node()
+    //vector<Node*> childs; //子节点
+
+    if(ct==S::Identifier){
+        if(prev.value=='='){ //赋值语句
+
+        }
+    }
+
+
+
+    return 
+
+
+
+
+
+
+
+
+
+    //cout << cur.value << endl;
+
+#undef S // Token::State
+#undef T // TypeNode
 
 }
 

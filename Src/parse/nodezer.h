@@ -21,7 +21,7 @@ class Nodezer {
 
 	public:
 
-	Nodezer(vector<Word>&, NodeTree&);
+	Nodezer(vector<Word>&);
 
 	void Read(){
 		prev = cur;
@@ -29,7 +29,6 @@ class Nodezer {
 		if(i==0){
 			cur = words[0];
 		}
-		i++;
 		try{
 			next = words.at(i);
 		}catch(const exception& e){
@@ -41,10 +40,12 @@ class Nodezer {
 		i = 0;
 		nullword = Word{0,0,Token::State::Null,""};
 		prev = cur = next = nullword;
+		tn_stk.clear();
+		tn_stk.push_back(TypeNode::Expression);
 	};
 
 
-	void Scan(); // 扫描构建节点树
+	Node* Scan(); // 扫描构建节点树
 
 	private:
 
@@ -56,7 +57,7 @@ class Nodezer {
 	Word nullword;  // 空单词
 
 	vector<Word>& words; // 单词
-	NodeTree& node;      // 节点树
+	vector<TypeNode> tn_stk; // 当前节点类型栈
 
 }; // --end-- class Nodezer
 

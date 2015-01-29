@@ -68,6 +68,7 @@ class Token {
 	enum class State {
 		Normal,       // 默认
 		Identifier,   // 标识符 包含关键字
+		  Symbol,        // 变量名
 		  Keyword,       // 关键字
 		Character,     // 英文字母
 		Sign,         // 符号

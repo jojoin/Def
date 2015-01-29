@@ -15,8 +15,6 @@ block_str = """
 	<p class="line"> something </p>
 </div>
 """
-###
-
 
 if a is 12:
 	name = "yang测试文件jie"
@@ -26,13 +24,19 @@ else
 	# nothing to do
 ;
 
-###
-
-tup1 = tuple(tar get)num = 5
+tup1 = tuple(tar get)
 
 _count123 = 139.5 + num*2 
-
 
 arr = [(abc 123) (xyz 456)] #ddd
 
 ###
+
+
+
+num = 5
+
+name = "yangjie"
+
+count = num
+

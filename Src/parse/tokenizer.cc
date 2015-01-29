@@ -67,10 +67,12 @@ void Tokenizer::Push(S sta=S::Normal)
 		return;
 	}
 	// 判断是否为关键字
-	if(sta==S::Identifier
-	   && Token::IsKeyword(buf)
-	){ 
-		sta = S::Keyword;
+	if(sta==S::Identifier){
+		if(Token::IsKeyword(buf)){
+			sta = S::Keyword; //关键字
+		}else{
+			sta = S::Symbol; //变量名
+		}
 	}
 	// 判断是整形还是浮点
 	if(sta==S::Number){
