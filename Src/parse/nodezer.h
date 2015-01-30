@@ -52,7 +52,7 @@ class Nodezer {
 	};
 
 
-	Node* Scan(); // 扫描构建节点树
+	Node* Scan(Node*); // 扫描构建节点树
 
 	TypeNode JudgeTypeNode(); // 判断当前节点类型
 	void Judge(); //执行预判节点类型

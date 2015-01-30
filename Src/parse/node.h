@@ -91,7 +91,6 @@ struct NodeTree : Node{
 		return i<childs.size() ? childs[i] : NULL;
 	}
 };
-//NodeTree::~NodeTree(){} // 纯虚析构函数的定义
 
 
 // 组合表达式
@@ -129,26 +128,26 @@ struct NodeTwinTree : Node{
 		return right;
 	}
 };
-//NodeTwinTree::~NodeTwinTree(){} // 纯虚析构函数的定义
 
 
 // = 赋值节点
 struct NodeAssignment: NodeTwinTree{
 	NodeAssignment(Word &w)
 		: NodeTwinTree(TypeNode::Assignment, w){}
-	//~NodeAssignment(){
-        //cout<<"delete left "<<(int)left->type<<endl;
-		//delete left;
-        //cout<<"delete right "<<(int)right->type<<endl;
-		//delete right;
-	//}
 };
+
 
 // + 加操作节点
 struct NodeAdd: NodeTwinTree{
 	NodeAdd(Word &w)
 	: NodeTwinTree(TypeNode::Add, w){}
-	//~NodeAdd(){}
+};
+
+
+// * 乘操作节点
+struct NodeMul: NodeTwinTree{
+	NodeMul(Word &w)
+	: NodeTwinTree(TypeNode::Mul, w){}
 };
 
 

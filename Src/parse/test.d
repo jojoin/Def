@@ -34,8 +34,11 @@ arr = [(abc 123) (xyz 456)] #ddd
 
 
 
-num1 = 10
-num2 = count
+num = 10
+
+count = 5 + num * 10
+
+result = num * count + 13
 
 
 

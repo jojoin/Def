@@ -30,9 +30,10 @@ Nodezer::Nodezer(vector<Word>& w):
 /**
  * 扫描单词 构建语法树
  * @param tn 期望return的表达式类型
+ * @param adj 节点缓存，用于运算符优先级调整
  */
 
-Node* Nodezer::Scan()
+Node* Nodezer::Scan(Node* adj=NULL)
 {
     //TypeNode ctn = tn_stk.back();
     //tn_stk.pop_back();//移除
@@ -61,6 +62,36 @@ Node* Nodezer::Scan()
         Jump(2);
         Judge();//预判
         node->SetRightChild( Scan() );
+        return node;
+
+    }else if(ctn==T::Add){ // + 加法操作
+
+        cout<<"-Add-"<<endl;
+        NodeAdd *node = new NodeAdd(next);
+        if(adj){ //优先级调整
+            node->SetLeftChild(adj);
+        }else{
+            node->SetLeftChild(new NodeVariable(cur));
+            Jump(2);
+        }
+        Judge();//预判
+        node->SetRightChild( Scan());
+        return node;
+
+
+    }else if(ctn==T::Mul){ // * 乘法操作
+
+        cout<<"-Mul-"<<endl;
+        NodeMul *node = new NodeMul(next);
+        node->SetLeftChild(new NodeVariable(cur));
+        Jump(2);
+        Judge();//预判
+        if(ctn==T::Add||ctn==T::Sub){ //调整运算符优先级
+            node->SetRightChild(new NodeVariable(cur));
+            Jump(2);
+            return Scan(node);
+        }
+        node->SetRightChild( Scan());
         return node;
 
     }else if(ctn==T::Variable){ // 变量
@@ -103,7 +134,7 @@ TypeNode Nodezer::JudgeTypeNode()
     S nt = next.type;
     string nv = next.value;
 
-    //cout<<cur.value<<"->"<<nv<<endl;
+    cout<<cur.value<<"->"<<nv<<endl;
 
     if(ct==S::Symbol){
 
@@ -113,6 +144,8 @@ TypeNode Nodezer::JudgeTypeNode()
                 return T::Assignment;
             }else if(nv=="+"){
                 return T::Add;
+            }else if(nv=="*"){
+                return T::Mul;
             }
         }else if(nt==S::Symbol || nt==S::Null){
             //cout<<"  return T::Variable  "<<endl;
@@ -122,6 +155,11 @@ TypeNode Nodezer::JudgeTypeNode()
     }else if(ct==S::Int){
 
         if(nt==S::Sign){
+            if(nv=="+"){
+                return T::Add;
+            }else if(nv=="*"){
+                return T::Mul;
+            }
 
         }else if(nt==S::Symbol || nt==S::Null){
             //cout<<"  return T::Int  "<<endl;
@@ -167,10 +205,18 @@ int main()
     // 解析得到语法树
     Node *node = N.Scan();
 
-    Node *c1 = node->GetChild(0);
+    cout << "\n\n";
+
+    //delete node;
+
+    long stf = node->GetChild(2)->GetRightChild()->GetRightChild()->GetLong();
+    cout << stf << endl;
+
+    /*
+    Node *c1 = node->GetChild(1);
     Node *l1 = c1->GetLeftChild();
     Node *r1 = c1->GetRightChild();
-    Node *c2 = node->GetChild(1);
+    Node *c2 = node->GetChild(2);
     Node *l2 = c2->GetLeftChild();
     Node *r2 = c2->GetRightChild();
 
@@ -178,15 +224,13 @@ int main()
     cout << r1->GetLong() << endl;
     cout << l2->GetName() << endl;
     cout << r2->GetName() << endl;
+    */
+    
 
     cout << "\n\n";
 
-    delete node;
 
-    cout << "\n\n";
-
-
-    /*/ 打印词法分析结果
+    /* 打印词法分析结果
     for(int i=0; i<words.size(); i++){
     	Word wd = words[i];
 		cout << wd.line << ","<< wd.posi << "  " << (int)wd.type << "  " << wd.value << endl;
