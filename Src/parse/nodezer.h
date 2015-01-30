@@ -39,7 +39,7 @@ class Nodezer {
 
 	void Jump(unsigned int s=1){
 		i += s;
-        Read();
+        //Read();
 	}
 
 	void Clear(){
@@ -55,7 +55,7 @@ class Nodezer {
 	Node* Scan(); // 扫描构建节点树
 
 	TypeNode JudgeTypeNode(); // 判断当前节点类型
-	void Judge(); //执行预判
+	void Judge(); //执行预判节点类型
 
 	private:
 

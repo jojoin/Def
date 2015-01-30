@@ -5,13 +5,11 @@
 #include <vector>
 
 #include "nodezer.h"
-#include "../Util/str.h"
 
 using namespace std;
 
 using namespace def::token;
 using namespace def::node;
-using namespace def::util;
 
 
 /**
@@ -42,7 +40,7 @@ Node* Nodezer::Scan()
     if(ctn==T::Expression){
 
         //cout<<"-Expression-"<<endl;
-        NodeExpression *node = new NodeExpression(cur.line, cur.posi);
+        NodeExpression *node = new NodeExpression(cur);
         while(1){
             Read();
             if( //退出条件
@@ -58,24 +56,24 @@ Node* Nodezer::Scan()
     }else if(ctn==T::Assignment){ // = 赋值语句
 
         //cout<<"-Assignment-"<<endl;
-        NodeAssignment *node = new NodeAssignment(next.line, next.posi);
-        node->LeftChild(new NodeVariable(cur.line, cur.posi, cur.value));
+        NodeAssignment *node = new NodeAssignment(next);
+        node->SetLeftChild(new NodeVariable(cur));
         Jump(2);
         Judge();//预判
-        node->RightChild( Scan() );
+        node->SetRightChild( Scan() );
         return node;
 
     }else if(ctn==T::Variable){ // 变量
 
         //cout<<"-Variable-"<<endl;
         Jump();
-        return new NodeVariable(cur.line, cur.posi, cur.value);
+        return new NodeVariable(cur);
 
     }else if(ctn==T::Int){ // int 值
         
         //cout<<"-Int-"<<endl;
         Jump();
-        return new NodeInt(cur.line, cur.posi, Str::s2l(cur.value));
+        return new NodeInt(cur);
     }
 
 
@@ -92,6 +90,7 @@ Node* Nodezer::Scan()
 void Nodezer::Judge()
 {
     //tn_stk.push_back( JudgeTypeNode() );
+    Read(); //读取单词后预判
     ctn = JudgeTypeNode();
 }
 
@@ -168,13 +167,21 @@ int main()
     // 解析得到语法树
     Node *node = N.Scan();
 
-    //node->childs.at(0);
+    Node *c1 = node->GetChild(0);
+    Node *l1 = c1->GetLeftChild();
+    Node *r1 = c1->GetRightChild();
+    Node *c2 = node->GetChild(1);
+    Node *l2 = c2->GetLeftChild();
+    Node *r2 = c2->GetRightChild();
+
+    cout << l1->GetName() << endl;
+    cout << r1->GetLong() << endl;
+    cout << l2->GetName() << endl;
+    cout << r2->GetName() << endl;
 
     cout << "\n\n";
 
     delete node;
-
-
 
     cout << "\n\n";
 

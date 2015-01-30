@@ -5,8 +5,10 @@
 #include <string>
 #include <vector>
 
+#include "../Util/str.h"
+
 using namespace std;
-//using namespace def::util;
+using namespace def::util;
 
 
 namespace def {
@@ -48,9 +50,21 @@ struct Node{
 	unsigned int posi;   // 所属位置
 	TypeNode type;           // 节点类型
 	// 构造方法
-	Node(TypeNode t, unsigned int l=0, unsigned int p=0)
-		: type(t), line(l), posi(p){}
+	Node(TypeNode t, Word &w)
+		: type(t)
+	{
+		line = w.line;
+		posi = w.posi;
+	}
 	virtual ~Node()=0;
+	//获取子节点
+	virtual Node* GetChild(unsigned int i){};
+	virtual Node* GetLeftChild(){};
+	virtual Node* GetRightChild(){};
+	virtual bool GetBool(){};
+	virtual long GetLong(){};
+	virtual string GetName(){};
+	virtual string GeString(){};
 };
 Node::~Node(){} // 纯虚析构函数的定义
 
@@ -58,30 +72,33 @@ Node::~Node(){} // 纯虚析构函数的定义
 // 多叉节点
 struct NodeTree : Node{
 	vector<Node*> childs; // 子节点指针列表
-	NodeTree(TypeNode t, unsigned int l=0, unsigned int p=0)
-		: Node(t, l, p){}
-	virtual ~NodeTree()=0;
-	void AddChild(Node* n){
-        cout<<"add child "<<(int)n->type<<endl;
+	NodeTree(TypeNode t, Word &w)
+		: Node(t, w){}
+	virtual ~NodeTree(){
+		size_t sz = childs.size();
+		for(int i=0; i<sz; i++)
+		{
+        	//cout<<"delete child "<<i<<endl;
+			delete childs[i];
+		}
+		childs.clear();
+	};
+	inline void AddChild(Node* n){
+        //cout<<"add child "<<(int)n->type<<endl;
 		childs.push_back(n);
 	}
+	inline Node* GetChild(unsigned int i){
+		return i<childs.size() ? childs[i] : NULL;
+	}
 };
-NodeTree::~NodeTree(){} // 纯虚析构函数的定义
+//NodeTree::~NodeTree(){} // 纯虚析构函数的定义
 
 
 // 组合表达式
 struct NodeExpression : NodeTree{
-	NodeExpression(unsigned int l=0, unsigned int p=0)
-		: NodeTree(TypeNode::Expression, l, p){}
-	~NodeExpression(){
-		size_t sz = childs.size();
-		for(int i=0; i<sz; i++)
-		{
-        	cout<<"delete child "<<(int)childs[i]->type<<endl;
-			delete childs[i];
-		}
-		childs.clear();
-	}
+	NodeExpression(Word &w)
+		: NodeTree(TypeNode::Expression, w){}
+	~NodeExpression(){}
 };
 
 
@@ -89,62 +106,95 @@ struct NodeExpression : NodeTree{
 struct NodeTwinTree : Node{
 	Node* left;   // 左子节点
 	Node* right;  // 右子节点
-	NodeTwinTree(TypeNode t, unsigned int l=0, unsigned int p=0, Node* lf=NULL, Node* rt=NULL)
-		: Node(t, l, p), left(lf), right(rt){}
-	virtual ~NodeTwinTree()=0;
-	void LeftChild(Node* n){
-        cout<<"left child "<<(int)n->type<<endl;
+	NodeTwinTree(TypeNode t, Word &w, Node* lf=NULL, Node* rt=NULL)
+		: Node(t, w), left(lf), right(rt){}
+	virtual ~NodeTwinTree(){
+        //cout<<"delete left "<<(int)left->type<<endl;
+		delete left;
+        //cout<<"delete right "<<(int)right->type<<endl;
+		delete right;
+	};
+	inline void SetLeftChild(Node* n){
+        //cout<<"left child "<<(int)n->type<<endl;
 		left = n;
 	}
-	void RightChild(Node* n){
-        cout<<"right child "<<(int)n->type<<endl;
+	inline void SetRightChild(Node* n){
+        //cout<<"right child "<<(int)n->type<<endl;
 		right = n;
 	}
+	inline Node* GetLeftChild(){
+		return left;
+	}
+	inline Node* GetRightChild(){
+		return right;
+	}
 };
-NodeTwinTree::~NodeTwinTree(){} // 纯虚析构函数的定义
+//NodeTwinTree::~NodeTwinTree(){} // 纯虚析构函数的定义
 
 
 // = 赋值节点
 struct NodeAssignment: NodeTwinTree{
-	NodeAssignment(unsigned int l=0, unsigned int p=0)
-		: NodeTwinTree(TypeNode::Assignment, l, p){}
-	~NodeAssignment(){
-        cout<<"delete left "<<(int)left->type<<endl;
-		delete left;
-        cout<<"delete right "<<(int)right->type<<endl;
-		delete right;
-	}
+	NodeAssignment(Word &w)
+		: NodeTwinTree(TypeNode::Assignment, w){}
+	//~NodeAssignment(){
+        //cout<<"delete left "<<(int)left->type<<endl;
+		//delete left;
+        //cout<<"delete right "<<(int)right->type<<endl;
+		//delete right;
+	//}
+};
+
+// + 加操作节点
+struct NodeAdd: NodeTwinTree{
+	NodeAdd(Word &w)
+	: NodeTwinTree(TypeNode::Add, w){}
+	//~NodeAdd(){}
 };
 
 
 // variable 节点
 struct NodeVariable : Node{
 	string name;
-	NodeVariable(unsigned int l, unsigned int p, string n)
-		: Node(TypeNode::Variable, l, p), name(n){}
+	NodeVariable(Word &w)
+	: Node(TypeNode::Variable, w){
+		name = w.value;
+	}
+	inline string GetName(){
+		return name;
+	};
 };
 
 
 // none 节点
 struct NodeNone : Node{
-	NodeNone(unsigned int l, unsigned int p)
-		: Node(TypeNode::None, l, p){}
+	NodeNone(Word &w)
+	: Node(TypeNode::None, w){}
 };
 
 
 // bool 节点
 struct NodeBool : Node{
 	bool value;
-	NodeBool(unsigned int l, unsigned int p, bool v)
-		: Node(TypeNode::Bool, l, p), value(v){}
+	NodeBool(Word &w)
+	: Node(TypeNode::Bool, w){
+		value = w.value=="true" ? true : false;
+	}
+	inline bool GetBool(){
+		return value;
+	};
 };
 
 
 // int 节点
 struct NodeInt : Node{
 	long value;
-	NodeInt(unsigned int l, unsigned int p, long v)
-		: Node(TypeNode::Int, l, p), value(v){}
+	NodeInt(Word &w)
+	: Node(TypeNode::Int, w){
+		value = Str::s2l(w.value);
+	}
+	inline long GetLong(){
+		return value;
+	};
 };
 
 
