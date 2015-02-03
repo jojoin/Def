@@ -33,12 +33,12 @@ arr = [(abc 123) (xyz 456)] #ddd
 ###
 
 
+x + y / z + m * n
 
-num = 10
 
-count = 5 + num * 10
 
-result = num * count + 13
+# 5 + num * 10 + 2 * 3
+# result = num * count + 13
 
 
 

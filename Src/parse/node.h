@@ -17,29 +17,36 @@ namespace node {
 // 节点类型
 enum class TypeNode
 {
-	Normal,               // 默认状态
+	Normal,   // 默认状态
+	Start,    // 开始状态
+	Down,     // 完成状态
 
-	Expression,           // 组合表达式
+	// 枝节点
 
-	Assignment,           // 赋值语句
+	Group,    // 组合表达式
 
-	Add,             // + 加法计算
-	Sub,             // - 减法计算
-	Mul,             // * 乘法计算
-	Div,             // / 除法计算
+	Assign,   // 赋值语句
 
-	FunctionDefine,       // 函数定义
-	FunctionCall,         // 函数调用
+	Add,   // + 加法计算              // 5
+	Sub,   // - 减法计算
+	Mul,   // * 乘法计算
+	Div,   // / 除法计算
+
+	FuncDefine,   // 函数定义
+	FuncCall,     // 函数调用
 
 	// 叶节点
-	Variable,             // 变量符号
 
-	None,            // 值 none
-	Bool,            // 值 布尔
-	Int,             // 值 整数
-	Float,           // 值 浮点数
-	String,          // 值 字符串
+	Variable,   // 变量符号           // 11
 
+	None,    // 值 none
+	Bool,    // 值 布尔
+	Int,     // 值 整数
+	Float,   // 值 浮点数
+	String,  // 值 字符串
+
+	// 终止
+	Null
 	
 }; // --end-- enum class TypeNode
 
@@ -57,14 +64,15 @@ struct Node{
 		posi = w.posi;
 	}
 	virtual ~Node()=0;
-	//获取子节点
-	virtual Node* GetChild(unsigned int i){};
-	virtual Node* GetLeftChild(){};
-	virtual Node* GetRightChild(){};
+	virtual void AddChild(Node*){};
+	virtual Node* Child(size_t i){};
+	virtual Node* Left(Node*n=NULL){};
+	virtual Node* Right(Node*n=NULL){};
 	virtual bool GetBool(){};
-	virtual long GetLong(){};
+	virtual long GetInt(){};
+	virtual double GetFloat(){};
 	virtual string GetName(){};
-	virtual string GeString(){};
+	virtual string GetString(){};
 };
 Node::~Node(){} // 纯虚析构函数的定义
 
@@ -87,17 +95,16 @@ struct NodeTree : Node{
         //cout<<"add child "<<(int)n->type<<endl;
 		childs.push_back(n);
 	}
-	inline Node* GetChild(unsigned int i){
+	inline Node* Child(size_t i){
 		return i<childs.size() ? childs[i] : NULL;
 	}
 };
 
 
 // 组合表达式
-struct NodeExpression : NodeTree{
-	NodeExpression(Word &w)
-		: NodeTree(TypeNode::Expression, w){}
-	~NodeExpression(){}
+struct NodeGroup : NodeTree{
+	NodeGroup(Word &w)
+		: NodeTree(TypeNode::Group, w){}
 };
 
 
@@ -113,27 +120,27 @@ struct NodeTwinTree : Node{
         //cout<<"delete right "<<(int)right->type<<endl;
 		delete right;
 	};
-	inline void SetLeftChild(Node* n){
+	inline Node* Left(Node*n=NULL){
         //cout<<"left child "<<(int)n->type<<endl;
-		left = n;
+        if(n!=NULL){
+			left = n; //设置
+        }
+        return left;
 	}
-	inline void SetRightChild(Node* n){
+	inline Node* Right(Node*n=NULL){
         //cout<<"right child "<<(int)n->type<<endl;
-		right = n;
-	}
-	inline Node* GetLeftChild(){
-		return left;
-	}
-	inline Node* GetRightChild(){
-		return right;
+        if(n!=NULL){
+			right = n; //设置
+        }
+        return right;
 	}
 };
 
 
 // = 赋值节点
-struct NodeAssignment: NodeTwinTree{
-	NodeAssignment(Word &w)
-		: NodeTwinTree(TypeNode::Assignment, w){}
+struct NodeAssign: NodeTwinTree{
+	NodeAssign(Word &w)
+		: NodeTwinTree(TypeNode::Assign, w){}
 };
 
 
@@ -144,10 +151,22 @@ struct NodeAdd: NodeTwinTree{
 };
 
 
+// - 减操作节点
+struct NodeSub: NodeTwinTree{
+	NodeSub(Word &w)
+	: NodeTwinTree(TypeNode::Sub, w){}
+};
+
 // * 乘操作节点
 struct NodeMul: NodeTwinTree{
 	NodeMul(Word &w)
 	: NodeTwinTree(TypeNode::Mul, w){}
+};
+
+// / 除操作节点
+struct NodeDiv: NodeTwinTree{
+	NodeDiv(Word &w)
+	: NodeTwinTree(TypeNode::Div, w){}
 };
 
 

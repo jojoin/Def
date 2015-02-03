@@ -24,7 +24,7 @@ using namespace def::token;
 using namespace def::util;
 
 // Log::log
-#define ERR(str) cerr<<str<<endl;;exit(1);
+#define ERR(str) cerr<<str<<endl;exit(1);
 
 // Token::State
 #define S Token::State

@@ -13,9 +13,12 @@ using namespace std;
 using namespace def::token;
 using namespace def::node;
 
+// TypeNode
+#define T TypeNode
 
 namespace def {
 namespace node {
+
 
 class Nodezer {
 
@@ -30,32 +33,33 @@ class Nodezer {
 			cur = words.at(i);
 			next = words.at(i+1);
 		}catch(const exception& e){
-			unsigned int sz = words.size();
+			size_t sz = words.size();
 			if(i+1>=sz) next = nullword;
 			if(i>=sz) cur = nullword;
 			if(i-1>=sz) prev = nullword;
 		}
+
 	};
 
-	void Jump(unsigned int s=1){
+	inline void Move(int s=1){
 		i += s;
         //Read();
 	}
 
-	void Clear(){
+	inline void Clear(){
 		i = 0;
 		nullword = Word{0,0,Token::State::Null,""};
 		prev = cur = next = nullword;
-		ctn = TypeNode::Expression;
+		//ctn = TypeNode::Expression;
 		//tn_stk.clear();
 		//tn_stk.push_back(TypeNode::Expression);
 	};
 
-
-	Node* Scan(Node*); // 扫描构建节点树
-
-	TypeNode JudgeTypeNode(); // 判断当前节点类型
-	void Judge(); //执行预判节点类型
+	static bool IsType(T,T,T,T,T,T,T,T,T,T,T); // 节点类型是否匹配
+	T GetTypeNode(Word&); // 获得节点类型
+	void CurTypeNode(); // 判断当前节点类型
+	Node* CreatNode(int, Node*, Node*); //从当前单词新建节点
+	Node* Express(Node*,T); // 扫描单词 构建表达式
 
 	private:
 
@@ -66,16 +70,16 @@ class Nodezer {
 
 	Word nullword;  // 空单词
 
-	vector<Word>& words; // 单词
-	//vector<TypeNode> tn_stk; // 当前节点类型栈
-	TypeNode ctn; // 当前节点类型栈
+	T ctn; //当前节点类型
+
+	vector<Word>& words; // 单词列表
 
 }; // --end-- class Nodezer
 
 } // --end-- namespace node
 } // --end-- namespace def
 
-
+# undef T // TypeNode
 
 #endif
 // --end-- DEF_NODEZER_H

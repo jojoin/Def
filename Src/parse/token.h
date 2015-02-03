@@ -66,15 +66,15 @@ class Token {
 
 	// 状态 包含 word 类型
 	enum class State {
-		Normal,                 // 0  默认
-		Identifier,             // 1  标识符 包含关键字
-		  Symbol,               // 2  变量名
-		  Keyword,              // 3  关键字
-		Character,              // 4  英文字母
-		Sign,                   // 5  符号
-		Number,                 // 6  数字
-		  Int,                  // 7  整形
-		  Float,                // 8 浮点型
+		Normal,                 // 默认
+		Identifier,             // 标识符 包含关键字
+		  Symbol,                 // 变量名
+		  Keyword,                // 关键字
+		Character,              // 英文字母
+		Sign,                   // 符号
+		Number,                 // 数字
+		  Int,                    // 整形
+		  Float,                  // 浮点型
 		String,                 // 字符串
 		  DQuotation,    //双引号
 		  Quotation,     //单引号
@@ -84,6 +84,7 @@ class Token {
 		BlockAnnotation,   // 块注释
 		Space,        // 空格、tab等制表符
 		NewLine,      // 换行
+		
 		Unknow,       // 不明字符
 		Null,         // 不存在
 		End           // 结束符
