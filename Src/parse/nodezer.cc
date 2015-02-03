@@ -77,11 +77,13 @@ TypeNode Nodezer::GetTypeNode(Word &cur)
         if(cv=="="){
             return T::Assign; //赋值 =
         }else if(cv=="+"){
-            return T::Add; //加 +
+            return T::Add; // 加 +
+        }else if(cv=="-"){
+            return T::Sub; // 减 -
         }else if(cv=="*"){
             return T::Mul; // 乘 *
         }else if(cv=="/"){
-            return T::Mul; // 乘 *
+            return T::Div; // 除 /
         }
 
     }else if(ct==S::Null){
@@ -140,12 +142,12 @@ Node* Nodezer::Express(Node *p=NULL, T tt=T::Start)
         Read();
         CurTypeNode(); // 当前类型
         T t = ctn;
-        cout<<(int)t<<"->"<<cur.value<<endl;
+        //cout<<(int)t<<"->"<<cur.value<<endl;
 
         //// Start
         if(tt==T::Start){ //开始状态
 
-            cout << "-Start-" << endl;
+            //cout << "-Start-" << endl;
             if(t==T::Variable){
                 p = CreatNode(1);
                 tt = t;
@@ -156,7 +158,7 @@ Node* Nodezer::Express(Node *p=NULL, T tt=T::Start)
         //// Variable
         }else if(tt==T::Variable){
 
-            cout << "-Variable-" << endl;
+            //cout << "-Variable-" << endl;
             if(IsType(t,T::Variable,T::Null) ){ //语句结束 完成返回
                 tt = T::Down;
             // 如果是加减乘除操作
@@ -170,7 +172,7 @@ Node* Nodezer::Express(Node *p=NULL, T tt=T::Start)
         //// Add Sub
         }else if( IsType(tt,T::Add,T::Sub) ){ // 加法 减法 + -
 
-            cout << "-Add,Sub-" << endl;
+            //cout << "-Add,Sub-" << endl;
             if( IsType(t,T::Variable) ){
                 p->Right(CreatNode(1));
             // 同级左结合算符 + -
@@ -191,8 +193,7 @@ Node* Nodezer::Express(Node *p=NULL, T tt=T::Start)
         //// Mul Div
         }else if( IsType(tt,T::Mul,T::Div) ){ // 乘法 除法 * /
 
-            cout << "-Mul,Div-" << endl;
-
+            //cout << "-Mul,Div-" << endl;
             if( IsType(t,T::Variable) ){
                 p->Right(CreatNode(1));
             // 同级左结合算符
@@ -206,7 +207,7 @@ Node* Nodezer::Express(Node *p=NULL, T tt=T::Start)
         //// Null
         }else if(tt==T::Null){ // 终止
 
-            cout << "-Null-" << endl;
+            //cout << "-Null-" << endl;
             tt = T::Down;
 
         }else{
@@ -252,7 +253,7 @@ int main()
     //delete node;
 
     cout << 
-    node->Left()->Right()->Right()->GetName()
+    node->Left()->Right()->Left()->Right()->GetName()
     << endl;
 
     /*
@@ -262,11 +263,12 @@ int main()
     cout << "\n\n";
 
 
-    // 打印词法分析结果
+    /* 打印词法分析结果
     for(int i=0; i<words.size(); i++){
     	Word wd = words[i];
 		cout << wd.line << ","<< wd.posi << "  " << (int)wd.type << "  " << wd.value << endl;
     }
+    */
     
     
 
