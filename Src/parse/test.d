@@ -33,7 +33,9 @@ arr = [(abc 123) (xyz 456)] #ddd
 ###
 
 
-x+y*z*d-m/n
+#x + y*z + d/b - m/n
+
+e - a/a*b - x*y/z + m*n
 
 
 

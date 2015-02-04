@@ -132,83 +132,88 @@ Node* Nodezer::CreatNode(int mv=1, Node*l=NULL, Node*r=NULL)
  * 扫描单词 构建单条表达式
  * @param 
  */
-Node* Nodezer::Express(Node *p=NULL, T tt=T::Start)
+Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
 {
     //T t = T::Start; // 记录状态
     //string cv = cur.value; // 当前值
+    Node *p = pp;
+    T t = tt;
 
-    while(tt!=T::Down){
+    while(t!=T::Down){
 
         Read();
         CurTypeNode(); // 当前类型
-        T t = ctn;
+        T c = ctn;
         //cout<<(int)t<<"->"<<cur.value<<endl;
 
         //// Start
-        if(tt==T::Start){ //开始状态
+        if(t==T::Start){ //开始状态
 
             //cout << "-Start-" << endl;
-            if(t==T::Variable){
+            if(c==T::Variable){
                 p = CreatNode(1);
-                tt = t;
-            }else if(t==T::Null){ //结束
-                tt = T::Down;
+                t = c;
+            }else if(c==T::Null){ //结束
+                t = T::Down;
             }
 
         //// Variable
-        }else if(tt==T::Variable){
+        }else if(t==T::Variable){
 
             //cout << "-Variable-" << endl;
-            if(IsType(t,T::Variable,T::Null) ){ //语句结束 完成返回
-                tt = T::Down;
+            if(IsType(c,T::Variable,T::Null) ){ //语句结束 完成返回
+                t = T::Down;
             // 如果是加减乘除操作
-            }else if( IsType(t,T::Add,T::Sub,T::Mul,T::Div) ){
+            }else if( IsType(c,T::Add,T::Sub,T::Mul,T::Div) ){
                 p = CreatNode(1, p);
-                tt = t;
+                t = c;
             }else{ 
-                tt = T::Down;
+                t = T::Down;
             }
 
         //// Add Sub
-        }else if( IsType(tt,T::Add,T::Sub) ){ // 加法 减法 + -
+        }else if( IsType(t,T::Add,T::Sub) ){ // 加法 减法 + -
 
             //cout << "-Add,Sub-" << endl;
-            if( IsType(t,T::Variable) ){
+            if( IsType(c,T::Variable) ){
                 p->Right(CreatNode(1));
             // 同级左结合算符 + -
-            }else if( IsType(t,T::Add,T::Sub) ){
+            }else if( IsType(c,T::Add,T::Sub) ){
                 p = CreatNode(1, p);
-                tt = t;
+                t = c;
             // 优先算符 * /
-            }else if( IsType(t,T::Mul,T::Div) ){
+            }else if( IsType(c,T::Mul,T::Div) ){
                 Node *pn = CreatNode(1);
                 Node *r = p->Right();
                 pn->Left(r);
-                pn = Express(pn, t);
+                pn = Express(pn, c);
                 p->Right(pn);
             }else{ 
-                tt = T::Down;
+                t = T::Down;
             }
 
         //// Mul Div
-        }else if( IsType(tt,T::Mul,T::Div) ){ // 乘法 除法 * /
+        }else if( IsType(t,T::Mul,T::Div) ){ // 乘法 除法 * /
 
             //cout << "-Mul,Div-" << endl;
-            if( IsType(t,T::Variable) ){
+            if( IsType(c,T::Variable) ){
                 p->Right(CreatNode(1));
             // 同级左结合算符
-            }else if( IsType(t,T::Mul,T::Div) ){
+            }else if( IsType(c,T::Mul,T::Div) || 
+                //优先级低的算符且不是上一层递归传入
+                !pp && IsType(c,T::Add,T::Sub)
+            ){
                 p = CreatNode(1, p);
-                tt = t;
+                t = c;
             }else{ //遇到加减法等优先级更低的返回节点
-                tt = T::Down;
+                t = T::Down;
             }
 
         //// Null
-        }else if(tt==T::Null){ // 终止
+        }else if(t==T::Null){ // 终止
 
             //cout << "-Null-" << endl;
-            tt = T::Down;
+            t = T::Down;
 
         }else{
 
@@ -252,12 +257,13 @@ int main()
 
     //delete node;
 
-    cout << 
-    node->Left()->Right()->Left()->Right()->GetName()
-    << endl;
-
     /*
+    cout << 
+    node->Left()->Left()->Right()->Right()->GetName()
+    << endl;
     */
+
+    
     
 
     cout << "\n\n";
