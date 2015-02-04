@@ -45,6 +45,16 @@ class Str {
 		return l;
 	}
 
+	// string 转 double
+	static double s2d(const string& str){
+		double d=0.0;
+		stringstream ss;
+		ss << str;//从str输入
+		ss >> d;//输出到double
+		ss.clear();
+		return d;
+	}
+
 	
 
 }; // --end-- class Token

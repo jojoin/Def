@@ -210,7 +210,33 @@ struct NodeInt : Node{
 	: Node(TypeNode::Int, w){
 		value = Str::s2l(w.value);
 	}
-	inline long GetLong(){
+	inline long GetInt(){
+		return value;
+	};
+};
+
+
+// float 节点
+struct NodeFloat : Node{
+	double value;
+	NodeFloat(Word &w)
+	: Node(TypeNode::Float, w){
+		value = Str::s2d(w.value);
+	}
+	inline double GetFloat(){
+		return value;
+	};
+};
+
+
+// string 节点
+struct NodeString : Node{
+	string value;
+	NodeString(Word &w)
+	: Node(TypeNode::String, w){
+		value = w.value;
+	}
+	inline string GetString(){
 		return value;
 	};
 };

@@ -61,32 +61,51 @@ void Nodezer::CurTypeNode()
  */
 TypeNode Nodezer::GetTypeNode(Word &cur)
 {
-    S ct = cur.type;
-    string cv = cur.value;
+    S s = cur.type;
+    string v = cur.value;
     //S nt = next.type;
     //string nv = next.value;
 
-    //cout<<(int)ct<<"->"<<cv<<endl;
+    //cout<<(int)s<<"->"<<v<<endl;
 
-    if(ct==S::Symbol){
+    if(s==S::Symbol){
 
         return T::Variable; // 变量名
 
-    }else if(ct==S::Sign){
+    /* }else if(s==S::None){
+        return T::None;
+    }else if(s==S::Bool){
+        return T::Bool; */
+    }else if(s==S::Int){
+        return T::Int;
+    }else if(s==S::Float){
+        return T::Float;
+    }else if(s==S::String){
+        return T::String;
 
-        if(cv=="="){
+    }else if(s==S::Keyword){ // 关键字
+
+        if(v=="none"){
+            return T::None;
+        }else if(v=="true"||v=="false"){
+            return T::Bool;
+        }
+
+    }else if(s==S::Sign){ // 符号
+
+        if(v=="="){
             return T::Assign; //赋值 =
-        }else if(cv=="+"){
+        }else if(v=="+"){
             return T::Add; // 加 +
-        }else if(cv=="-"){
+        }else if(v=="-"){
             return T::Sub; // 减 -
-        }else if(cv=="*"){
+        }else if(v=="*"){
             return T::Mul; // 乘 *
-        }else if(cv=="/"){
+        }else if(v=="/"){
             return T::Div; // 除 /
         }
 
-    }else if(ct==S::Null){
+    }else if(s==S::Null){
 
         return T::Null; // 终止符
     }
@@ -109,8 +128,20 @@ Node* Nodezer::CreatNode(int mv=1, Node*l=NULL, Node*r=NULL)
     Node *p = NULL;
 
     switch(ctn){
+
     case T::Variable: // 变量
         return new NodeVariable(cur);
+    case T::None:     // None
+        return new NodeNone(cur);
+    case T::Bool:     // Bool
+        return new NodeBool(cur);
+    case T::Int:      // Int
+        return new NodeInt(cur);
+    case T::Float:    // Float
+        return new NodeFloat(cur);
+    case T::String:   // String
+        return new NodeString(cur);
+
     case T::Add: // 加 +
         p = new NodeAdd(cur); break;
     case T::Sub: // 减 -
@@ -119,6 +150,7 @@ Node* Nodezer::CreatNode(int mv=1, Node*l=NULL, Node*r=NULL)
         p = new NodeMul(cur); break;
     case T::Div: // 除 /
         p = new NodeDiv(cur); break;
+
     case T::Assign: // 赋值 =
         p = new NodeAssign(cur); break;
     }
@@ -160,7 +192,7 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
         if(t==T::Start){ //开始状态
 
             //cout << "-Start-" << endl;
-            if(IsType(c,TN_VALUE)){
+            if( IsType(c,TN_VALUE) ){
                 p = CreatNode(1);
                 t = c;
             }else{
@@ -170,7 +202,7 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
         //// Variable None Bool Int Float String
         }else if( IsType(t,TN_VALUE) ){
 
-            //cout << "-Variable-" << endl;
+            //cout << "-TN_VALUE-" << endl;
             if( IsType(c,TN_VALUE) ){
                 // 连续两个变量或值 表示表达式完毕
                 return p;
@@ -192,7 +224,7 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
         }else if( IsType(t,TN_AS) ){ // 加法 减法 + -
 
             //cout << "-Add,Sub-" << endl;
-            if( IsType(c,T::Variable) ){
+            if( IsType(c,TN_VALUE) ){
                 if(p->Right()){
                     //已经存在右节点
                     return p;
@@ -217,7 +249,7 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
         }else if( IsType(t,TN_MD) ){ // 乘法 除法 * /
 
             //cout << "-Mul,Div-" << endl;
-            if( IsType(c,T::Variable) ){
+            if( IsType(c,TN_VALUE) ){
                 if(p->Right()){
                     //已经存在右节点
                     return p;
@@ -315,10 +347,11 @@ int main()
     //delete node;
 
     /*
-    cout << 
-    node->Child(0)->Left()->GetName()
+    cout <<
+    node->Child(0)->Right()->Left()->GetFloat()
     << endl;
     */
+    
     
     cout << "\n\n";
 

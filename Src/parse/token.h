@@ -52,6 +52,10 @@ namespace token {
 	/*S(Array, ":[", 0)*/              \
 									\
 	/* 关键字 */					\
+	K(None, "none", 0)              \
+	K(True, "true", 0)              \
+	K(False, "false", 0)              \
+									\
 	K(If, "if", 0)              \
 	K(While, "while", 0)              \
 	K(And, "and", 0)              \

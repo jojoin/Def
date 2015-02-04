@@ -9,7 +9,20 @@
 ####### 注释结束  #######
 
 
-###
+
+num = e - a/a*b - x*y/z + 0111*99.9
+
+count = x + y*z + d/b - m/www
+
+
+
+###################
+
+5 + num * 10 + 2 * 3
+result = num * count + 13
+
+
+
 block_str = """
 <div class="">
 	<p class="line"> something </p>
@@ -31,15 +44,5 @@ _count123 = 139.5 + num*2
 arr = [(abc 123) (xyz 456)] #ddd
 
 ###
-
-
-num = e - a/a*b - x*y/z + m*nnn
-
-count = x + y*z + d/b - m/www
-
-
-# 5 + num * 10 + 2 * 3
-# result = num * count + 13
-
 
 
