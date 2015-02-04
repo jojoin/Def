@@ -119,6 +119,8 @@ Node* Nodezer::CreatNode(int mv=1, Node*l=NULL, Node*r=NULL)
         p = new NodeMul(cur); break;
     case T::Div: // 除 /
         p = new NodeDiv(cur); break;
+    case T::Assign: // 赋值 =
+        p = new NodeAssign(cur); break;
     }
 
     if(p&&l) p->Left(l);
@@ -144,7 +146,7 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
         Read();
         CurTypeNode(); // 当前类型
         T c = ctn;
-        //cout<<(int)t<<"->"<<cur.value<<endl;
+        cout<<(int)c<<"->"<<cur.value<<endl;
 
         //// Start
         if(t==T::Start){ //开始状态
@@ -160,13 +162,19 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
         //// Variable
         }else if(t==T::Variable){
 
-            //cout << "-Variable-" << endl;
+            cout << "-Variable-" << endl;
             if(IsType(c,T::Variable,T::Null) ){ //语句结束 完成返回
                 t = T::Down;
-            // 如果是加减乘除操作
+            // 加 减 乘 除 
             }else if( IsType(c,T::Add,T::Sub,T::Mul,T::Div) ){
                 p = CreatNode(1, p);
                 t = c;
+            // 赋值
+            }else if( IsType(c,T::Assign) ){
+                p = CreatNode(1, p);
+                // 赋值算法后面的所有内容都将被赋值给左边的变量
+                p->Right( Express() );
+                t = T::Down;
             }else{ 
                 t = T::Down;
             }
@@ -174,7 +182,7 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
         //// Add Sub
         }else if( IsType(t,T::Add,T::Sub) ){ // 加法 减法 + -
 
-            //cout << "-Add,Sub-" << endl;
+            cout << "-Add,Sub-" << endl;
             if( IsType(c,T::Variable) ){
                 p->Right(CreatNode(1));
             // 同级左结合算符 + -
@@ -195,7 +203,7 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
         //// Mul Div
         }else if( IsType(t,T::Mul,T::Div) ){ // 乘法 除法 * /
 
-            //cout << "-Mul,Div-" << endl;
+            cout << "-Mul,Div-" << endl;
             if( IsType(c,T::Variable) ){
                 p->Right(CreatNode(1));
             // 同级左结合算符
@@ -208,6 +216,10 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
             }else{ //遇到加减法等优先级更低的返回节点
                 t = T::Down;
             }
+
+        //// Assign
+        }else if( IsType(t,T::Assign) ){
+
 
         //// Null
         }else if(t==T::Null){ // 终止
