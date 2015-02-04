@@ -132,10 +132,18 @@ Node* Nodezer::CreatNode(int mv=1, Node*l=NULL, Node*r=NULL)
 
 /**
  * 扫描单词 构建单条表达式
- * @param 
+ * @param pp 上级递归父节点
+ * @param tt 上级递归父节点类型
  */
 Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
 {
+
+// 值 叶节点
+#define TN_VALUE T::Variable,T::None,T::Bool,T::Int,T::Float,T::String
+#define TN_AS T::Add,T::Sub
+#define TN_MD T::Mul,T::Div
+#define TN_ASMD TN_AS,TN_MD
+
     //T t = T::Start; // 记录状态
     //string cv = cur.value; // 当前值
     Node *p = pp;
@@ -152,22 +160,22 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
         if(t==T::Start){ //开始状态
 
             //cout << "-Start-" << endl;
-            if(c==T::Variable){
+            if(IsType(c,TN_VALUE)){
                 p = CreatNode(1);
                 t = c;
-            }else if(c==T::Null){ //结束
-                t = T::Down;
+            }else{
+                return p;
             }
 
-        //// Variable
-        }else if(t==T::Variable){
+        //// Variable None Bool Int Float String
+        }else if( IsType(t,TN_VALUE) ){
 
             //cout << "-Variable-" << endl;
-            if( IsType(c,T::Variable) ){ //语句结束 完成返回
+            if( IsType(c,TN_VALUE) ){
                 // 连续两个变量或值 表示表达式完毕
                 return p;
             // 加 减 乘 除 
-            }else if( IsType(c,T::Add,T::Sub,T::Mul,T::Div) ){
+            }else if( IsType(c,TN_ASMD) ){
                 p = CreatNode(1, p);
                 t = c;
             // 赋值
@@ -181,7 +189,7 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
             }
 
         //// Add Sub
-        }else if( IsType(t,T::Add,T::Sub) ){ // 加法 减法 + -
+        }else if( IsType(t,TN_AS) ){ // 加法 减法 + -
 
             //cout << "-Add,Sub-" << endl;
             if( IsType(c,T::Variable) ){
@@ -191,11 +199,11 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
                 }
                 p->Right(CreatNode(1));
             // 同级左结合算符 + -
-            }else if( IsType(c,T::Add,T::Sub) ){
+            }else if( IsType(c,TN_AS) ){
                 p = CreatNode(1, p);
                 t = c;
             // 优先算符 * /
-            }else if( IsType(c,T::Mul,T::Div) ){
+            }else if( IsType(c,TN_MD) ){
                 Node *pn = CreatNode(1);
                 Node *r = p->Right();
                 pn->Left(r);
@@ -206,7 +214,7 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
             }
 
         //// Mul Div
-        }else if( IsType(t,T::Mul,T::Div) ){ // 乘法 除法 * /
+        }else if( IsType(t,TN_MD) ){ // 乘法 除法 * /
 
             //cout << "-Mul,Div-" << endl;
             if( IsType(c,T::Variable) ){
@@ -216,9 +224,9 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
                 }
                 p->Right(CreatNode(1));
             // 同级左结合算符
-            }else if( IsType(c,T::Mul,T::Div) || 
+            }else if( IsType(c,TN_MD) || 
                 //优先级低的算符且不是上一层递归传入
-                !pp && IsType(c,T::Add,T::Sub)
+                !pp && IsType(c,TN_AS)
             ){
                 p = CreatNode(1, p);
                 t = c;
@@ -239,6 +247,13 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
     }
 
     return p;
+
+
+#undef TN_VALUE
+#undef TN_ASMD
+#undef TN_AS
+#undef TN_MD
+
 }
 
 
@@ -305,11 +320,6 @@ int main()
     << endl;
     */
     
-    
-
-    
-    
-
     cout << "\n\n";
 
 
