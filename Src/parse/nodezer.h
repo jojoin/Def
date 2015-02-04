@@ -60,6 +60,11 @@ class Nodezer {
 	void CurTypeNode(); // 判断当前节点类型
 	Node* CreatNode(int, Node*, Node*); //从当前单词新建节点
 	Node* Express(Node*,T); // 扫描单词 构建表达式
+	Node* BuildAST();   // 扫描单词 构建语法树
+	Node* Group(); // 构建表达式组
+	//Node* Tuple(); // 构建元组
+	//Node* Array(); // 构建数组
+	//Node* IfElse(); // 构建数组
 
 	private:
 

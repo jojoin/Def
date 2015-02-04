@@ -146,7 +146,7 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
         Read();
         CurTypeNode(); // 当前类型
         T c = ctn;
-        cout<<(int)c<<"->"<<cur.value<<endl;
+        //cout<<(int)c<<"->"<<cur.value<<endl;
 
         //// Start
         if(t==T::Start){ //开始状态
@@ -162,9 +162,10 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
         //// Variable
         }else if(t==T::Variable){
 
-            cout << "-Variable-" << endl;
-            if(IsType(c,T::Variable,T::Null) ){ //语句结束 完成返回
-                t = T::Down;
+            //cout << "-Variable-" << endl;
+            if( IsType(c,T::Variable) ){ //语句结束 完成返回
+                // 连续两个变量或值 表示表达式完毕
+                return p;
             // 加 减 乘 除 
             }else if( IsType(c,T::Add,T::Sub,T::Mul,T::Div) ){
                 p = CreatNode(1, p);
@@ -174,16 +175,20 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
                 p = CreatNode(1, p);
                 // 赋值算法后面的所有内容都将被赋值给左边的变量
                 p->Right( Express() );
-                t = T::Down;
+                return p;
             }else{ 
-                t = T::Down;
+                return p;
             }
 
         //// Add Sub
         }else if( IsType(t,T::Add,T::Sub) ){ // 加法 减法 + -
 
-            cout << "-Add,Sub-" << endl;
+            //cout << "-Add,Sub-" << endl;
             if( IsType(c,T::Variable) ){
+                if(p->Right()){
+                    //已经存在右节点
+                    return p;
+                }
                 p->Right(CreatNode(1));
             // 同级左结合算符 + -
             }else if( IsType(c,T::Add,T::Sub) ){
@@ -197,14 +202,18 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
                 pn = Express(pn, c);
                 p->Right(pn);
             }else{ 
-                t = T::Down;
+                return p;
             }
 
         //// Mul Div
         }else if( IsType(t,T::Mul,T::Div) ){ // 乘法 除法 * /
 
-            cout << "-Mul,Div-" << endl;
+            //cout << "-Mul,Div-" << endl;
             if( IsType(c,T::Variable) ){
+                if(p->Right()){
+                    //已经存在右节点
+                    return p;
+                }
                 p->Right(CreatNode(1));
             // 同级左结合算符
             }else if( IsType(c,T::Mul,T::Div) || 
@@ -213,22 +222,18 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
             ){
                 p = CreatNode(1, p);
                 t = c;
-            }else{ //遇到加减法等优先级更低的返回节点
-                t = T::Down;
+            }else{
+                return p;
             }
-
-        //// Assign
-        }else if( IsType(t,T::Assign) ){
-
 
         //// Null
         }else if(t==T::Null){ // 终止
 
             //cout << "-Null-" << endl;
-            t = T::Down;
+            return p;
 
         }else{
-
+            return p;
         }
 
     }
@@ -236,6 +241,31 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
     return p;
 }
 
+
+
+/**
+ * 构建语法树
+ */
+Node* Nodezer::BuildAST()
+{
+    return Group();
+}
+
+
+/**
+ * 表达式组合
+ */
+Node* Nodezer::Group()
+{
+    Node *node = new NodeGroup(cur);
+    while(1){
+        // 循环建立表达式
+        Node *e = Express();
+        if(e) node->AddChild( e );
+        else break;
+    }
+    return node;
+}
 
 
 #undef S // Token::State
@@ -263,7 +293,7 @@ int main()
     Nodezer N(words);
 
     // 解析得到语法树（表达式）
-    Node *node = N.Express();
+    Node *node = N.BuildAST();
 
     cout << "\n\n";
 
@@ -271,9 +301,11 @@ int main()
 
     /*
     cout << 
-    node->Left()->Left()->Right()->Right()->GetName()
+    node->Child(0)->Left()->GetName()
     << endl;
     */
+    
+    
 
     
     
