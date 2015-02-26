@@ -1,4 +1,3 @@
-
 #ifndef DEF_NODEZER_H
 #define DEF_NODEZER_H
 
@@ -34,9 +33,9 @@ class Nodezer {
 			next = words.at(i+1);
 		}catch(const exception& e){
 			size_t sz = words.size();
-			if(i+1>=sz) next = nullword;
-			if(i>=sz) cur = nullword;
-			if(i-1>=sz) prev = nullword;
+			if(i+1>=sz) next = endword;
+			if(i>=sz) cur = endword;
+			if(i-1>=sz) prev = endword;
 		}
 
 	};
@@ -48,8 +47,8 @@ class Nodezer {
 
 	inline void Clear(){
 		i = 0;
-		nullword = Word{0,0,Token::State::Null,""};
-		prev = cur = next = nullword;
+		endword = Word{0,0,Token::State::End,""};
+		prev = cur = next = endword;
 		//ctn = TypeNode::Expression;
 		//tn_stk.clear();
 		//tn_stk.push_back(TypeNode::Expression);
@@ -60,8 +59,8 @@ class Nodezer {
 	void CurTypeNode(); // 判断当前节点类型
 	Node* CreatNode(int, Node*, Node*); //从当前单词新建节点
 	Node* Express(Node*,T); // 扫描单词 构建表达式
-	Node* BuildAST();   // 扫描单词 构建语法树
 	Node* Group(); // 构建表达式组
+	Node* BuildAST();   // 扫描单词 构建语法树
 	//Node* Tuple(); // 构建元组
 	//Node* Array(); // 构建数组
 	//Node* IfElse(); // 构建数组
@@ -73,7 +72,7 @@ class Nodezer {
 	Word cur;   // 当前单词
 	Word next;  // 下一个单词
 
-	Word nullword;  // 空单词
+	Word endword;  // 空单词
 
 	T ctn; //当前节点类型
 

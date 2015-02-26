@@ -1,4 +1,3 @@
-
 #ifndef DEF_TOKEN_H
 #define DEF_TOKEN_H
 
@@ -54,7 +53,7 @@ namespace token {
 	/* 关键字 */					\
 	K(None, "none", 0)              \
 	K(True, "true", 0)              \
-	K(False, "false", 0)              \
+	K(False, "false", 0)            \
 									\
 	K(If, "if", 0)              \
 	K(While, "while", 0)              \
@@ -90,7 +89,6 @@ class Token {
 		NewLine,      // 换行
 		
 		Unknow,       // 不明字符
-		Null,         // 不存在
 		End           // 结束符
 	};
 

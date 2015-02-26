@@ -1,3 +1,5 @@
+#ifndef DEF_TOKENIZER_H
+#define DEF_TOKENIZER_H
 /**
  * 词法分析器 
  * 
@@ -116,6 +118,10 @@ class Tokenizer {
 
 } // --end-- namespace token
 } // --end-- namespace def
+
+
+#endif
+// --end-- DEF_TOKENIZER_H
 
 
 

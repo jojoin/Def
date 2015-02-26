@@ -1,10 +1,10 @@
+#ifndef DEF_UTIL_LOG_H
+#define DEF_UTIL_LOG_H
 
 /**
  * 工具类
  */
 
-#ifndef DEF_UTIL_LOG_H
-#define DEF_UTIL_LOG_H
 
 
 #include <string>

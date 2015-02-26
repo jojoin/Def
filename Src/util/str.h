@@ -1,10 +1,10 @@
+#ifndef DEF_UTIL_STR_H
+#define DEF_UTIL_STR_H
 
 /**
  * 工具类
  */
 
-#ifndef DEF_UTIL_STR_H
-#define DEF_UTIL_STR_H
 
 
 #include <sstream>

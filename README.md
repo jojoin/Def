@@ -21,18 +21,37 @@ Def
 
 
 【内置容器类型】 引用传递
-元组      tuple      ("foo" "bar")           不能手写一个单变量元组（与优先级冲突），只能通过list转换或 tuple("bar")
+元组      tuple      ("foo" "bar")           不能手写一个单变量元组
 数组      list       ["foo" "bar"]
-集合      set        {"foo" "bar" abc*2}
 字典      dict       {"foo":123 "bar":456}
 
-5 + num * 10 + 2 * 3
-
-5 + num * 10 + 2 * 3
 
 
+pkg = {
+  a b c
 
-( 500 + 8 )*100
+  num = 5
+  count = num*10
+
+  param
+
+  private
+  public
+
+  count 
+
+
+
+
+
+}
+
+
+pkg( )
+
+
+
+
 
 【细胞】
 

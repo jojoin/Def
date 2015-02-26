@@ -1,4 +1,7 @@
-
+/**
+ * 抽象语法树解析抽象语法树解析
+ */
+#include <iostream>
 #include <fstream>
 #include <cstdlib>
 #include <string>
@@ -31,12 +34,11 @@ Nodezer::Nodezer(vector<Word>& w):
 /**
  * 判断第一个参数（类型）是否为后面的类型任意之一
  */
-
 bool Nodezer::IsType(T c,
-    T t0=T::Null, T t1=T::Null, T t2=T::Null, T t3=T::Null, T t4=T::Null,
-    T t5=T::Null, T t6=T::Null, T t7=T::Null, T t8=T::Null, T t9=T::Null)
+    T t0=T::End, T t1=T::End, T t2=T::End, T t3=T::End, T t4=T::End,
+    T t5=T::End, T t6=T::End, T t7=T::End, T t8=T::End, T t9=T::End)
 {
-    if(c==T::Null){ // 不可对比Null
+    if(c==T::End){ // 不可对比End
         return false;
     }
     if(c==t0||c==t1||c==t2||c==t3||c==t4||
@@ -95,6 +97,7 @@ TypeNode Nodezer::GetTypeNode(Word &cur)
 
         if(v=="="){
             return T::Assign; //赋值 =
+
         }else if(v=="+"){
             return T::Add; // 加 +
         }else if(v=="-"){
@@ -103,11 +106,15 @@ TypeNode Nodezer::GetTypeNode(Word &cur)
             return T::Mul; // 乘 *
         }else if(v=="/"){
             return T::Div; // 除 /
+
+        /*}else if(v=="("){
+            return T::Priority; // 优先级 ()
+        **/
         }
 
-    }else if(s==S::Null){
+    }else if(s==S::End){
 
-        return T::Null; // 终止符
+        return T::End; // 终止符
     }
 
 
@@ -120,12 +127,14 @@ TypeNode Nodezer::GetTypeNode(Word &cur)
 /**
  * 从当前单词新建节点
  */
-Node* Nodezer::CreatNode(int mv=1, Node*l=NULL, Node*r=NULL)
+Node* Nodezer::CreatNode(int mv=0, Node*l=NULL, Node*r=NULL)
 {
     //Read();
     if(mv!=0) Move(mv); //移动指针
 
     Node *p = NULL;
+
+    //cout<<(int)ctn<<"->"<<cur.value<<endl;
 
     switch(ctn){
 
@@ -152,6 +161,7 @@ Node* Nodezer::CreatNode(int mv=1, Node*l=NULL, Node*r=NULL)
         p = new NodeDiv(cur); break;
 
     case T::Assign: // 赋值 =
+        //ERR("new NodeAssign(cur)")
         p = new NodeAssign(cur); break;
     }
 
@@ -167,7 +177,7 @@ Node* Nodezer::CreatNode(int mv=1, Node*l=NULL, Node*r=NULL)
  * @param pp 上级递归父节点
  * @param tt 上级递归父节点类型
  */
-Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
+Node* Nodezer::Express(Node *pp=NULL, T tt=T::Normal)
 {
 
 // 值 叶节点
@@ -175,26 +185,43 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
 #define TN_AS T::Add,T::Sub
 #define TN_MD T::Mul,T::Div
 #define TN_ASMD TN_AS,TN_MD
+#define IS_SIGN(str) cur.type==S::Sign&&cur.value==str
+#define ELIF_CTN }else if(IsType(c,T)){ t=c; continue;
 
-    //T t = T::Start; // 记录状态
+    //T t = T::Normal; // 记录状态
     //string cv = cur.value; // 当前值
     Node *p = pp;
     T t = tt;
 
-    while(t!=T::Down){
+
+    while(t!=T::End){
 
         Read();
         CurTypeNode(); // 当前类型
         T c = ctn;
         //cout<<(int)c<<"->"<<cur.value<<endl;
 
-        //// Start
-        if(t==T::Start){ //开始状态
+        //// Normal
+        if(t==T::Normal){ //开始状态
 
-            //cout << "-Start-" << endl;
+            //cout << "-Normal-" << endl;
             if( IsType(c,TN_VALUE) ){
                 p = CreatNode(1);
                 t = c;
+            // () 括号优先级
+            }else if(IS_SIGN("(")){
+                Move(1); //跳过左括号
+                size_t num = 0;
+                while(1){
+                    if(num>0){
+
+                    }
+                    num++;
+                }
+                p = Express(); //一条表达式
+                if(IS_SIGN(")")) ERR("err: )"); //错误处理
+                Move(1); //跳过右括号
+                return p;
             }else{
                 return p;
             }
@@ -210,12 +237,9 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
             }else if( IsType(c,TN_ASMD) ){
                 p = CreatNode(1, p);
                 t = c;
-            // 赋值
-            }else if( IsType(c,T::Assign) ){
-                p = CreatNode(1, p);
-                // 赋值算法后面的所有内容都将被赋值给左边的变量
-                p->Right( Express() );
-                return p;
+            // 变量赋值
+            }else if( IsType(t,T::Variable) && IsType(c,T::Assign) ){
+                t = c;
             }else{ 
                 return p;
             }
@@ -266,10 +290,18 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
                 return p;
             }
 
-        //// Null
-        }else if(t==T::Null){ // 终止
+        // Assign
+        }else if( t==T::Assign ){
 
-            //cout << "-Null-" << endl;
+            p = CreatNode(1, p);
+            // 赋值算法后面的所有内容都将被赋值给左边的变量
+            p->Right( Express() );
+            return p;
+
+        //// End 终止
+        }else if( t==T::End ){
+
+            //cout << "-End-" << endl;
             return p;
 
         }else{
@@ -278,13 +310,13 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Start)
 
     }
 
-    return p;
-
-
 #undef TN_VALUE
 #undef TN_ASMD
 #undef TN_AS
 #undef TN_MD
+#undef IS_SIGN
+    
+    return p;
 
 }
 
@@ -301,6 +333,7 @@ Node* Nodezer::BuildAST()
 
 /**
  * 表达式组合
+ * @param t 组合类型
  */
 Node* Nodezer::Group()
 {
@@ -319,7 +352,7 @@ Node* Nodezer::Group()
 #undef T // TypeNode
 
 
-/****************** 语法分析器测试 *******************/
+/****************** 语法分析器测试 *******************
 
 
 int main()
@@ -350,7 +383,7 @@ int main()
     cout <<
     node->Child(0)->Right()->Left()->GetFloat()
     << endl;
-    */
+    *
     
     
     cout << "\n\n";
@@ -361,7 +394,7 @@ int main()
     	Word wd = words[i];
 		cout << wd.line << ","<< wd.posi << "  " << (int)wd.type << "  " << wd.value << endl;
     }
-    */
+    *
     
     
 
@@ -380,11 +413,11 @@ int main()
 		cout << wd.line << ","<< wd.pos << "  " << (int)wd.type << "  " << wd.value << endl;
     }
 
-    */
+    *
 
 }
 
 
 
 
-/**************** 语法分析器测试结束 *****************/
+**************** 语法分析器测试结束 *****************/

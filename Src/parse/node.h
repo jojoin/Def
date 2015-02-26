@@ -1,9 +1,11 @@
-
 #ifndef DEF_NODE_H
 #define DEF_NODE_H
 
 #include <string>
 #include <vector>
+
+#include "token.h"
+#include "tokenizer.h"
 
 #include "../Util/str.h"
 
@@ -18,8 +20,6 @@ namespace node {
 enum class TypeNode
 {
 	Normal,   // 默认状态
-	Start,    // 开始状态
-	Down,     // 完成状态
 
 	// 枝节点
 
@@ -45,8 +45,10 @@ enum class TypeNode
 	Float,   // 值 浮点数
 	String,  // 值 字符串
 
+	Priority,  // () 括号优先级
+
 	// 终止
-	Null
+	End
 	
 }; // --end-- enum class TypeNode
 
@@ -74,7 +76,6 @@ struct Node{
 	virtual string GetName(){};
 	virtual string GetString(){};
 };
-Node::~Node(){} // 纯虚析构函数的定义
 
 
 // 多叉节点
