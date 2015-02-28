@@ -9,20 +9,41 @@
 #include <string>
 
 #include "../parse/nodezer.h"
+#include "../object/object.h"
 
+#include "stack.h"
 
 using namespace std;
+
+using namespace def::node;
+using namespace def::object;
+using namespace def::stack;
 
 
 namespace def {
 namespace vm {
 
 
+// 虚拟机
 class Vm {
 
 	public:
 
-	bool Run(string); // 运行 Def 脚本
+	Stack* vm_stack; //虚拟机执行栈
+
+
+	public:
+
+	Vm();
+
+	bool Eval(string, bool); // 执行 Def 脚本
+	bool Execute(Node*);     // 解释执行语法树
+	DefObject* GetValue(Node*);  // 对节点求值操作
+	DefObject* OperateAdd(DefObject*, DefObject*); // 加法操作
+	DefObject* OperatePrint(DefObject*); // 打印操作
+
+
+
 
 };
 

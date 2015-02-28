@@ -35,6 +35,8 @@ enum class TypeNode
 	FuncDefine,   // 函数定义
 	FuncCall,     // 函数调用
 
+	Print,   // 打印
+
 	// 叶节点
 
 	Variable,   // 变量符号           // 11
@@ -57,7 +59,7 @@ enum class TypeNode
 struct Node{
 	unsigned int line;   // 代码行
 	unsigned int posi;   // 所属位置
-	TypeNode type;           // 节点类型
+	TypeNode type;       // 节点类型
 	// 构造方法
 	Node(TypeNode t, Word &w)
 		: type(t)
@@ -168,6 +170,14 @@ struct NodeMul: NodeTwinTree{
 struct NodeDiv: NodeTwinTree{
 	NodeDiv(Word &w)
 	: NodeTwinTree(TypeNode::Div, w){}
+};
+
+
+// print 打印变量至屏幕
+struct NodePrint : NodeTwinTree{
+	NodePrint(Word &w)
+	: NodeTwinTree(TypeNode::Print, w)
+	{}
 };
 
 

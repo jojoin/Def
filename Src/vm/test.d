@@ -10,8 +10,13 @@
 
 
 
-num = 1 + 2
+num = 1 + 2 + 3
 
-count = num * 3
+count = num + 100
+
+print count
+
+print 999
+
 
 

@@ -55,6 +55,8 @@ namespace token {
 	K(True, "true", 0)              \
 	K(False, "false", 0)            \
 									\
+	K(Print, "print", 0)              \
+									\
 	K(If, "if", 0)              \
 	K(While, "while", 0)              \
 	K(And, "and", 0)              \

@@ -91,6 +91,9 @@ TypeNode Nodezer::GetTypeNode(Word &cur)
             return T::None;
         }else if(v=="true"||v=="false"){
             return T::Bool;
+
+        }else if(v=="print"){
+            return T::Print;
         }
 
     }else if(s==S::Sign){ // 符号
@@ -151,6 +154,9 @@ Node* Nodezer::CreatNode(int mv=0, Node*l=NULL, Node*r=NULL)
     case T::String:   // String
         return new NodeString(cur);
 
+    case T::Print: // 打印
+        return new NodePrint(cur);
+
     case T::Add: // 加 +
         p = new NodeAdd(cur); break;
     case T::Sub: // 减 -
@@ -192,22 +198,33 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Normal)
     //string cv = cur.value; // 当前值
     Node *p = pp;
     T t = tt;
+    T c = ctn;
+    bool whi = false; //表示是否跳转处理
 
 
     while(t!=T::End){
 
-        Read();
-        CurTypeNode(); // 当前类型
-        T c = ctn;
-        //cout<<(int)c<<"->"<<cur.value<<endl;
+        if(!whi){
+            Read();
+            CurTypeNode(); // 当前类型
+            c = ctn;
+            //cout<<(int)c<<"->"<<cur.value<<endl;
+            whi = false;
+        }else{
+            t = c;
+        }
 
         //// Normal
         if(t==T::Normal){ //开始状态
 
             //cout << "-Normal-" << endl;
-            if( IsType(c,TN_VALUE) ){
+            if( c==T::Print ){
+                whi = true;
+
+            }else if( IsType(c,TN_VALUE) ){
                 p = CreatNode(1);
                 t = c;
+
             // () 括号优先级
             }else if(IS_SIGN("(")){
                 Move(1); //跳过左括号
@@ -230,7 +247,7 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Normal)
         }else if( IsType(t,TN_VALUE) ){
 
             //cout << "-TN_VALUE-" << endl;
-            if( IsType(c,TN_VALUE) ){
+            if( IsType(c,TN_VALUE,T::Print) ){
                 // 连续两个变量或值 表示表达式完毕
                 return p;
             // 加 减 乘 除 
@@ -239,7 +256,7 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Normal)
                 t = c;
             // 变量赋值
             }else if( IsType(t,T::Variable) && IsType(c,T::Assign) ){
-                t = c;
+                whi = true;
             }else{ 
                 return p;
             }
@@ -295,6 +312,14 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Normal)
 
             p = CreatNode(1, p);
             // 赋值算法后面的所有内容都将被赋值给左边的变量
+            p->Right( Express() );
+            return p;
+
+        // Print
+        }else if( t==T::Print ){
+
+            p = CreatNode(1);
+            // print 关键字左边的第一个值将被打印
             p->Right( Express() );
             return p;
 
