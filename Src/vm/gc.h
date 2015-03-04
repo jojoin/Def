@@ -6,7 +6,7 @@
  */
 
 #include <string>
-#include <list>
+#include <stack>
 
 #include "../object/object.h"
 #include "../parse/node.h"
@@ -20,14 +20,14 @@ namespace def {
 namespace gc {
 
 // 对象列表
-typedef list<DefObject*> ObjList;
+typedef stack<DefObject*> FreeObjs;
 
 // 对象分配及回收
 class Gc{
 
-	ObjList free_int;      // 空闲 int 列表
-	ObjList free_float;    // 空闲 float 列表
-	ObjList free_string;   // 空闲 string 列表
+	FreeObjs free_int;      // 空闲 int 列表
+	FreeObjs free_float;    // 空闲 float 列表
+	FreeObjs free_string;   // 空闲 string 列表
 
 	ObjectNone* prep_none;      // none 小对象
 	ObjectBool* prep_true;      // true 小对象

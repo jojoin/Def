@@ -26,7 +26,6 @@ Gc::Gc(){
 	}
 	// 初始化小字符串列表
 	// TODO::
-	
 }
 
 
@@ -48,12 +47,18 @@ DefObject* Gc::Allot(Node* n){
 			return prep_false;
 	}else if(t==T::Int){ // int
 		long val = n->GetInt();
-		if(val>=-10&&val<=260){
-			// 小整数池
-			cout<<"mini int poll"<<endl;
+		if(val<=260&&val>=-10){
+			// 小整数池 cout<<"mini int poll"<<endl;
 			return prep_ints[val+10];
 		}
-		return new ObjectInt(val);
+		if(free_int.empty()){
+			return new ObjectInt(val);
+		}
+		// 取自 int 空闲内存池
+		ObjectInt* pi = (ObjectInt*)free_int.top();
+		free_int.pop();
+		pi->value = val; // 改值
+		return pi; 
 	}else if(t==T::String){ // string
 
 	}
@@ -63,20 +68,35 @@ DefObject* Gc::Allot(Node* n){
 }
 
 
+#define T ObjectType
+#define IS_CONTAINER_OBJ obj->type==T::List||obj->type==T::Dict
+// 判断是否为小整数
+#define IF_MINI_INT_OBJ \
+		ObjectInt* obj_int = (ObjectInt*)obj; \
+		long val = obj_int->value; \
+		if(val<=260&&val>=-10)
+
+
+
 /**
  * 引用现有的对象
  * 引用计数 +1
  */
 DefObject* Gc::Quote(DefObject* obj){
+	T t = obj->type;
+	if(t==T::None||t==T::Bool){
+		return obj; // 小对象
+	}
+	if(t==T::Int){
+		IF_MINI_INT_OBJ{
+			return obj; // 小整数
+		}
+	}
 	// 引用计数 +1
 	obj->refcnt += 1;
-	cout<<"Gc::Quote"<<endl;
+	//cout<<"Gc::Quote"<<endl;
+	return obj;
 }
-
-
-
-#define T ObjectType
-#define IS_CONTAINER_OBJ obj->type==T::List||obj->type==T::Dict
 
 
 /**
@@ -94,8 +114,7 @@ DefObject* Gc::Free(DefObject* obj){
 	}
 	// 引用计数 -1
 	obj->refcnt = r--;
-	// 引用归零 回收对象
-	if(r<=0){
+	if(r<=0){ // 引用归零 回收对象
 		Recycle(obj);
 	}
 }
@@ -108,17 +127,15 @@ DefObject* Gc::Free(DefObject* obj){
 bool Gc::Recycle(DefObject* obj){
 	T t = obj->type;
 	if(t==T::None||t==T::Bool){
-		return true; // 对象池不需要 del
-	}else if(t==T::Int){
-		ObjectInt* obj_int = (ObjectInt*)obj;
-		long val = obj_int->value;
-		if(val>=-10&&val<=260){
-			// 小整数池 不需要 del
-		}
+		return true; // 小对象不需要 del
 	}
-
-	// delete 对象指针
-	delete obj;
+	if(t==T::Int){
+		IF_MINI_INT_OBJ{
+			return true; // 小整数 不需要 del
+		}
+		free_int.push(obj); //保存至空闲内存
+	}
+	delete obj; // delete 对象指针 
 	return true;
 }
 

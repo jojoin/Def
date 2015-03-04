@@ -4,11 +4,14 @@
 
 
 
-num = 1 + 2 + 3
+num = 1 + 2 + 3 
 count = 100 + num
 total = num + count
 
+
 print total+1000
+
+
 
 
 
@@ -19,7 +22,7 @@ def mathod(){
 	a := 123
 }
 
-# 匿名函数 
+# 匿名函数
 def(a b){a=123}
 
 # 元组
@@ -37,3 +40,10 @@ dict = {
 
 
 ###
+
+
+
+
+
+
+
