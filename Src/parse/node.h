@@ -17,7 +17,7 @@ namespace def {
 namespace node {
 
 // 节点类型
-enum class TypeNode
+enum class NodeType
 {
 	Normal,   // 默认状态
 
@@ -52,16 +52,16 @@ enum class TypeNode
 	// 终止
 	End
 	
-}; // --end-- enum class TypeNode
+}; // --end-- enum class NodeType
 
 
 // 节点
 struct Node{
 	unsigned int line;   // 代码行
 	unsigned int posi;   // 所属位置
-	TypeNode type;       // 节点类型
+	NodeType type;       // 节点类型
 	// 构造方法
-	Node(TypeNode t, Word &w)
+	Node(NodeType t, Word &w)
 		: type(t)
 	{
 		line = w.line;
@@ -83,7 +83,7 @@ struct Node{
 // 多叉节点
 struct NodeTree : Node{
 	vector<Node*> childs; // 子节点指针列表
-	NodeTree(TypeNode t, Word &w)
+	NodeTree(NodeType t, Word &w)
 		: Node(t, w){}
 	virtual ~NodeTree(){
 		size_t sz = childs.size();
@@ -107,7 +107,7 @@ struct NodeTree : Node{
 // 组合表达式
 struct NodeGroup : NodeTree{
 	NodeGroup(Word &w)
-		: NodeTree(TypeNode::Group, w){}
+		: NodeTree(NodeType::Group, w){}
 };
 
 
@@ -115,7 +115,7 @@ struct NodeGroup : NodeTree{
 struct NodeTwinTree : Node{
 	Node* left;   // 左子节点
 	Node* right;  // 右子节点
-	NodeTwinTree(TypeNode t, Word &w, Node* lf=NULL, Node* rt=NULL)
+	NodeTwinTree(NodeType t, Word &w, Node* lf=NULL, Node* rt=NULL)
 		: Node(t, w), left(lf), right(rt){}
 	virtual ~NodeTwinTree(){
         //cout<<"delete left "<<(int)left->type<<endl;
@@ -143,40 +143,40 @@ struct NodeTwinTree : Node{
 // = 赋值节点
 struct NodeAssign: NodeTwinTree{
 	NodeAssign(Word &w)
-		: NodeTwinTree(TypeNode::Assign, w){}
+		: NodeTwinTree(NodeType::Assign, w){}
 };
 
 
 // + 加操作节点
 struct NodeAdd: NodeTwinTree{
 	NodeAdd(Word &w)
-	: NodeTwinTree(TypeNode::Add, w){}
+	: NodeTwinTree(NodeType::Add, w){}
 };
 
 
 // - 减操作节点
 struct NodeSub: NodeTwinTree{
 	NodeSub(Word &w)
-	: NodeTwinTree(TypeNode::Sub, w){}
+	: NodeTwinTree(NodeType::Sub, w){}
 };
 
 // * 乘操作节点
 struct NodeMul: NodeTwinTree{
 	NodeMul(Word &w)
-	: NodeTwinTree(TypeNode::Mul, w){}
+	: NodeTwinTree(NodeType::Mul, w){}
 };
 
 // / 除操作节点
 struct NodeDiv: NodeTwinTree{
 	NodeDiv(Word &w)
-	: NodeTwinTree(TypeNode::Div, w){}
+	: NodeTwinTree(NodeType::Div, w){}
 };
 
 
 // print 打印变量至屏幕
 struct NodePrint : NodeTwinTree{
 	NodePrint(Word &w)
-	: NodeTwinTree(TypeNode::Print, w)
+	: NodeTwinTree(NodeType::Print, w)
 	{}
 };
 
@@ -185,7 +185,7 @@ struct NodePrint : NodeTwinTree{
 struct NodeVariable : Node{
 	string name;
 	NodeVariable(Word &w)
-	: Node(TypeNode::Variable, w){
+	: Node(NodeType::Variable, w){
 		name = w.value;
 	}
 	inline string GetName(){
@@ -197,7 +197,7 @@ struct NodeVariable : Node{
 // none 节点
 struct NodeNone : Node{
 	NodeNone(Word &w)
-	: Node(TypeNode::None, w){}
+	: Node(NodeType::None, w){}
 };
 
 
@@ -205,7 +205,7 @@ struct NodeNone : Node{
 struct NodeBool : Node{
 	bool value;
 	NodeBool(Word &w)
-	: Node(TypeNode::Bool, w){
+	: Node(NodeType::Bool, w){
 		value = w.value=="true" ? true : false;
 	}
 	inline bool GetBool(){
@@ -218,7 +218,7 @@ struct NodeBool : Node{
 struct NodeInt : Node{
 	long value;
 	NodeInt(Word &w)
-	: Node(TypeNode::Int, w){
+	: Node(NodeType::Int, w){
 		value = Str::s2l(w.value);
 	}
 	inline long GetInt(){
@@ -231,7 +231,7 @@ struct NodeInt : Node{
 struct NodeFloat : Node{
 	double value;
 	NodeFloat(Word &w)
-	: Node(TypeNode::Float, w){
+	: Node(NodeType::Float, w){
 		value = Str::s2d(w.value);
 	}
 	inline double GetFloat(){
@@ -244,7 +244,7 @@ struct NodeFloat : Node{
 struct NodeString : Node{
 	string value;
 	NodeString(Word &w)
-	: Node(TypeNode::String, w){
+	: Node(NodeType::String, w){
 		value = w.value;
 	}
 	inline string GetString(){

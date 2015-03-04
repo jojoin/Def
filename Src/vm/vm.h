@@ -11,6 +11,7 @@
 #include "../parse/nodezer.h"
 #include "../object/object.h"
 
+#include "gc.h"
 #include "stack.h"
 
 using namespace std;
@@ -18,6 +19,7 @@ using namespace std;
 using namespace def::node;
 using namespace def::object;
 using namespace def::stack;
+using namespace def::gc;
 
 
 namespace def {
@@ -30,6 +32,7 @@ class Vm {
 	public:
 
 	Stack* vm_stack; //虚拟机执行栈
+	Gc* vm_gc; //虚拟机对象分配及垃圾回收
 
 
 	public:

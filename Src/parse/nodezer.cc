@@ -10,7 +10,7 @@
 #include "nodezer.h"
 
 #define S Token::State
-#define T TypeNode
+#define T NodeType
 
 using namespace std;
 
@@ -52,16 +52,16 @@ bool Nodezer::IsType(T c,
 /**
  * 判断当前的节点类型
  */
-void Nodezer::CurTypeNode()
+void Nodezer::CurNodeType()
 {
-    ctn = GetTypeNode(cur);
+    ctn = GetNodeType(cur);
 }
 
 
 /**
  * 获得当前的节点类型
  */
-TypeNode Nodezer::GetTypeNode(Word &cur)
+NodeType Nodezer::GetNodeType(Word &cur)
 {
     S s = cur.type;
     string v = cur.value;
@@ -206,7 +206,7 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Normal)
 
         if(!whi){
             Read();
-            CurTypeNode(); // 当前类型
+            CurNodeType(); // 当前类型
             c = ctn;
             //cout<<(int)c<<"->"<<cur.value<<endl;
             whi = false;
@@ -374,7 +374,7 @@ Node* Nodezer::Group()
 
 
 #undef S // Token::State
-#undef T // TypeNode
+#undef T // NodeType
 
 
 /****************** 语法分析器测试 *******************

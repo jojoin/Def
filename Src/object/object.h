@@ -15,7 +15,7 @@ namespace object {
 
 
 // Def 对象类型
-enum class ObjType
+enum class ObjectType
 {
 	// 基本
 	None,    // none
@@ -33,23 +33,35 @@ enum class ObjType
 };
 
 
-#define T ObjType
+#define T ObjectType
 
 /**
  * Def 对象
  */
 struct DefObject{
-	ObjType type; /*对象类型*/
-	DefObject(ObjType t)
+	T type;  /*对象类型*/
+	size_t refcnt; /*引用计数*/
+	DefObject(T t, size_t r=0)
 		: type(t)
+		, refcnt(r)
 	{}
 };
 
 
-// None none对象
+// None none 对象
 struct ObjectNone : DefObject{
 	ObjectNone()
 		: DefObject(T::None)
+	{}
+};
+
+
+// Bool true 对象
+struct ObjectBool : DefObject{
+	bool value;
+	ObjectBool(bool v)
+		: DefObject(T::Bool)
+		, value(v)
 	{}
 };
 
@@ -61,7 +73,6 @@ struct ObjectInt : DefObject{
 		: DefObject(T::Int)
 		, value(v)
 	{}
-
 };
 
 
@@ -82,7 +93,7 @@ struct ObjectString : DefObject{
 
 
 
-#undef T   // ObjType
+#undef T   // ObjectType
 
 
 } // --end-- namespace object

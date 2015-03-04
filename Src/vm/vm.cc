@@ -12,12 +12,14 @@ using namespace def::token;
 using namespace def::node;
 using namespace def::object;
 using namespace def::stack;
+using namespace def::gc;
 using namespace def::vm;
 
 
 
 Vm::Vm(){
-    vm_stack = new Stack(); //新建执行栈
+    vm_stack = new Stack(); // 新建执行栈
+    vm_gc = new Gc(); // 新建对象分配
 }
 
 /**
@@ -58,7 +60,7 @@ bool Vm::Eval(string txt, bool ispath=false)
  */
 bool Vm::Execute(Node *p)
 {
-    // 组合表达式 TypeNode::Group
+    // 组合表达式 NodeType::Group
     size_t i=0;
     while(1){
         Node *e = p->Child(i);
@@ -78,13 +80,14 @@ bool Vm::Execute(Node *p)
 DefObject* Vm::GetValue(Node* n)
 {
 
-#define T TypeNode
+#define T NodeType
 
     T t = n->type; //当前节点类型
 
     if(t==T::Assign){ // 赋值
 
         DefObject *rv = GetValue(n->Right()); //等号右值
+        vm_gc->Quote(rv); //引用计数 +1
         vm_stack->Put( // 变量入栈
             n->Left()->GetName() ,
             rv
@@ -102,9 +105,6 @@ DefObject* Vm::GetValue(Node* n)
             GetValue(n->Right())
         ); // 打印
 
-    }else if(t==T::None){
-    
-
     }else if(t==T::Add){ // + 加法操作
 
         return OperateAdd(
@@ -112,20 +112,20 @@ DefObject* Vm::GetValue(Node* n)
             GetValue(n->Right())
         );
 
-    }else if(t==T::Int){ // 整数求值
+    }else if(t==T::None||t==T::Bool||t==T::Int){ // none bool int 字面量求值
 
-        return new ObjectInt(n->GetInt());
+        return vm_gc->Allot(n);
 
     }else{
 
     }
 
-#undef T   // TypeNode
+#undef T   // NodeType
 
 }
 
 
-#define T ObjType
+#define T ObjectType
 
 
 /**
@@ -169,7 +169,7 @@ DefObject* Vm::OperatePrint(DefObject *obj)
 }
 
 
-#undef T   // ObjType
+#undef T   // ObjectType
 
 
 /****** 脚本解释器测试 ******/

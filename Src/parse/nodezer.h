@@ -12,8 +12,8 @@ using namespace std;
 using namespace def::token;
 using namespace def::node;
 
-// TypeNode
-#define T TypeNode
+// NodeType
+#define T NodeType
 
 namespace def {
 namespace node {
@@ -49,14 +49,14 @@ class Nodezer {
 		i = 0;
 		endword = Word{0,0,Token::State::End,""};
 		prev = cur = next = endword;
-		//ctn = TypeNode::Expression;
+		//ctn = NodeType::Expression;
 		//tn_stk.clear();
-		//tn_stk.push_back(TypeNode::Expression);
+		//tn_stk.push_back(NodeType::Expression);
 	};
 
 	static bool IsType(T,T,T,T,T,T,T,T,T,T,T); // 节点类型是否匹配
-	T GetTypeNode(Word&); // 获得节点类型
-	void CurTypeNode(); // 判断当前节点类型
+	T GetNodeType(Word&); // 获得节点类型
+	void CurNodeType(); // 判断当前节点类型
 	Node* CreatNode(int, Node*, Node*); //从当前单词新建节点
 	Node* Express(Node*,T); // 扫描单词 构建表达式
 	Node* Group(); // 构建表达式组
@@ -83,7 +83,7 @@ class Nodezer {
 } // --end-- namespace node
 } // --end-- namespace def
 
-# undef T // TypeNode
+# undef T // NodeType
 
 #endif
 // --end-- DEF_NODEZER_H
