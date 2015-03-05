@@ -1,6 +1,7 @@
 ###
- Def 语言测试执行文件
+ # Def 语言测试执行文件
 ###
+
 
 
 
@@ -9,7 +10,7 @@ count = 100 + num
 total = num + count
 
 
-print total+1000
+print total + 1000 + 3
 
 
 
@@ -40,8 +41,6 @@ dict = {
 
 
 ###
-
-
 
 
 
