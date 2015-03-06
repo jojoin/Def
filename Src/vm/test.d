@@ -7,11 +7,11 @@
 
 num = 1
 count = 100 + num
-total = num + count + 10
+total = count + 10
 
 
 
-#print total + 1000 + 3
+print total+1000
 
 
 
