@@ -90,7 +90,7 @@ DefObject* Vm::GetValue(Node* n)
         string name = n->Left()->GetName();     // 名字
         DefObject *exi = vm_stack->Get(name);   // 查找变量是否存在
         if(exi!=NULL){
-            cout<<"vm_gc->Free()"<<endl;
+            //cout<<"vm_gc->Free()"<<endl;
             vm_gc->Free(rv);       // 变量重新赋值则释放之前的变量
         }
         vm_gc->Quote(rv);          // 引用计数 +1

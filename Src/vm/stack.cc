@@ -44,11 +44,11 @@ DefObject* Stack::Get(string name)
 
 
 /**
- * 注册新创建的变量，用于垃圾回收
+ * 注册当前栈帧新创建的变量，用于垃圾回收
  */
 DefObject* Stack::Regist(DefObject* obj)
 {
-    cout<<"Stack::Regist()"<<endl;
+    //cout<<"Stack::Regist()"<<endl;
 	o_create.push_back(obj);
 	return obj;
 }
