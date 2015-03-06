@@ -30,6 +30,35 @@ Gc::Gc(){
 
 
 /**
+ * 创建 Int 对象
+ */
+ObjectBool* Gc::AllotBool(bool val)
+{
+	return val ? prep_true : prep_false;
+}
+
+
+/**
+ * 创建 Int 对象
+ */
+ObjectInt* Gc::AllotInt(long val)
+{
+	if(val<=260&&val>=-10){
+		// 小整数池 cout<<"mini int poll"<<endl;
+		return prep_ints[val+10];
+	}
+	if(free_int.empty()){
+		return new ObjectInt(val);
+	}
+	// 取自 int 空闲内存池
+	ObjectInt* pi = (ObjectInt*)free_int.top();
+	free_int.pop();
+	pi->value = val; // 改值
+	return pi; 
+}
+
+
+/**
  * 从语法节点分配新的对象
  */
 DefObject* Gc::Allot(Node* n){
@@ -39,26 +68,17 @@ DefObject* Gc::Allot(Node* n){
 	T t = n->type;
 
 	if(t==T::None){ // none
+
 		return prep_none;
+
 	}else if(t==T::Bool){ // bool
-		if(n->GetBool())
-			return prep_true;
-		else
-			return prep_false;
+
+		return AllotBool(n->GetBool());
+
 	}else if(t==T::Int){ // int
-		long val = n->GetInt();
-		if(val<=260&&val>=-10){
-			// 小整数池 cout<<"mini int poll"<<endl;
-			return prep_ints[val+10];
-		}
-		if(free_int.empty()){
-			return new ObjectInt(val);
-		}
-		// 取自 int 空闲内存池
-		ObjectInt* pi = (ObjectInt*)free_int.top();
-		free_int.pop();
-		pi->value = val; // 改值
-		return pi; 
+
+		return AllotInt(n->GetInt());
+
 	}else if(t==T::String){ // string
 
 	}
@@ -105,18 +125,18 @@ DefObject* Gc::Quote(DefObject* obj){
  * 当引用计数变为0时回收对象
  * 递归释放容器对象
  */
-DefObject* Gc::Free(DefObject* obj){
+bool Gc::Free(DefObject* obj){
 	T t = obj->type;
 	size_t r = obj->refcnt;
 	// 递归释放容器对象
 	if(IS_CONTAINER_OBJ){
 	   	// TODO:: 
 	}
-	// 引用计数 -1
-	obj->refcnt = r--;
-	if(r<=0){ // 引用归零 回收对象
-		Recycle(obj);
+	if(r<=1){ // 引用归零 回收对象
+		return Recycle(obj);
 	}
+	// 更新引用计数
+	obj->refcnt = r-1;
 }
 
 

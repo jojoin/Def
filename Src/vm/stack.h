@@ -8,6 +8,7 @@
 
 #include <string>
 #include <map>
+#include <list>
  
 
 #include "../object/object.h"
@@ -23,13 +24,15 @@ namespace stack {
 // Def 语言执行变量栈
 struct Stack{
 
-	map<string, DefObject*> v_local; // 本地变量列表
+	map<string, DefObject*> v_local; // 本地变量名字表
+	list<DefObject*> o_create;       // 本地新创建的变量（用于垃圾回收）
 	Stack* parent;                   // 父栈
 	//vector<Stack*> childs;         // 子栈列表
 
 	Stack();
-	void Put(string, DefObject*);   // 将变量入栈
-	DefObject* Get(string);         // 取变量值
+	DefObject* Regist(DefObject*);           // 登记新创建的值
+	DefObject* Put(string, DefObject*);   // 将变量入栈
+	DefObject* Get(string);         // 取变量值（不存在返回NULL）
 
 };
 

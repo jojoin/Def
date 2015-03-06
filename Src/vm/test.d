@@ -5,12 +5,45 @@
 
 
 
-num = 1 + 2 + 3 
+num = 1
 count = 100 + num
-total = num + count
+total = num + count + 10
 
 
-print total + 1000 + 3
+
+#print total + 1000 + 3
+
+
+
+###
+
+# if elif else 控制流程结构
+
+if a
+	1
+    1
+	a=true
+	n=1
+elif b is "b"
+	b=true
+	n=2
+else
+	c=true
+	n=3
+;
+
+
+if k>1
+	k=1
+;
+
+
+while k<100
+	k += 1
+;
+
+
+###
 
 
 

@@ -2,6 +2,7 @@
  * Def 执行栈
  */
 
+#include <iostream>
 #include <string>
  
 #include "stack.h"
@@ -22,7 +23,7 @@ Stack::Stack()
 /**
  * 将变量入栈
  */
-void Stack::Put(string name, DefObject *obj)
+DefObject* Stack::Put(string name, DefObject *obj)
 {
 	v_local[name] = obj;
 }
@@ -33,5 +34,22 @@ void Stack::Put(string name, DefObject *obj)
  */
 DefObject* Stack::Get(string name)
 {
-	return v_local[name];
+	map<string, DefObject*>::iterator iter = v_local.find(name);
+	if(iter!=v_local.end()){
+	    return iter->second;
+	}else{
+		return NULL;
+	}
 }
+
+
+/**
+ * 注册新创建的变量，用于垃圾回收
+ */
+DefObject* Stack::Regist(DefObject* obj)
+{
+    cout<<"Stack::Regist()"<<endl;
+	o_create.push_back(obj);
+	return obj;
+}
+

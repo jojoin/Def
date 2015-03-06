@@ -86,12 +86,15 @@ DefObject* Vm::GetValue(Node* n)
 
     if(t==T::Assign){ // 赋值
 
-        DefObject *rv = GetValue(n->Right()); //等号右值
-        vm_gc->Quote(rv); //引用计数 +1
-        vm_stack->Put( // 变量入栈
-            n->Left()->GetName() ,
-            rv
-        );
+        DefObject *rv = GetValue(n->Right());   // 等号右值
+        string name = n->Left()->GetName();     // 名字
+        DefObject *exi = vm_stack->Get(name);   // 查找变量是否存在
+        if(exi!=NULL){
+            cout<<"vm_gc->Free()"<<endl;
+            vm_gc->Free(rv);       // 变量重新赋值则释放之前的变量
+        }
+        vm_gc->Quote(rv);          // 引用计数 +1
+        vm_stack->Put(name, rv);   // 变量入栈
         return rv;
 
     }else if(t==T::Variable){ // 通过名字取得变量值
@@ -114,7 +117,9 @@ DefObject* Vm::GetValue(Node* n)
 
     }else if(t==T::None||t==T::Bool||t==T::Int){ // none bool int 字面量求值
 
-        return vm_gc->Allot(n);
+        DefObject *crt = vm_gc->Allot(n);   // 分配新变量
+        vm_stack->Regist(crt);    // 登记新变量
+        return crt;
 
     }else{
 
@@ -136,9 +141,12 @@ DefObject* Vm::OperateAdd(DefObject *l, DefObject *r)
     T lt = l->type;
     T rt = r->type;
 
+    DefObject *obj = NULL;
+
     // 整数相加
     if( lt==T::Int && lt==T::Int ){
-        return new ObjectInt(
+
+        obj = vm_gc->AllotInt(
             ((ObjectInt*)l)->value + 
             ((ObjectInt*)r)->value
         );
@@ -147,6 +155,8 @@ DefObject* Vm::OperateAdd(DefObject *l, DefObject *r)
 
     }
 
+    vm_stack->Regist(obj);    // 登记新变量
+    return obj;
 }
 
 /**
