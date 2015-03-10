@@ -6,27 +6,19 @@
 
 
 num = 1
-count = 100 + num
-total = count + 10
+count = 10
+total = 100
 
 
-if num
-	num = 99
-elif count
-	count = 99
-else
-	total = 99
+if total
+	num = 123000
+	count = num + 456
+	print count
 ;
 
-
-if 1
-	total = 99999
-;
-
-
-print num
-print count
-print total
+#print num
+#print count
+#print total
 
 
 

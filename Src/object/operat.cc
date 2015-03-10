@@ -25,14 +25,11 @@ bool Conversion::Bool(DefObject *obj)
 	if(t==T::None){
 		return false;
 	}else if(t==T::Bool){
-		ObjectBool* o = (ObjectBool*)obj;
-		return o->value;
+		return ((ObjectBool*)obj)->value;
 	}else if(t==T::Int){
-		ObjectInt* o = (ObjectInt*)obj;
-		return o->value!=0;
+		return ((ObjectInt*)obj)->value!=0;
 	}else if(t==T::String){
-		ObjectString* o = (ObjectString*)obj;
-		return o->value!="";
+		return ((ObjectString*)obj)->value!="";
 	}else{
 		return true;
 	}

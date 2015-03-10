@@ -92,10 +92,11 @@ DefObject* Vm::GetValue(Node* n)
 
         DefObject *rv = GetValue(n->Right());   // 等号右值
         string name = n->Left()->GetName();     // 名字
+        //cout<<"Assign name="<<name<<endl;
         DefObject *exi = vm_stack->Get(name);   // 查找变量是否存在
         if(exi!=NULL){
             //cout<<"vm_gc->Free()"<<endl;
-            vm_gc->Free(rv);       // 变量重新赋值则释放之前的变量
+            vm_gc->Free(exi);       // 变量重新赋值则释放之前的变量
         }
         vm_gc->Quote(rv);          // 引用计数 +1
         vm_stack->Put(name, rv);   // 变量入栈
