@@ -10,8 +10,23 @@ count = 100 + num
 total = count + 10
 
 
+if num
+	num = 99
+elif count
+	count = 99
+else
+	total = 99
+;
 
-print total+1000
+
+if 1
+	total = 99999
+;
+
+
+print num
+print count
+print total
 
 
 
@@ -20,8 +35,6 @@ print total+1000
 # if elif else 控制流程结构
 
 if a
-	1
-    1
 	a=true
 	n=1
 elif b is "b"

@@ -35,7 +35,6 @@ enum class NodeType
 	FuncDefine,   // 函数定义
 	FuncCall,     // 函数调用
 
-	Print,   // 打印
 
 	// 叶节点
 
@@ -49,6 +48,12 @@ enum class NodeType
 
 	Priority,  // () 括号优先级
 
+	Print,   // 打印
+
+	// 控制流结构
+
+	If,  // if elif else
+
 	// 终止
 	End
 	
@@ -57,8 +62,8 @@ enum class NodeType
 
 // 节点
 struct Node{
-	unsigned int line;   // 代码行
-	unsigned int posi;   // 所属位置
+	size_t line;   // 代码行
+	size_t posi;   // 所属位置
 	NodeType type;       // 节点类型
 	// 构造方法
 	Node(NodeType t, Word &w)
@@ -69,7 +74,9 @@ struct Node{
 	}
 	virtual ~Node()=0;
 	virtual void AddChild(Node*){};
+	virtual void ClearChild(){};
 	virtual Node* Child(size_t i){};
+	virtual size_t ChildSize(){};
 	virtual Node* Left(Node*n=NULL){};
 	virtual Node* Right(Node*n=NULL){};
 	virtual bool GetBool(){};
@@ -86,8 +93,8 @@ struct NodeTree : Node{
 	NodeTree(NodeType t, Word &w)
 		: Node(t, w){}
 	virtual ~NodeTree(){
-		size_t sz = childs.size();
-		for(int i=0; i<sz; i++)
+		size_t s = childs.size();
+		for(size_t i=0; i<s; i++)
 		{
         	//cout<<"delete child "<<i<<endl;
 			delete childs[i];
@@ -98,9 +105,22 @@ struct NodeTree : Node{
         //cout<<"add child "<<(int)n->type<<endl;
 		childs.push_back(n);
 	}
+	inline void ClearChild(){
+		childs.clear();
+	};
 	inline Node* Child(size_t i){
 		return i<childs.size() ? childs[i] : NULL;
 	}
+	inline size_t ChildSize(){ //子节点数量
+		return childs.size();
+	};
+	inline Node* ChildPop(size_t i=0){ //弹出某个子节点
+		Node* n = Child(i);
+		if(n){
+			childs.erase(childs.begin()+i);
+		}
+		return n;
+	};
 };
 
 
@@ -108,6 +128,12 @@ struct NodeTree : Node{
 struct NodeGroup : NodeTree{
 	NodeGroup(Word &w)
 		: NodeTree(NodeType::Group, w){}
+};
+
+// If 控制流程
+struct NodeIf : NodeTree{
+	NodeIf(Word &w)
+		: NodeTree(NodeType::If, w){}
 };
 
 

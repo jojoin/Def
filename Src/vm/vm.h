@@ -42,8 +42,9 @@ class Vm {
 	bool Eval(string, bool); // 执行 Def 脚本
 	bool Execute(Node*);     // 解释执行语法树
 	DefObject* GetValue(Node*);  // 对节点求值操作
-	DefObject* OperateAdd(DefObject*, DefObject*); // 加法操作
 	DefObject* OperatePrint(DefObject*); // 打印操作
+	DefObject* OperateAdd(DefObject*, DefObject*); // 加法操作
+	DefObject* ControlIf(NodeIf*); // If 结构
 
 
 

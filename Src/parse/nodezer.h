@@ -56,7 +56,7 @@ class Nodezer {
 
 	static bool IsType(T,T,T,T,T,T,T,T,T,T,T); // 节点类型是否匹配
 	T GetNodeType(Word&); // 获得节点类型
-	void CurNodeType(); // 判断当前节点类型
+	T CurNodeType(); // 判断当前节点类型
 	Node* CreatNode(int, Node*, Node*); //从当前单词新建节点
 	Node* Express(Node*,T); // 扫描单词 构建表达式
 	Node* Group(); // 构建表达式组
@@ -67,14 +67,14 @@ class Nodezer {
 
 	private:
 
-	unsigned int i; // 当前单词位置
+	size_t i; // 当前单词位置
 	Word prev;  // 上一个单词
 	Word cur;   // 当前单词
 	Word next;  // 下一个单词
 
 	Word endword;  // 空单词
 
-	T ctn; //当前节点类型
+	T cnt; //当前节点类型
 
 	vector<Word>& words; // 单词列表
 

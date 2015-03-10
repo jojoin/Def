@@ -52,9 +52,10 @@ bool Nodezer::IsType(T c,
 /**
  * 判断当前的节点类型
  */
-void Nodezer::CurNodeType()
+NodeType Nodezer::CurNodeType()
 {
-    ctn = GetNodeType(cur);
+    cnt = GetNodeType(cur);
+    return cnt;
 }
 
 
@@ -94,6 +95,9 @@ NodeType Nodezer::GetNodeType(Word &cur)
 
         }else if(v=="print"){
             return T::Print;
+
+        }else if(v=="if"){
+            return T::If;
         }
 
     }else if(s==S::Sign){ // 符号
@@ -137,9 +141,9 @@ Node* Nodezer::CreatNode(int mv=0, Node*l=NULL, Node*r=NULL)
 
     Node *p = NULL;
 
-    //cout<<(int)ctn<<"->"<<cur.value<<endl;
+    //cout<<(int)cnt<<"->"<<cur.value<<endl;
 
-    switch(ctn){
+    switch(cnt){
 
     case T::Variable: // 变量
         return new NodeVariable(cur);
@@ -156,6 +160,9 @@ Node* Nodezer::CreatNode(int mv=0, Node*l=NULL, Node*r=NULL)
 
     case T::Print: // 打印
         return new NodePrint(cur);
+
+    case T::If: // If 控制结构
+        return new NodeIf(cur);
 
     case T::Add: // 加 +
         p = new NodeAdd(cur); break;
@@ -192,34 +199,37 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Normal)
 #define TN_MD T::Mul,T::Div
 #define TN_ASMD TN_AS,TN_MD
 #define IS_SIGN(str) cur.type==S::Sign&&cur.value==str
+#define IS_KEYWORD(str) cur.type==S::Keyword&&cur.value==str
 #define ELIF_CTN }else if(IsType(c,T)){ t=c; continue;
 
     //T t = T::Normal; // 记录状态
     //string cv = cur.value; // 当前值
     Node *p = pp;
     T t = tt;
-    T c = ctn;
-    bool whi = false; //表示是否跳转处理
+    T c = cnt;
+    size_t old_i = 0;
 
 
     while(t!=T::End){
 
-        if(!whi){
+        if(i==0||old_i!=i){ // 是否重新读取token
             Read();
-            CurNodeType(); // 当前类型
-            c = ctn;
+            c = CurNodeType(); // 当前类型
             //cout<<(int)c<<"->"<<cur.value<<endl;
-            whi = false;
+            old_i = i;
         }else{
+            //cout<<(int)c<<"->"<<cur.value<<endl;
             t = c;
         }
+
+        // 正式开始循环处理
 
         //// Normal
         if(t==T::Normal){ //开始状态
 
             //cout << "-Normal-" << endl;
-            if( c==T::Print ){
-                whi = true;
+            if( IsType(c,T::Print,T::If) ){
+                continue;
 
             }else if( IsType(c,TN_VALUE) ){
                 p = CreatNode(1);
@@ -247,16 +257,17 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Normal)
         }else if( IsType(t,TN_VALUE) ){
 
             //cout << "-TN_VALUE-" << endl;
-            if( IsType(c,TN_VALUE,T::Print) ){
+            /*if( IsType(c,TN_VALUE,T::Print) ){
                 // 连续两个变量或值 表示表达式完毕
                 return p;
             // 加 减 乘 除 
-            }else if( IsType(c,TN_ASMD) ){
+            }else */
+            if( IsType(c,TN_ASMD) ){
                 p = CreatNode(1, p);
                 t = c;
             // 变量赋值
             }else if( IsType(t,T::Variable) && IsType(c,T::Assign) ){
-                whi = true;
+                continue;
             }else{ 
                 return p;
             }
@@ -315,9 +326,51 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Normal)
             p->Right( Express() );
             return p;
 
+        // If
+        }else if( t==T::If ){
+
+            //cout << "-If-" << endl;
+            p = CreatNode(1);
+            NodeGroup* g = new NodeGroup(cur);
+            string evt = "if";
+            // 开始构建 If 块结构
+            while(1){
+                bool end = IS_SIGN(";")
+                   , elif = IS_KEYWORD("elif")
+                   , el = IS_KEYWORD("else");
+                if(end||elif||el){ // 写入上部流程块
+                    size_t s = g->ChildSize();
+                    if(evt=="if"){
+                        if(s==0){
+                            p->AddChild(NULL);
+                            p->AddChild(NULL);
+                        }else if(s==1){
+                            p->AddChild(g->Child(0)); // 第一个表达式作为if条件
+                            p->AddChild(NULL);
+                        }else if(s>=2){
+                            p->AddChild(g->ChildPop(0));
+                            p->AddChild(g);
+                        }
+                    }else if(evt=="else"){
+                        p->AddChild(g);
+                    }
+                    Move(1);
+                    g = new NodeGroup(cur);
+                }
+                if(end){ // If 结束
+                    break;
+                }
+                if(el){
+                    evt = "else"; //块改变
+                }
+                g->AddChild( Express() );
+            }
+            return p;
+
         // Print
         }else if( t==T::Print ){
 
+            //cout << "-Print-" << endl;
             p = CreatNode(1);
             // print 关键字左边的第一个值将被打印
             p->Right( Express() );

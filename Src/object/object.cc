@@ -1,10 +1,10 @@
 
 /* Generic object operations; and implementation of None */
 
-#include <stdio.h>
 
-//#include "Def.h"
+//#include "object.h"
 
+/*
 void 
 main()
 {
@@ -18,4 +18,4 @@ main()
 	scanf("%d",&a);
 }
 
-
+*/

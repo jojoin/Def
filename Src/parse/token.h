@@ -58,6 +58,9 @@ namespace token {
 	K(Print, "print", 0)              \
 									\
 	K(If, "if", 0)              \
+	K(Elif, "elif", 0)              \
+	K(Else, "else", 0)              \
+									\
 	K(While, "while", 0)              \
 	K(And, "and", 0)              \
 	K(Or, "or", 0)              \

@@ -1,9 +1,9 @@
+#ifndef DEF_OBJECT_H
+#define DEF_OBJECT_H
+
 /** 
  * Def 对象基础
  */
-
-#ifndef DEF_OBJECT_H
-#define DEF_OBJECT_H
 
 #include <string>
 

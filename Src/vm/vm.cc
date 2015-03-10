@@ -5,12 +5,14 @@
 #include <iostream>
 
 #include "vm.h"
+#include "../object/operat.h"
 
 using namespace std;
 
 using namespace def::token;
 using namespace def::node;
 using namespace def::object;
+using namespace def::operat;
 using namespace def::stack;
 using namespace def::gc;
 using namespace def::vm;
@@ -60,13 +62,13 @@ bool Vm::Eval(string txt, bool ispath=false)
  */
 bool Vm::Execute(Node *p)
 {
+    if(p==NULL) return false;
+
     // 组合表达式 NodeType::Group
-    size_t i=0;
-    while(1){
-        Node *e = p->Child(i);
-        if(!e) break;
-        //cout<<i<<endl;
-        GetValue( e );
+    size_t i = 0
+         , s = p->ChildSize();
+    while(i<s){
+        GetValue( p->Child(i) );
         i++;
     }
 
@@ -79,6 +81,8 @@ bool Vm::Execute(Node *p)
  */
 DefObject* Vm::GetValue(Node* n)
 {
+
+    if(n==NULL) return NULL;
 
 #define T NodeType
 
@@ -110,10 +114,16 @@ DefObject* Vm::GetValue(Node* n)
 
     }else if(t==T::Add){ // + 加法操作
 
+        //cout<<"add!!!"<<endl;
         return OperateAdd(
             GetValue(n->Left()), 
             GetValue(n->Right())
         );
+
+    }else if(t==T::If){ // if 控制结构
+
+        //cout<<"if!!!"<<endl;
+        return ControlIf((NodeIf*)n);
 
     }else if(t==T::None||t==T::Bool||t==T::Int){ // none bool int 字面量求值
 
@@ -176,6 +186,31 @@ DefObject* Vm::OperatePrint(DefObject *obj)
     }
 
     return obj;
+}
+
+
+/**
+ * If 控制结构
+ */
+DefObject* Vm::ControlIf(NodeIf *p)
+{
+    size_t i = 0
+         , s = p->ChildSize();
+    while(1){
+        if(i+1==s){  //执行 else 块
+            Execute( p->Child(i) );
+            break;
+        }
+        if(i>=s){
+            break; // 结束
+        }
+        if(Conversion::Bool( GetValue( p->Child(i) ) )){
+            Execute( p->Child(i+1) ); //执行 if 块
+            break;
+        }
+        i += 2;
+    }
+    return NULL;
 }
 
 

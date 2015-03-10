@@ -24,8 +24,8 @@ namespace token {
 
 // 单词
 struct Word {
-	unsigned int line;          // 代码行
-	unsigned int posi;          // 所属位置
+	size_t line;          // 代码行
+	size_t posi;          // 所属位置
 	S type; // 类型
 	string value;     // 值
 };
@@ -48,17 +48,17 @@ class Tokenizer {
 	};
 
 	// 预先查看后一个字符
-	inline char Peek(unsigned int c=1){
+	inline char Peek(size_t c=1){
 		return (char)text[cursor+(--c)];
 	};
 
 	// 向前一步
-	inline void Jump(unsigned int c=1){
+	inline void Jump(size_t c=1){
 		cursor += c; // 向后移动指针
 	};
 
 	// 返回一步
-	inline void Back(unsigned int c=1){
+	inline void Back(size_t c=1){
 		cursor -= c; // 向后移动指针
 	};
 
@@ -72,7 +72,7 @@ class Tokenizer {
 	};
 
 	// 弹出一个缓存的字符
-	inline void Pop(unsigned int n=1){
+	inline void Pop(size_t n=1){
 		buf.erase(buf.size()-n, n);
 	};
 
@@ -99,15 +99,15 @@ class Tokenizer {
 
 	private:
 
-	unsigned int line;  //当前所在行号
-	unsigned int line_start;  //记录开始行号，用于跨行命令
-	unsigned int word_pos;  //上次预读字符位置
+	size_t line;  //当前所在行号
+	size_t line_start;  //记录开始行号，用于跨行命令
+	size_t word_pos;  //上次预读字符位置
 
 	string text;  // 需要分析的文本
 	char pprev_tok; // 上上一个字符
 	char prev_tok; // 上一个字符
 	char tok;      // 当前字符
-	unsigned int cursor;  // 当前字符读取位置
+	size_t cursor;  // 当前字符读取位置
 	
 	string buf;   // 缓存的字符
 	vector<Word> & words;  // 词法分析后的单词列表
