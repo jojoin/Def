@@ -6,7 +6,7 @@
  */
 
 #include <string>
-#include <stack>
+#include <list>
 
 #include "../object/object.h"
 #include "../parse/node.h"
@@ -19,8 +19,8 @@ using namespace def::node;
 namespace def {
 namespace gc {
 
-// 对象列表
-typedef stack<DefObject*> FreeObjs;
+// 空闲对象列表
+typedef list<DefObject*> FreeObjs;
 
 // 对象分配及回收
 class Gc{

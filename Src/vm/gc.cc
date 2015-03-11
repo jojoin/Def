@@ -44,15 +44,18 @@ ObjectBool* Gc::AllotBool(bool val)
 ObjectInt* Gc::AllotInt(long val)
 {
 	if(val<=260&&val>=-10){
-		// 小整数池 cout<<"mini int poll"<<endl;
+		// 小整数池 
+		//cout<<"get from mini int poll"<<endl;
 		return prep_ints[val+10];
 	}
 	if(free_int.empty()){
+		//cout<<"new ObjectInt"<<endl;
 		return new ObjectInt(val);
 	}
 	// 取自 int 空闲内存池
-	ObjectInt* pi = (ObjectInt*)free_int.top();
-	free_int.pop();
+	//cout<<"get from free int poll"<<endl;
+	ObjectInt* pi = (ObjectInt*)free_int.back();
+	free_int.pop_back();
 	pi->value = val; // 改值
 	return pi; 
 }
@@ -61,7 +64,8 @@ ObjectInt* Gc::AllotInt(long val)
 /**
  * 从语法节点分配新的对象
  */
-DefObject* Gc::Allot(Node* n){
+DefObject* Gc::Allot(Node* n)
+{
 
 #define T NodeType
 
@@ -102,7 +106,9 @@ DefObject* Gc::Allot(Node* n){
  * 引用现有的对象
  * 引用计数 +1
  */
-DefObject* Gc::Quote(DefObject* obj){
+DefObject* Gc::Quote(DefObject* obj)
+{
+	//cout<<"Gc::Quote"<<endl;
 	T t = obj->type;
 	if(t==T::None||t==T::Bool){
 		return obj; // 小对象
@@ -114,7 +120,7 @@ DefObject* Gc::Quote(DefObject* obj){
 	}
 	// 引用计数 +1
 	obj->refcnt += 1;
-	//cout<<"Gc::Quote"<<endl;
+	//cout<<"quote refcnt = "<<obj->refcnt<<endl;
 	return obj;
 }
 
@@ -125,7 +131,9 @@ DefObject* Gc::Quote(DefObject* obj){
  * 当引用计数变为0时回收对象
  * 递归释放容器对象
  */
-bool Gc::Free(DefObject* obj){
+bool Gc::Free(DefObject* obj)
+{
+	//cout<<"Gc::Free"<<endl;
 	T t = obj->type;
 	size_t r = obj->refcnt;
 	// 递归释放容器对象
@@ -136,7 +144,9 @@ bool Gc::Free(DefObject* obj){
 		return Recycle(obj);
 	}
 	// 更新引用计数
+	//cout<<"free refcnt = "<<(r-1)<<endl;
 	obj->refcnt = r-1;
+	return true;
 }
 
 
@@ -144,16 +154,21 @@ bool Gc::Free(DefObject* obj){
  * 回收对象
  * 递归容器对象 判断是否回收
  */
-bool Gc::Recycle(DefObject* obj){
+bool Gc::Recycle(DefObject* obj)
+{
+	//cout<<"Gc::Recycle"<<endl;
 	T t = obj->type;
 	if(t==T::None||t==T::Bool){
 		return true; // 小对象不需要 del
 	}
 	if(t==T::Int){
-		IF_MINI_INT_OBJ{
-			return true; // 小整数 不需要 del
+		IF_MINI_INT_OBJ{ // 小整数 不需要 del
+			//cout<<"IF_MINI_INT_OBJ"<<endl;
+			return true;
 		}
-		free_int.push(obj); //保存至空闲内存
+		//cout<<"free_int.push"<<endl;
+		free_int.push_back(obj); //保存至空闲内存
+		return true;
 	}
 	delete obj; // delete 对象指针 
 	return true;

@@ -340,7 +340,6 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Normal)
             while(1){
                 if(IS_SIGN(";")){
                     size_t s = g->ChildSize();
-                    cout << "while size=" << s << endl;
                     Node *nl = NULL
                         ,*nr = NULL;
                     if(s==0){

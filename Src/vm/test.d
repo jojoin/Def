@@ -4,11 +4,19 @@
 
 
 
+#count = 10 
+#total = 100 * count
 
-num = 1
-count = 10 - num
-total = 100 * count
+com = 999
 
+num = com
+com = num
+
+print num
+print com
+
+
+###
 
 if 0
 	num = 123000
@@ -17,12 +25,12 @@ if 0
 ;
 
 
-while count
+while 0 #count
 	print count
 	count = count - 1
 ;
 
-
+###
 
 
 #print num
