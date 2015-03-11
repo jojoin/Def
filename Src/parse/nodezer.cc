@@ -95,9 +95,10 @@ NodeType Nodezer::GetNodeType(Word &cur)
 
         }else if(v=="print"){
             return T::Print;
-
         }else if(v=="if"){
             return T::If;
+        }else if(v=="while"){
+            return T::While;
         }
 
     }else if(s==S::Sign){ // 符号
@@ -161,8 +162,11 @@ Node* Nodezer::CreatNode(int mv=0, Node*l=NULL, Node*r=NULL)
     case T::Print: // 打印
         return new NodePrint(cur);
 
-    case T::If: // If 控制结构
+    case T::If: // if 控制结构
         return new NodeIf(cur);
+
+    case T::While: // while 循环控制
+        p = new NodeWhile(cur); break;
 
     case T::Add: // 加 +
         p = new NodeAdd(cur); break;
@@ -228,7 +232,8 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Normal)
         if(t==T::Normal){ //开始状态
 
             //cout << "-Normal-" << endl;
-            if( IsType(c,T::Print,T::If) ){
+            if( IsType(c,T::Print,T::If,T::While) ){
+                //cout << "T::While" << endl;
                 continue;
 
             }else if( IsType(c,TN_VALUE) ){
@@ -324,6 +329,34 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Normal)
             p = CreatNode(1, p);
             // 赋值算法后面的所有内容都将被赋值给左边的变量
             p->Right( Express() );
+            return p;
+
+        // While
+        }else if( t==T::While ){
+
+            //cout << "-While-" << endl;
+            p = CreatNode(1);
+            NodeGroup* g = new NodeGroup(cur);
+            while(1){
+                if(IS_SIGN(";")){
+                    size_t s = g->ChildSize();
+                    cout << "while size=" << s << endl;
+                    Node *nl = NULL
+                        ,*nr = NULL;
+                    if(s==0){
+                    }else if(s==1){
+                        nl = g->Child(0); // 第一个表达式作为 while 条件
+                    }else if(s>=2){
+                        nl = g->ChildPop(0);
+                        nr = g;
+                    }
+                    p->Left(nl);
+                    p->Right(nr);
+                    Move(1);
+                    break;
+                }
+                g->AddChild( Express() );
+            }
             return p;
 
         // If

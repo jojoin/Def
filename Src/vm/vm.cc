@@ -109,22 +109,22 @@ DefObject* Vm::GetValue(Node* n)
     }else if(t==T::Print){ // print 打印
 
         //cout<<"print!!!"<<endl;
-        return OperatePrint(
-            GetValue(n->Right())
-        ); // 打印
+        return Print( n->Right() ); // 打印
 
-    }else if(t==T::Add){ // + 加法操作
+    }else if(t==T::Add||t==T::Sub||t==T::Mul||t==T::Div){ // + - * / 算法操作
 
-        //cout<<"add!!!"<<endl;
-        return OperateAdd(
-            GetValue(n->Left()), 
-            GetValue(n->Right())
-        );
+        //cout<<"add sub mul div !!!"<<endl;
+        return Operate( n->Left(), n->Right(), t);
 
-    }else if(t==T::If){ // if 控制结构
+    }else if(t==T::If){ // if 条件结构
 
-        //cout<<"if!!!"<<endl;
+        //cout<<"if !!!"<<endl;
         return ControlIf((NodeIf*)n);
+
+    }else if(t==T::While){ // while 循环结构
+
+        //cout<<"While !!!"<<endl;
+        return ControlWhile((NodeWhile*)n);
 
     }else if(t==T::None||t==T::Bool||t==T::Int){ // none bool int 字面量求值
 
@@ -141,44 +141,58 @@ DefObject* Vm::GetValue(Node* n)
 }
 
 
-#define T ObjectType
+#define OT ObjectType
+#define NT NodeType
 
 
 /**
- * 加法操作
+ * 算法操作
+ * @param opt 算法种类 + - * /
  */
-DefObject* Vm::OperateAdd(DefObject *l, DefObject *r)
+DefObject* Vm::Operate(Node *nl, Node *nr, NT t)
 {
-    T lt = l->type;
-    T rt = r->type;
 
-    DefObject *obj = NULL;
+    DefObject *l = GetValue(nl);
+    DefObject *r = GetValue(nr);
+    DefObject *result = NULL;
+
+    OT lt = l->type;
+    OT rt = r->type;
 
     // 整数相加
-    if( lt==T::Int && lt==T::Int ){
+    if( lt==OT::Int && lt==OT::Int ){
 
-        obj = vm_gc->AllotInt(
-            ((ObjectInt*)l)->value + 
-            ((ObjectInt*)r)->value
-        );
+        long vl = ((ObjectInt*)l)->value
+           , vr = ((ObjectInt*)r)->value
+           , res= 0;
+        switch(t){
+        case NT::Add: res = vl + vr; break;
+        case NT::Sub: res = vl - vr; break;
+        case NT::Mul: res = vl * vr; break;
+        case NT::Div: res = vl / vr; break;
+        }
+        result = vm_gc->AllotInt(res);
 
     }else{
 
     }
 
-    vm_stack->Regist(obj);    // 登记新变量
-    return obj;
+    vm_stack->Regist(result);    // 登记新变量
+    return result;
 }
 
+
+
 /**
- * 加法操作
+ * 打印对象
  */
-DefObject* Vm::OperatePrint(DefObject *obj)
+DefObject* Vm::Print(Node *n)
 {
+    DefObject* obj = GetValue(n); // 求值
 
-    T t = obj->type; // 获取类型
+    OT t = obj->type; // 获取类型
 
-    if( t==T::Int ){ // 整数
+    if( t==OT::Int ){ // 整数
 
         cout << ((ObjectInt*)obj)->value << endl;
 
@@ -189,6 +203,21 @@ DefObject* Vm::OperatePrint(DefObject *obj)
     return obj;
 }
 
+
+/**
+ * If 控制结构
+ */
+DefObject* Vm::ControlWhile(NodeWhile *p)
+{
+    while(1){
+        if(Conversion::Bool( GetValue( p->Left() ) )){
+            Execute( p->Right() ); //执行 while 块
+        }else{
+            break;
+        }
+    }
+    return NULL;
+}
 
 /**
  * If 控制结构
@@ -215,7 +244,8 @@ DefObject* Vm::ControlIf(NodeIf *p)
 }
 
 
-#undef T   // ObjectType
+#undef OT   // ObjectType
+#undef NT   // NodeType
 
 
 /****** 脚本解释器测试 ******/

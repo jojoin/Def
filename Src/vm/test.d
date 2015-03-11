@@ -6,15 +6,24 @@
 
 
 num = 1
-count = 10
-total = 100
+count = 10 - num
+total = 100 * count
 
 
-if total
+if 0
 	num = 123000
 	count = num + 456
 	print count
 ;
+
+
+while count
+	print count
+	count = count - 1
+;
+
+
+
 
 #print num
 #print count

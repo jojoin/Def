@@ -53,6 +53,7 @@ enum class NodeType
 	// 控制流结构
 
 	If,  // if elif else
+	While,  // while 循环
 
 	// 终止
 	End
@@ -164,6 +165,13 @@ struct NodeTwinTree : Node{
         return right;
 	}
 };
+
+// while 循环控制
+struct NodeWhile : NodeTwinTree{
+	NodeWhile(Word &w)
+		: NodeTwinTree(NodeType::While, w){}
+};
+
 
 
 // = 赋值节点
