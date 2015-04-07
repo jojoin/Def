@@ -41,6 +41,8 @@ class Vm {
 
 	bool Eval(string, bool); // 执行 Def 脚本
 	bool Execute(Node*);     // 解释执行语法树
+	bool Clean();            // 执行当前栈帧的垃圾回收
+	bool Regist(DefObject*); // 登记新创建的变量，用于集中垃圾回收
 
 	DefObject* GetValue(Node*);  // 对节点求值操作
 	DefObject* Print(Node*); // 打印操作

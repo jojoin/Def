@@ -12,6 +12,8 @@ using namespace def::object;
 using namespace def::node;
 using namespace def::gc;
 
+
+
 /**
  * 构造初始化
  */
@@ -43,17 +45,18 @@ ObjectBool* Gc::AllotBool(bool val)
  */
 ObjectInt* Gc::AllotInt(long val)
 {
-	if(val<=260&&val>=-10){
+	//cout<<"int = "<<val<<endl;
+	if(val<260&&val>=-10){
 		// 小整数池 
 		//cout<<"get from mini int poll"<<endl;
 		return prep_ints[val+10];
 	}
-	if(free_int.empty()){
-		//cout<<"new ObjectInt"<<endl;
+	if(0==free_int.size()){
+		// cout<<"new ObjectInt"<<endl;
 		return new ObjectInt(val);
 	}
 	// 取自 int 空闲内存池
-	//cout<<"get from free int poll"<<endl;
+	// cout<<"get from free int poll"<<endl;
 	ObjectInt* pi = (ObjectInt*)free_int.back();
 	free_int.pop_back();
 	pi->value = val; // 改值
@@ -98,7 +101,7 @@ DefObject* Gc::Allot(Node* n)
 #define IF_MINI_INT_OBJ \
 		ObjectInt* obj_int = (ObjectInt*)obj; \
 		long val = obj_int->value; \
-		if(val<=260&&val>=-10)
+		if(val<260&&val>=-10)
 
 
 
@@ -128,7 +131,7 @@ DefObject* Gc::Quote(DefObject* obj)
 /**
  * 释放对象
  * 引用计数 -1
- * 当引用计数变为0时回收对象
+ * 当引用计数变为0时回收对象，并返回 true 否则返回 false
  * 递归释放容器对象
  */
 bool Gc::Free(DefObject* obj)
@@ -146,7 +149,7 @@ bool Gc::Free(DefObject* obj)
 	// 更新引用计数
 	//cout<<"free refcnt = "<<(r-1)<<endl;
 	obj->refcnt = r-1;
-	return true;
+	return false;
 }
 
 
@@ -156,7 +159,7 @@ bool Gc::Free(DefObject* obj)
  */
 bool Gc::Recycle(DefObject* obj)
 {
-	//cout<<"Gc::Recycle"<<endl;
+	// cout<<"Gc::Recycle"<<endl;
 	T t = obj->type;
 	if(t==T::None||t==T::Bool){
 		return true; // 小对象不需要 del
@@ -166,10 +169,14 @@ bool Gc::Recycle(DefObject* obj)
 			//cout<<"IF_MINI_INT_OBJ"<<endl;
 			return true;
 		}
-		//cout<<"free_int.push"<<endl;
-		free_int.push_back(obj); //保存至空闲内存
-		return true;
+		if(free_int.size()<10){ // 限制空闲列表大小
+			obj->refcnt = 0; //引用归零
+			free_int.push_back(obj); //保存至空闲内存
+			// cout<<"free_int.push  size="<<free_int.size()<<endl;
+			return true;
+		}
 	}
+	// cout<<"delete obj"<<endl;
 	delete obj; // delete 对象指针 
 	return true;
 }

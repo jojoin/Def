@@ -77,6 +77,35 @@ bool Vm::Execute(Node *p)
 
 
 /**
+ * 执行当前栈帧的垃圾回收
+ * 通常在一句表达式执行完毕后调用
+ */
+bool Vm::Clean()
+{
+    //cout<<"Vm::Clean()"<<endl;
+
+    return true;
+
+}
+
+/**
+ * 登记新创建的变量，用于集中垃圾回收
+ */
+bool Vm::Regist(DefObject *obj)
+{
+    return true;
+    // 登记
+    size_t size = vm_stack->Regist(obj);
+    //cout<<"Vm::Regist() "<<size<<endl;
+    // 垃圾回收触发条件
+    if(size > 10){
+        Clean(); // 回收
+    }
+    return true;
+}
+
+
+/**
  * 对语法节点进行求值操作
  */
 DefObject* Vm::GetValue(Node* n)
@@ -93,18 +122,18 @@ DefObject* Vm::GetValue(Node* n)
         DefObject *rv = GetValue(n->Right());   // 等号右值
         string name = n->Left()->GetName();     // 名字
         //cout<<"Assign name="<<name<<endl;
-        DefObject *exi = vm_stack->Get(name);   // 查找变量是否存在
+        DefObject *exi = vm_stack->VarGet(name);   // 查找变量是否存在
         if(exi!=NULL){
-            //cout<<"vm_gc->Free()"<<endl;
+            // cout<<"vm_gc->Free()"<<endl;
             vm_gc->Free(exi);       // 变量重新赋值则释放之前的变量
         }
         vm_gc->Quote(rv);          // 引用计数 +1
-        vm_stack->Put(name, rv);   // 变量入栈
+        vm_stack->VarPut(name, rv);   // 变量入栈
         return rv;
 
     }else if(t==T::Variable){ // 通过名字取得变量值
 
-        return vm_stack->Get(n->GetName());
+        return vm_stack->VarGet(n->GetName());
 
     }else if(t==T::Print){ // print 打印
 
@@ -129,7 +158,7 @@ DefObject* Vm::GetValue(Node* n)
     }else if(t==T::None||t==T::Bool||t==T::Int){ // none bool int 字面量求值
 
         DefObject *crt = vm_gc->Allot(n);   // 分配新变量
-        vm_stack->Regist(crt);    // 登记新变量
+        Regist(crt);    // 登记新变量
         return crt;
 
     }else{
@@ -172,14 +201,28 @@ DefObject* Vm::Operate(Node *nl, Node *nr, NT t)
         case NT::Div: res = vl / vr; break;
         }
         result = vm_gc->AllotInt(res);
+        // 参与计算的临时变量的释放
+        if(nl->type!=NT::Variable){
+            // cout<<"nl->type==NT::Int"<<endl;
+            vm_gc->Free(l);
+        }
+        if(nr->type!=NT::Variable){
+            // cout<<"nr->type==NT::Int"<<endl;
+            vm_gc->Free(r);
+        }
 
     }else{
 
     }
 
-    vm_stack->Regist(result);    // 登记新变量
+    Regist(result);    // 登记新变量
     return result;
 }
+
+
+
+
+
 
 
 
@@ -212,6 +255,7 @@ DefObject* Vm::ControlWhile(NodeWhile *p)
     while(1){
         if(Conversion::Bool( GetValue( p->Left() ) )){
             Execute( p->Right() ); //执行 while 块
+            // cout<<"\n"<<endl;
         }else{
             break;
         }

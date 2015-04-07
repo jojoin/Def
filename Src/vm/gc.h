@@ -20,14 +20,14 @@ namespace def {
 namespace gc {
 
 // 空闲对象列表
-typedef list<DefObject*> FreeObjs;
+typedef list<DefObject*> ObjList;
 
 // 对象分配及回收
 class Gc{
 
-	FreeObjs free_int;      // 空闲 int 列表
-	FreeObjs free_float;    // 空闲 float 列表
-	FreeObjs free_string;   // 空闲 string 列表
+	ObjList free_int;      // 空闲 int 列表
+	ObjList free_float;    // 空闲 float 列表
+	ObjList free_string;   // 空闲 string 列表
 
 	ObjectNone* prep_none;      // none 小对象
 	ObjectBool* prep_true;      // true 小对象

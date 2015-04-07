@@ -3,17 +3,46 @@
 ###
 
 
-
-#count = 10 
-#total = 100 * count
+# 变量赋值
+count = 10 
+total = 100 * count + 99
 
 com = 999
 
+# 变量引用
 num = com
-com = num
 
+# 打印
 print num
 print com
+
+
+# if条件分支
+if count
+	print count
+;
+
+
+i = 1
+
+# while循环
+while i
+	num = 999
+	i = i + 999 - 999
+	# print i
+;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ###

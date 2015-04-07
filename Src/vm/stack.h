@@ -30,9 +30,9 @@ struct Stack{
 	//vector<Stack*> childs;         // 子栈列表
 
 	Stack();
-	DefObject* Regist(DefObject*);           // 登记新创建的值
-	DefObject* Put(string, DefObject*);   // 将变量入栈
-	DefObject* Get(string);         // 取变量值（不存在返回NULL）
+	size_t Regist(DefObject*);           // 登记新创建的值
+	DefObject* VarPut(string, DefObject*);   // 将变量入栈
+	DefObject* VarGet(string);         // 取变量值（不存在返回NULL）
 
 };
 
