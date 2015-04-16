@@ -30,12 +30,18 @@ class ErrorDef{
 		if(type==ET::System){
 
 		switch(code){
+			// 致命的系统执行错误
 			case 1: return "Internal fail cannot continue.";
 		}
 
 		}else if(type==ET::Find){
 
 		}else if(type==ET::Token){
+
+		switch(code){
+			// 未定义的符号
+			case 1: return "Undefined symbol.";
+		}
 
 		}else if(type==ET::Node){
 

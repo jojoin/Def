@@ -11,10 +11,14 @@
 #include <vector>
 
 #include "token.h"
+#include "../util/log.h"
+#include "../util/str.h"
+#include "../module/error.h"
 
 
 using namespace std;
 using namespace def::token;
+using namespace def::error;
 
 
 namespace def {
@@ -37,6 +41,16 @@ class Tokenizer {
 	public:
 
 	Tokenizer(bool, string, vector<Word>&);
+
+	// 抛出错误
+	inline bool Error(int code){
+		string msg = filepath + " ("
+			+Str::l2s(line+1) + ","
+			+Str::l2s(word_pos)
+			+") :" + tok;
+		//tok;
+		return Error::Throw(ErrorType::Token, code, msg);
+	};
 
 	// 读取一个字符 并移动指针
 	inline char Read(){
@@ -103,6 +117,7 @@ class Tokenizer {
 	size_t line_start;  //记录开始行号，用于跨行命令
 	size_t word_pos;  //上次预读字符位置
 
+	string filepath;  // 需要分析的文件名
 	string text;  // 需要分析的文本
 	char pprev_tok; // 上上一个字符
 	char prev_tok; // 上一个字符

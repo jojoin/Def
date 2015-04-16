@@ -311,22 +311,3 @@ DefObject* Vm::ControlIf(NodeIf *p)
 #undef OT   // ObjectType
 #undef NT   // NodeType
 
-
-
-
-/****** 脚本解释器测试 ******/
-
-
-int main()
-{
-    //cout << "\n";
-
-    Vm v = Vm(); // 初始化引擎
-    v.Eval("./test.d", true);
-
-    //cout << "\n\n";
-}
-
-
-/****** 测试结束 ******/
-

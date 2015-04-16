@@ -16,7 +16,6 @@
 //#include <exception>
 
 #include "tokenizer.h"
-#include "../Util/log.h"
 
 using namespace std;
 
@@ -34,6 +33,7 @@ using namespace def::util;
  * @isFile 是否为本地文件路径
  */
 Tokenizer::Tokenizer(bool isFile, string txt, vector<Word>& wds):
+	filepath(""),
 	text(txt),
 	words(wds)
 {
@@ -48,6 +48,11 @@ Tokenizer::Tokenizer(bool isFile, string txt, vector<Word>& wds):
     	}else{
     		getline(file, text, '\0');
     	}
+
+    	filepath = txt;
+    	
+    	//getcwd();
+
 	}
 
 	// 末尾加上换行兼容模式
@@ -172,6 +177,9 @@ void Tokenizer::Scan()
 			}else if(s==S::End){ // 结束
 				Push(S::End);
 				break;
+			}else if(s==S::Unknow){
+				// 未识别的符号
+				Error(1);
 			}
 
 		}else if(ss==S::Space||ss==S::NewLine){ // 空白符 忽略
@@ -277,6 +285,10 @@ void Tokenizer::Scan()
 
 			Push(S::End);
 			break; //结束
+		}else{
+
+			// 未识别的符号
+			Error(1);
 		}
 
 

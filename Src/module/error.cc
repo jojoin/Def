@@ -10,6 +10,7 @@
 #include "errordef.h"
 
 using namespace std;
+using namespace def::error;
 
 
 namespace def {
@@ -53,29 +54,15 @@ const char* const Error::prefixs[] = {
  * @param line 错误行
  * @param posi 错误词
  */
-bool Error::Throw(
-	ET type, int code, string msg,
-	string file, size_t line, size_t posi)
+bool Error::Throw(ET type, int code, string msg)
 {
 	int t = (int)type;
-	cerr<<"- - - - - -"<<endl;
-	cerr<<"- "<<names[t]<<" Error "<<prefixs[t]<<code<<": ";
+	cerr<<"- - - - - - - - - - - - - - - -"<<endl;
+	cerr<<names[t]<<" error "<<prefixs[t]<<code<<": ";
 	cerr<<ErrorDef::Msg(type, code)<<endl; // 错误消息
-
-
-	cerr<<endl;
+	cerr<<msg<<endl;
 	exit(1);
 }
-
-
-/**
- * 抛出系统错误
- */
-bool Error::System(int code, string msg)
-{
-	Throw(ET::System, code, msg);
-}
-
 
 #undef ET
 

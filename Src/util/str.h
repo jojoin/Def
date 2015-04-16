@@ -45,6 +45,16 @@ class Str {
 		return l;
 	}
 
+	// long 转 string
+	static string l2s(const long& num){
+		string s="";
+		stringstream ss;
+		ss << num;//从str输入
+		ss >> s;//输出到long
+		ss.clear();
+		return s;
+	}
+
 	// string 转 double
 	static double s2d(const string& str){
 		double d=0.0;

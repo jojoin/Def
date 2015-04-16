@@ -12,11 +12,7 @@
 
 #include <string>
 
-#include "../parse/tokenizer.h"
-
-
 using namespace std;
-using namespace def::token;
 
 
 namespace def {
@@ -55,9 +51,9 @@ class Error{
 
 	Error();
 
-	static bool Throw(ET, int, string="", string="", size_t=0, size_t=0); // 抛出错误并退出
+	static bool Throw(ET, int, string=""); // 抛出错误并退出
 	// 抛出特定类型的错误
-	static bool System(int, string="");
+	//static bool System(int, string="");
 
 
 }; // --end-- class Error
