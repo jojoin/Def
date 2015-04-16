@@ -5,10 +5,10 @@
 #include <iostream>
 
 #include "vm.h"
-#include "../object/operat.h"
 
 using namespace std;
 
+using namespace def::error;
 using namespace def::token;
 using namespace def::node;
 using namespace def::object;
@@ -35,12 +35,18 @@ bool Vm::Eval(string txt, bool ispath=false)
     Tokenizer T(ispath, txt, words); // 初始化词法分析器
     T.Scan(); // 执行词法分析
 
+    // cout<<"T.Scan()"<<endl;
+
     // 语法分析
     Nodezer N(words); // 初始化语法分析器
     Node *node = N.BuildAST(); // 解析得到语法树（表达式）
 
+    // cout<<"N.BuildAST()"<<endl;
+
     // 解释执行分析树
     bool done = Execute(node);
+
+    // cout<<"Execute()"<<endl;
 
     /*
     cout <<
@@ -68,7 +74,7 @@ bool Vm::Execute(Node *p)
     size_t i = 0
          , s = p->ChildSize();
     while(i<s){
-        GetValue( p->Child(i) );
+        Evaluat( p->Child(i) );
         i++;
     }
 
@@ -80,17 +86,16 @@ bool Vm::Execute(Node *p)
  * 执行当前栈帧的垃圾回收
  * 通常在一句表达式执行完毕后调用
  */
-bool Vm::Clean()
+inline bool Vm::Free(DefObject *obj)
 {
-    //cout<<"Vm::Clean()"<<endl;
-
-    return true;
-
+    return vm_gc->Free(obj);
 }
+
+
 
 /**
  * 登记新创建的变量，用于集中垃圾回收
- */
+ *
 bool Vm::Regist(DefObject *obj)
 {
     return true;
@@ -103,12 +108,13 @@ bool Vm::Regist(DefObject *obj)
     }
     return true;
 }
+*/
 
 
 /**
  * 对语法节点进行求值操作
  */
-DefObject* Vm::GetValue(Node* n)
+DefObject* Vm::Evaluat(Node* n)
 {
 
     if(n==NULL) return NULL;
@@ -119,13 +125,13 @@ DefObject* Vm::GetValue(Node* n)
 
     if(t==T::Assign){ // 赋值
 
-        DefObject *rv = GetValue(n->Right());   // 等号右值
+        DefObject *rv = Evaluat(n->Right());   // 等号右值
         string name = n->Left()->GetName();     // 名字
         //cout<<"Assign name="<<name<<endl;
         DefObject *exi = vm_stack->VarGet(name);   // 查找变量是否存在
         if(exi!=NULL){
             // cout<<"vm_gc->Free()"<<endl;
-            vm_gc->Free(exi);       // 变量重新赋值则释放之前的变量
+            Free(exi);       // 变量重新赋值则释放之前的变量
         }
         vm_gc->Quote(rv);          // 引用计数 +1
         vm_stack->VarPut(name, rv);   // 变量入栈
@@ -137,7 +143,7 @@ DefObject* Vm::GetValue(Node* n)
 
     }else if(t==T::Print){ // print 打印
 
-        //cout<<"print!!!"<<endl;
+        // cout<<"print!!!"<<endl;
         return Print( n->Right() ); // 打印
 
     }else if(t==T::Add||t==T::Sub||t==T::Mul||t==T::Div){ // + - * / 算法操作
@@ -157,9 +163,11 @@ DefObject* Vm::GetValue(Node* n)
 
     }else if(t==T::None||t==T::Bool||t==T::Int){ // none bool int 字面量求值
 
-        DefObject *crt = vm_gc->Allot(n);   // 分配新变量
-        Regist(crt);    // 登记新变量
-        return crt;
+        // cout<<"Allot !!!"<<endl;
+        return vm_gc->Allot(n);
+        //DefObject *crt = vm_gc->Allot(n);   // 分配新变量
+        //Regist(crt);    // 登记新变量
+        //return crt;
 
     }else{
 
@@ -174,6 +182,8 @@ DefObject* Vm::GetValue(Node* n)
 #define NT NodeType
 
 
+
+
 /**
  * 算法操作
  * @param opt 算法种类 + - * /
@@ -181,8 +191,8 @@ DefObject* Vm::GetValue(Node* n)
 DefObject* Vm::Operate(Node *nl, Node *nr, NT t)
 {
 
-    DefObject *l = GetValue(nl);
-    DefObject *r = GetValue(nr);
+    DefObject *l = Evaluat(nl);
+    DefObject *r = Evaluat(nr);
     DefObject *result = NULL;
 
     OT lt = l->type;
@@ -201,21 +211,22 @@ DefObject* Vm::Operate(Node *nl, Node *nr, NT t)
         case NT::Div: res = vl / vr; break;
         }
         result = vm_gc->AllotInt(res);
-        // 参与计算的临时变量的释放
-        if(nl->type!=NT::Variable){
-            // cout<<"nl->type==NT::Int"<<endl;
-            vm_gc->Free(l);
-        }
-        if(nr->type!=NT::Variable){
-            // cout<<"nr->type==NT::Int"<<endl;
-            vm_gc->Free(r);
-        }
 
     }else{
 
     }
 
-    Regist(result);    // 登记新变量
+    // 参与计算的临时变量的释放
+    if( nl->IsValue() || nl->IsOperate() ){
+        //cout<<"nl->type==NT::Int"<<endl;
+        Free(l);
+    }
+    if( nr->IsValue() || nr->IsOperate() ){
+        //cout<<"nr->type==NT::Int"<<endl;
+        Free(r);
+    }
+
+
     return result;
 }
 
@@ -231,17 +242,26 @@ DefObject* Vm::Operate(Node *nl, Node *nr, NT t)
  */
 DefObject* Vm::Print(Node *n)
 {
-    DefObject* obj = GetValue(n); // 求值
+    DefObject* obj = Evaluat(n); // 求值
 
     OT t = obj->type; // 获取类型
 
     if( t==OT::Int ){ // 整数
 
+        // cout<<"Print Int"<<endl;
         cout << ((ObjectInt*)obj)->value << endl;
 
     }else{
 
     }
+
+    if( n->IsValue() || n->IsOperate() ){
+        //cout<<"Free Literals or Algorithm Value"<<endl;
+        Free(obj);
+    }
+
+    // 错误测试
+    // Error::System(1);
 
     return obj;
 }
@@ -253,14 +273,14 @@ DefObject* Vm::Print(Node *n)
 DefObject* Vm::ControlWhile(NodeWhile *p)
 {
     while(1){
-        if(Conversion::Bool( GetValue( p->Left() ) )){
+        if(Conversion::Bool( Evaluat( p->Left() ) )){
             Execute( p->Right() ); //执行 while 块
             // cout<<"\n"<<endl;
         }else{
-            break;
+            break; 
         }
     }
-    return NULL;
+    return NULL; 
 }
 
 /**
@@ -278,7 +298,7 @@ DefObject* Vm::ControlIf(NodeIf *p)
         if(i>=s){
             break; // 结束
         }
-        if(Conversion::Bool( GetValue( p->Child(i) ) )){
+        if(Conversion::Bool( Evaluat( p->Child(i) ) )){
             Execute( p->Child(i+1) ); //执行 if 块
             break;
         }
@@ -290,6 +310,8 @@ DefObject* Vm::ControlIf(NodeIf *p)
 
 #undef OT   // ObjectType
 #undef NT   // NodeType
+
+
 
 
 /****** 脚本解释器测试 ******/
@@ -307,3 +329,4 @@ int main()
 
 
 /****** 测试结束 ******/
+

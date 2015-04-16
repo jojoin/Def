@@ -3,6 +3,32 @@
 ###
 
 
+
+
+# 列表
+# li = [1 2 3]
+
+
+
+com = 999
+
+print com
+
+
+
+
+
+
+
+
+
+
+
+
+
+###
+
+
 # 变量赋值
 count = 10 
 total = 100 * count + 99
@@ -26,7 +52,7 @@ if count
 i = 1
 
 # while循环
-while i
+while 0
 	num = 999
 	i = i + 999 - 999
 	# print i
@@ -34,32 +60,31 @@ while i
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 ###
 
-if 0
-	num = 123000
-	count = num + 456
-	print count
-;
 
 
-while 0 #count
-	print count
-	count = count - 1
-;
 
-###
+
+
+
+
+
+
+
+
+# if 0
+# 	num = 123000
+# 	count = num + 456
+# 	print count
+# ;
+
+
+# while 0 #count
+# 	print count
+# 	count = count - 1
+# ;
+
 
 
 #print num
@@ -104,11 +129,11 @@ while k<100
 
 # 函数
 def mathod(){
-	a := 123
+	a =: 123
 }
 
 # 匿名函数
-def(a b){a=123}
+def{ a=123 }
 
 # 元组
 # tuple = (a b c)

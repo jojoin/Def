@@ -233,7 +233,8 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Normal)
 
             //cout << "-Normal-" << endl;
             if( IsType(c,T::Print,T::If,T::While) ){
-                //cout << "T::While" << endl;
+                //cout << "Normal continue !" << endl;
+                t = c;
                 continue;
 
             }else if( IsType(c,TN_VALUE) ){
@@ -261,7 +262,7 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Normal)
         //// Variable None Bool Int Float String
         }else if( IsType(t,TN_VALUE) ){
 
-            //cout << "-TN_VALUE-" << endl;
+            // cout << "-TN_VALUE-" << endl;
             /*if( IsType(c,TN_VALUE,T::Print) ){
                 // 连续两个变量或值 表示表达式完毕
                 return p;
@@ -402,7 +403,7 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Normal)
         // Print
         }else if( t==T::Print ){
 
-            //cout << "-Print-" << endl;
+            // cout << "-Print-" << endl;
             p = CreatNode(1);
             // print 关键字左边的第一个值将被打印
             p->Right( Express() );
@@ -451,6 +452,7 @@ Node* Nodezer::Group()
     while(1){
         // 循环建立表达式
         Node *e = Express();
+        // cout << "-Nodezer::Group while-" << endl;
         if(e) node->AddChild( e );
         else break;
     }

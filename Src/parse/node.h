@@ -61,18 +61,51 @@ enum class NodeType
 }; // --end-- enum class NodeType
 
 
+
+#define NT NodeType
+
+
+
 // 节点
 struct Node{
 	size_t line;   // 代码行
 	size_t posi;   // 所属位置
-	NodeType type;       // 节点类型
+	NT type;       // 节点类型
 	// 构造方法
-	Node(NodeType t, Word &w)
+	Node(NT t, Word &w)
 		: type(t)
 	{
 		line = w.line;
 		posi = w.posi;
 	}
+	//判断是否为变量的字面量
+	inline bool IsValue(){
+	    if(type==NT::Variable){
+	        return false;
+	    }else if(
+	        type==NT::None ||
+	        type==NT::Bool ||
+	        type==NT::Int ||
+	        type==NT::Float ||
+	        type==NT::String
+	    ){
+	        return true;
+	    }
+	    return false;
+	}
+	//判断是否为运算操作节点
+	inline bool IsOperate(){
+	    if(
+	        type==NT::Add ||
+	        type==NT::Sub ||
+	        type==NT::Mul ||
+	        type==NT::Div
+	    ){
+	        return true;
+	    }
+	    return false;
+	}
+
 	virtual ~Node()=0;
 	virtual void AddChild(Node*){};
 	virtual void ClearChild(){};
@@ -91,7 +124,7 @@ struct Node{
 // 多叉节点
 struct NodeTree : Node{
 	vector<Node*> childs; // 子节点指针列表
-	NodeTree(NodeType t, Word &w)
+	NodeTree(NT t, Word &w)
 		: Node(t, w){}
 	virtual ~NodeTree(){
 		size_t s = childs.size();
@@ -128,13 +161,13 @@ struct NodeTree : Node{
 // 组合表达式
 struct NodeGroup : NodeTree{
 	NodeGroup(Word &w)
-		: NodeTree(NodeType::Group, w){}
+		: NodeTree(NT::Group, w){}
 };
 
 // If 控制流程
 struct NodeIf : NodeTree{
 	NodeIf(Word &w)
-		: NodeTree(NodeType::If, w){}
+		: NodeTree(NT::If, w){}
 };
 
 
@@ -142,7 +175,7 @@ struct NodeIf : NodeTree{
 struct NodeTwinTree : Node{
 	Node* left;   // 左子节点
 	Node* right;  // 右子节点
-	NodeTwinTree(NodeType t, Word &w, Node* lf=NULL, Node* rt=NULL)
+	NodeTwinTree(NT t, Word &w, Node* lf=NULL, Node* rt=NULL)
 		: Node(t, w), left(lf), right(rt){}
 	virtual ~NodeTwinTree(){
         //cout<<"delete left "<<(int)left->type<<endl;
@@ -169,7 +202,7 @@ struct NodeTwinTree : Node{
 // while 循环控制
 struct NodeWhile : NodeTwinTree{
 	NodeWhile(Word &w)
-		: NodeTwinTree(NodeType::While, w){}
+		: NodeTwinTree(NT::While, w){}
 };
 
 
@@ -177,40 +210,40 @@ struct NodeWhile : NodeTwinTree{
 // = 赋值节点
 struct NodeAssign: NodeTwinTree{
 	NodeAssign(Word &w)
-		: NodeTwinTree(NodeType::Assign, w){}
+		: NodeTwinTree(NT::Assign, w){}
 };
 
 
 // + 加操作节点
 struct NodeAdd: NodeTwinTree{
 	NodeAdd(Word &w)
-	: NodeTwinTree(NodeType::Add, w){}
+	: NodeTwinTree(NT::Add, w){}
 };
 
 
 // - 减操作节点
 struct NodeSub: NodeTwinTree{
 	NodeSub(Word &w)
-	: NodeTwinTree(NodeType::Sub, w){}
+	: NodeTwinTree(NT::Sub, w){}
 };
 
 // * 乘操作节点
 struct NodeMul: NodeTwinTree{
 	NodeMul(Word &w)
-	: NodeTwinTree(NodeType::Mul, w){}
+	: NodeTwinTree(NT::Mul, w){}
 };
 
 // / 除操作节点
 struct NodeDiv: NodeTwinTree{
 	NodeDiv(Word &w)
-	: NodeTwinTree(NodeType::Div, w){}
+	: NodeTwinTree(NT::Div, w){}
 };
 
 
 // print 打印变量至屏幕
 struct NodePrint : NodeTwinTree{
 	NodePrint(Word &w)
-	: NodeTwinTree(NodeType::Print, w)
+	: NodeTwinTree(NT::Print, w)
 	{}
 };
 
@@ -219,7 +252,7 @@ struct NodePrint : NodeTwinTree{
 struct NodeVariable : Node{
 	string name;
 	NodeVariable(Word &w)
-	: Node(NodeType::Variable, w){
+	: Node(NT::Variable, w){
 		name = w.value;
 	}
 	inline string GetName(){
@@ -231,7 +264,7 @@ struct NodeVariable : Node{
 // none 节点
 struct NodeNone : Node{
 	NodeNone(Word &w)
-	: Node(NodeType::None, w){}
+	: Node(NT::None, w){}
 };
 
 
@@ -239,7 +272,7 @@ struct NodeNone : Node{
 struct NodeBool : Node{
 	bool value;
 	NodeBool(Word &w)
-	: Node(NodeType::Bool, w){
+	: Node(NT::Bool, w){
 		value = w.value=="true" ? true : false;
 	}
 	inline bool GetBool(){
@@ -252,7 +285,7 @@ struct NodeBool : Node{
 struct NodeInt : Node{
 	long value;
 	NodeInt(Word &w)
-	: Node(NodeType::Int, w){
+	: Node(NT::Int, w){
 		value = Str::s2l(w.value);
 	}
 	inline long GetInt(){
@@ -265,7 +298,7 @@ struct NodeInt : Node{
 struct NodeFloat : Node{
 	double value;
 	NodeFloat(Word &w)
-	: Node(NodeType::Float, w){
+	: Node(NT::Float, w){
 		value = Str::s2d(w.value);
 	}
 	inline double GetFloat(){
@@ -278,7 +311,7 @@ struct NodeFloat : Node{
 struct NodeString : Node{
 	string value;
 	NodeString(Word &w)
-	: Node(NodeType::String, w){
+	: Node(NT::String, w){
 		value = w.value;
 	}
 	inline string GetString(){
@@ -286,8 +319,7 @@ struct NodeString : Node{
 	};
 };
 
-
-
+#undef NT   // NodeType
 
 
 
