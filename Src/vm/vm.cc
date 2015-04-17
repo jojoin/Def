@@ -38,15 +38,15 @@ bool Vm::Eval(string txt, bool ispath=false)
     // cout<<"T.Scan()"<<endl;
 
     // 语法分析
-    Nodezer N(words); // 初始化语法分析器
+    Nodezer N(words, ispath ? txt : ""); // 初始化语法分析器
     Node *node = N.BuildAST(); // 解析得到语法树（表达式）
 
     // cout<<"N.BuildAST()"<<endl;
 
     // 解释执行分析树
-    bool done = Execute(node);
+    bool done = ExplainAST(node);
 
-    // cout<<"Execute()"<<endl;
+    // cout<<"ExplainAST()"<<endl;
 
     /*
     cout <<
@@ -66,7 +66,7 @@ bool Vm::Eval(string txt, bool ispath=false)
  * 解释执行 Def 语法树
  * @return 表示解释成功或失败
  */
-bool Vm::Execute(Node *p)
+bool Vm::ExplainAST(Node *p)
 {
     if(p==NULL) return false;
 
@@ -141,6 +141,14 @@ DefObject* Vm::Evaluat(Node* n)
 
         return vm_stack->VarGet(n->GetName());
 
+    }else if(t==T::List){ // list 数组
+
+        //cout<<"List !!!"<<endl;
+        return StructList(n);
+
+    }else if(t==T::Dict){ // dict 字典
+
+
     }else if(t==T::Print){ // print 打印
 
         // cout<<"print!!!"<<endl;
@@ -154,12 +162,12 @@ DefObject* Vm::Evaluat(Node* n)
     }else if(t==T::If){ // if 条件结构
 
         //cout<<"if !!!"<<endl;
-        return ControlIf((NodeIf*)n);
+        return ControlIf(n);
 
     }else if(t==T::While){ // while 循环结构
 
         //cout<<"While !!!"<<endl;
-        return ControlWhile((NodeWhile*)n);
+        return ControlWhile(n);
 
     }else if(t==T::None||t==T::Bool||t==T::Int){ // none bool int 字面量求值
 
@@ -232,11 +240,6 @@ DefObject* Vm::Operate(Node *nl, Node *nr, NT t)
 
 
 
-
-
-
-
-
 /**
  * 打印对象
  */
@@ -267,14 +270,37 @@ DefObject* Vm::Print(Node *n)
 }
 
 
+
+/**
+ * list 数据结构建立
+ */
+DefObject* Vm::StructList(Node* p)
+{
+    p = (NodeList*)p;
+
+    ObjectList* list = new ObjectList();
+    size_t i = 0
+         , s = p->ChildSize();
+    while( i < s ){
+        // 添加数组项目
+        list->Push( Evaluat(p->Child(i)) );
+        i++;
+    }
+
+    return list;
+}
+
+
+
 /**
  * If 控制结构
  */
-DefObject* Vm::ControlWhile(NodeWhile *p)
+DefObject* Vm::ControlWhile(Node* p)
 {
+    p = (NodeWhile*)p;
     while(1){
         if(Conversion::Bool( Evaluat( p->Left() ) )){
-            Execute( p->Right() ); //执行 while 块
+            ExplainAST( p->Right() ); //执行 while 块
             // cout<<"\n"<<endl;
         }else{
             break; 
@@ -286,26 +312,31 @@ DefObject* Vm::ControlWhile(NodeWhile *p)
 /**
  * If 控制结构
  */
-DefObject* Vm::ControlIf(NodeIf *p)
+DefObject* Vm::ControlIf(Node* p)
 {
+    p = (NodeIf*)p;
     size_t i = 0
          , s = p->ChildSize();
     while(1){
         if(i+1==s){  //执行 else 块
-            Execute( p->Child(i) );
+            ExplainAST( p->Child(i) );
             break;
         }
         if(i>=s){
             break; // 结束
         }
         if(Conversion::Bool( Evaluat( p->Child(i) ) )){
-            Execute( p->Child(i+1) ); //执行 if 块
+            ExplainAST( p->Child(i+1) ); //执行 if 块
             break;
         }
         i += 2;
     }
     return NULL;
 }
+
+
+
+
 
 
 #undef OT   // ObjectType

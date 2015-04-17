@@ -42,7 +42,7 @@ class Vm {
 	Vm();
 
 	bool Eval(string, bool); // 执行 Def 脚本
-	bool Execute(Node*);     // 解释执行语法树
+	bool ExplainAST(Node*);     // 解释执行语法树
 	inline bool Free(DefObject*);   // 变量的解引用或垃圾回收
 	//bool Regist(DefObject*); // 登记新创建的变量，用于集中垃圾回收
 
@@ -50,8 +50,13 @@ class Vm {
 	DefObject* Print(Node*); // 打印操作
 	DefObject* Operate(Node*, Node*, NodeType); // 算法操作
 
-	DefObject* ControlIf(NodeIf*); // if 结构
-	DefObject* ControlWhile(NodeWhile*); // while 结构
+	DefObject* ControlIf(Node*); // if 结构
+	DefObject* ControlWhile(Node*); // while 结构
+
+	DefObject* StructList(Node*); // list 列表
+	//DefObject* StructDict(Node*); // dict 字典
+
+	
 
 
 };

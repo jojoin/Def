@@ -23,8 +23,9 @@ using namespace def::node;
 /**
  * 构造
  */
-Nodezer::Nodezer(vector<Word>& w):
-    words(w)
+Nodezer::Nodezer(vector<Word>& w, string file=""):
+    words(w),
+    filepath(file)
 {
     Clear();
 }
@@ -229,7 +230,7 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Normal)
         // 正式开始循环处理
 
         //// Normal
-        if(t==T::Normal){ //开始状态
+        if(t==T::Normal){ //默认状态
 
             //cout << "-Normal-" << endl;
             if( IsType(c,T::Print,T::If,T::While) ){
@@ -240,6 +241,12 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Normal)
             }else if( IsType(c,TN_VALUE) ){
                 p = CreatNode(1);
                 t = c;
+
+            // [] 列表数据结构
+            }else if(IS_SIGN("[")){
+                //cout << "[] continue !" << endl;
+                c = T::List;
+                continue;
 
             // () 括号优先级
             }else if(IS_SIGN("(")){
@@ -327,6 +334,7 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Normal)
         // Assign
         }else if( t==T::Assign ){
 
+            //cout << "-Assign-" << endl;
             p = CreatNode(1, p);
             // 赋值算法后面的所有内容都将被赋值给左边的变量
             p->Right( Express() );
@@ -400,6 +408,29 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Normal)
             }
             return p;
 
+        // List 列表结构
+        }else if( t==T::List ){
+
+            //cout << "-List-" << endl;
+            Word start = cur;
+            Move(1); //跳过 [
+            NodeList *list = new NodeList(cur);
+            while(1){ // 列表项
+                Node *e = Express();
+                if(e) list->AddChild( e );
+                else break;
+                //cout<<"list item"<<endl;
+            }
+            if(IS_SIGN("]")){
+                //cout<<"IS_SIGN(])"<<endl;
+                Move(1); //跳过 ]
+                //cout<<"Move(1)"<<endl;
+                return list; //成功返回列表结构
+            }else{
+                //cout<<"Error(301)"<<endl;
+                Error(301, start); //缺少右括号匹配
+            }
+
         // Print
         }else if( t==T::Print ){
 
@@ -449,6 +480,7 @@ Node* Nodezer::BuildAST()
 Node* Nodezer::Group()
 {
     Node *node = new NodeGroup(cur);
+     
     while(1){
         // 循环建立表达式
         Node *e = Express();

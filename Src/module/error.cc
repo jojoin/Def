@@ -57,10 +57,10 @@ const char* const Error::prefixs[] = {
 bool Error::Throw(ET type, int code, string msg)
 {
 	int t = (int)type;
-	cerr<<"- - - - - - - - - - - - - - - -"<<endl;
+	cerr<<endl<<"- - - - - - - - - - - - - - - -"<<endl;
 	cerr<<names[t]<<" error "<<prefixs[t]<<code<<": ";
 	cerr<<ErrorDef::Msg(type, code)<<endl; // 错误消息
-	cerr<<msg<<endl;
+	cerr<<msg<<endl<<endl;
 	exit(1);
 }
 

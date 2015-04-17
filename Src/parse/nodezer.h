@@ -7,10 +7,12 @@
 
 #include "tokenizer.h"
 #include "node.h"
+#include "../module/error.h"
 
 using namespace std;
 using namespace def::token;
 using namespace def::node;
+using namespace def::error;
 
 // NodeType
 #define T NodeType
@@ -23,9 +25,24 @@ class Nodezer {
 
 	public:
 
-	Nodezer(vector<Word>&);
+	Nodezer(vector<Word>&, string);
 
-	void Read(){
+	// 错误中断抛出
+	inline bool Error(int code){
+		return Error(code, cur);
+	};
+
+	// 错误中断抛出
+	inline bool Error(int code, Word wd){
+		string msg = filepath + " ("
+			+Str::l2s(wd.line) + ","
+			+Str::l2s(wd.posi)
+			+") : " + wd.value;
+		//tok;
+		return Error::Throw(ErrorType::Node, code, msg);
+	};
+
+	inline void Read(){
 		//cout<<"i: "<<i<<endl;
 		try{
 			if(i>0) prev = words.at(i-1);
@@ -77,6 +94,7 @@ class Nodezer {
 	T cnt; //当前节点类型
 
 	vector<Word>& words; // 单词列表
+	string filepath; //编译文件
 
 }; // --end-- class Nodezer
 

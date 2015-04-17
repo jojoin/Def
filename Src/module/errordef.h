@@ -45,6 +45,13 @@ class ErrorDef{
 
 		}else if(type==ET::Node){
 
+		switch(code){
+			// 未定义的符号
+			case 1: return "Undefined symbol.";
+			// list列表缺少匹配的右括号
+			case 301: return "List of missing right parenthesis matching.";
+		}
+
 		}else if(type==ET::Run){
 
 		}

@@ -35,6 +35,10 @@ enum class NodeType
 	FuncDefine,   // 函数定义
 	FuncCall,     // 函数调用
 
+	Print,   // 打印
+
+	List,   // 列表
+	Dict,   // 字典
 
 	// 叶节点
 
@@ -47,8 +51,6 @@ enum class NodeType
 	String,  // 值 字符串
 
 	Priority,  // () 括号优先级
-
-	Print,   // 打印
 
 	// 控制流结构
 
@@ -163,6 +165,16 @@ struct NodeGroup : NodeTree{
 	NodeGroup(Word &w)
 		: NodeTree(NT::Group, w){}
 };
+
+
+// [] 列表数据结构
+struct NodeList : NodeTree{
+	NodeList(Word &w)
+		: NodeTree(NT::List, w){}
+};
+
+
+
 
 // If 控制流程
 struct NodeIf : NodeTree{

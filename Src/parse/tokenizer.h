@@ -45,9 +45,9 @@ class Tokenizer {
 	// 抛出错误
 	inline bool Error(int code){
 		string msg = filepath + " ("
-			+Str::l2s(line+1) + ","
+			+Str::l2s(line) + ","
 			+Str::l2s(word_pos)
-			+") :" + tok;
+			+") : " + tok;
 		//tok;
 		return Error::Throw(ErrorType::Token, code, msg);
 	};

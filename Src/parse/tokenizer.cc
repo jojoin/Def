@@ -123,6 +123,7 @@ void Tokenizer::Scan()
 		// 当前字符状态
     	S s = Token::GetState(tok);
 
+
 		//Log::log(tok);
 
 		//cout<<"State"<<endl;
@@ -154,10 +155,10 @@ void Tokenizer::Scan()
 				}
 				Push(S::Sign);
 				ss = S::Normal;
-			}else if(s==S::NewLine){
+			//}else if(s==S::NewLine){
 				//Buf();
 				//Push(S::NewLine);
-				ss = S::Normal;
+				//ss = S::Normal;
 			}else if(s==S::DQuotation){
 				if(Peek()=='"'&&Peek(2)=='"'){
 					Jump(2);
@@ -200,7 +201,9 @@ void Tokenizer::Scan()
 				break;
 			}else if(tok=='#'&&prev_tok=='#'&&pprev_tok=='#'){
 				//块注释结束
-				do{ Jump(); }while(Peek()!='\n');
+				while(Peek()!='\n'){
+					Jump();
+				};
 				ss = S::Normal;  // 结束
 			}
 
@@ -294,10 +297,13 @@ void Tokenizer::Scan()
 
     	// 换行
 		if(s==S::NewLine){
-			//Log::log("line++");
+			//cout<<"line: "<<line<<endl;
 			line++; //新行
 			word_pos = 1;
+			//cout<<"prev_tok: "<<prev_tok<<endl;
+
 		}
+
 	}
 
 	// 语法分析执行完毕

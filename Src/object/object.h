@@ -6,6 +6,7 @@
  */
 
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -83,6 +84,21 @@ struct ObjectString : DefObject{
 		: DefObject(T::String)
 		, value(v)
 	{}
+};
+
+
+// List 列表对象
+struct ObjectList : DefObject{
+	vector<DefObject*> value;
+	ObjectList()
+		: DefObject(T::List)
+	{}
+	// 列表末尾添加对象
+	bool Push(DefObject* obj){
+		value.push_back(obj);
+		return true;
+	}
+	
 };
 
 
