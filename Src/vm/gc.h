@@ -41,7 +41,11 @@ class Gc{
 
 	ObjectBool* AllotBool(bool);   // 分配 bool 对象
 	ObjectInt* AllotInt(long);     // 分配 int 对象
+	ObjectString* AllotString(string);     // 分配 string 对象
+	ObjectList* AllotList();       // 分配 list 对象
+
 	DefObject* Allot(Node*);       // 从Node语法节点分配新的对象
+
 	DefObject* Quote(DefObject*);  // 引用对象
 	bool Free(DefObject*);   // 释放对象
 	bool Recycle(DefObject*);      // 回收对象

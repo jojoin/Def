@@ -65,6 +65,35 @@ ObjectInt* Gc::AllotInt(long val)
 
 
 /**
+ * 创建 String 对象
+ */
+ObjectString* Gc::AllotString(string val)
+{
+	//cout<<"string = "<<val<<endl;
+
+	if(0==free_string.size()){
+		// cout<<"new ObjectInt"<<endl;
+		return new ObjectString(val);
+	}
+	// 取自 int 空闲内存池
+	// cout<<"get from free int poll"<<endl;
+	ObjectString* str = (ObjectString*)free_string.back();
+	free_string.pop_back();
+	str->value = val; // 改值
+	return str; 
+}
+
+
+
+/**
+ * 创建 List 对象
+ */
+ObjectList* Gc::AllotList()
+{
+	return new ObjectList();
+}
+
+/**
  * 从语法节点分配新的对象
  */
 DefObject* Gc::Allot(Node* n)
@@ -87,6 +116,12 @@ DefObject* Gc::Allot(Node* n)
 		return AllotInt(n->GetInt());
 
 	}else if(t==T::String){ // string
+
+		return AllotString(n->GetString());
+
+	}else if(t==T::List){ // list
+
+		return AllotList();
 
 	}
 
@@ -169,13 +204,23 @@ bool Gc::Recycle(DefObject* obj)
 			//cout<<"IF_MINI_INT_OBJ"<<endl;
 			return true;
 		}
-		if(free_int.size()<10){ // 限制空闲列表大小
+		if(free_int.size()<1024){ // 限制空闲列表大小
 			obj->refcnt = 0; //引用归零
 			free_int.push_back(obj); //保存至空闲内存
 			// cout<<"free_int.push  size="<<free_int.size()<<endl;
 			return true;
 		}
+	}else if(t==T::String){
+		if(free_string.size()<1024){ // 限制空闲列表大小
+			obj->refcnt = 0; //引用归零
+			((ObjectString*)obj)->value = "";
+			free_string.push_back(obj); //保存至空闲内存
+			// cout<<"free_string.push  size="<<free_int.size()<<endl;
+			return true;
+		}
+
 	}
+
 	// cout<<"delete obj"<<endl;
 	delete obj; // delete 对象指针 
 	return true;

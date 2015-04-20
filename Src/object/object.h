@@ -5,6 +5,7 @@
  * Def 对象基础
  */
 
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -46,6 +47,9 @@ struct DefObject{
 		: type(t)
 		, refcnt(r)
 	{}
+	// virtual DefObject* Push(DefObject*){};
+	// virtual DefObject* Visit(size_t){};
+	// virtual size_t Size(){};
 };
 
 
@@ -92,13 +96,27 @@ struct ObjectList : DefObject{
 	vector<DefObject*> value;
 	ObjectList()
 		: DefObject(T::List)
-	{}
-	// 列表末尾添加对象
-	bool Push(DefObject* obj){
-		value.push_back(obj);
-		return true;
+	{
+		value.clear();
 	}
-	
+	// 列表末尾添加对象
+	DefObject* Push(DefObject* obj){
+        // cout<<"list push"<<endl;
+		value.push_back(obj);
+		return obj;
+	}
+	// 返回列表大小
+	size_t Size(){
+        // cout<<"list size"<<endl;
+        // cout<<value.size()<<endl;
+        return value.size();
+	}
+	// 访问元素
+	DefObject* Visit(size_t i){
+        // cout<<"list isit"<<endl;
+		return value[i];
+	}
+
 };
 
 

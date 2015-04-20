@@ -3,7 +3,20 @@
 ###
 
 
-li = [1 2 3]
+print 999
 
-com = 999
-print com
+
+sur = "yang"
+name = "jie"
+
+surname = sur + name
+
+print surname
+
+li = [1 "yang" 3]
+
+print li
+
+print "1234567890"
+
+

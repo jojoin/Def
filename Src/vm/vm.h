@@ -37,9 +37,12 @@ class Vm {
 	Gc* vm_gc; //虚拟机对象分配及垃圾回收
 
 
+
 	public:
 
 	Vm();
+
+	bool Error(int); // 运行时错误
 
 	bool Eval(string, bool); // 执行 Def 脚本
 	bool ExplainAST(Node*);     // 解释执行语法树
@@ -47,7 +50,10 @@ class Vm {
 	//bool Regist(DefObject*); // 登记新创建的变量，用于集中垃圾回收
 
 	DefObject* Evaluat(Node*);  // 对节点求值操作
+
 	DefObject* Print(Node*); // 打印操作
+	DefObject* Print(DefObject*); // 打印操作
+
 	DefObject* Operate(Node*, Node*, NodeType); // 算法操作
 
 	DefObject* ControlIf(Node*); // if 结构

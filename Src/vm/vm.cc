@@ -15,14 +15,32 @@ using namespace def::object;
 using namespace def::operat;
 using namespace def::stack;
 using namespace def::gc;
-using namespace def::vm;
 
+namespace def {
+namespace vm {
 
 
 Vm::Vm(){
     vm_stack = new Stack(); // 新建执行栈
     vm_gc = new Gc(); // 新建对象分配
 }
+
+
+/**
+ * 运行时错误
+ */
+bool Vm::Error(int code){
+
+    // string msg = filepath + " ("
+    //     +Str::l2s(line) + ","
+    //     +Str::l2s(word_pos)
+    //     +") : " + tok;
+    // //tok;
+    // return Error::Throw(ErrorType::Run, code, msg);
+    return true;
+}
+
+
 
 /**
  * 运行 Def 语言脚本
@@ -127,18 +145,18 @@ DefObject* Vm::Evaluat(Node* n)
 
         DefObject *rv = Evaluat(n->Right());   // 等号右值
         string name = n->Left()->GetName();     // 名字
-        //cout<<"Assign name="<<name<<endl;
+        // cout<<"Assign name="<<name<<endl;
         DefObject *exi = vm_stack->VarGet(name);   // 查找变量是否存在
         if(exi!=NULL){
-            // cout<<"vm_gc->Free()"<<endl;
+            cout<<"vm_gc->Free()"<<endl;
             Free(exi);       // 变量重新赋值则释放之前的变量
         }
         vm_gc->Quote(rv);          // 引用计数 +1
+        // cout<<"vm_stack->VarPut()"<<name<<endl;
         vm_stack->VarPut(name, rv);   // 变量入栈
         return rv;
 
     }else if(t==T::Variable){ // 通过名字取得变量值
-
         return vm_stack->VarGet(n->GetName());
 
     }else if(t==T::List){ // list 数组
@@ -169,7 +187,7 @@ DefObject* Vm::Evaluat(Node* n)
         //cout<<"While !!!"<<endl;
         return ControlWhile(n);
 
-    }else if(t==T::None||t==T::Bool||t==T::Int){ // none bool int 字面量求值
+    }else if(t==T::None||t==T::Bool||t==T::Int||t==T::Float||t==T::String){ // none bool int 字面量求值
 
         // cout<<"Allot !!!"<<endl;
         return vm_gc->Allot(n);
@@ -220,7 +238,16 @@ DefObject* Vm::Operate(Node *nl, Node *nr, NT t)
         }
         result = vm_gc->AllotInt(res);
 
+    }else if( lt==OT::String && lt==OT::String ){
+        string str = ((ObjectString*)l)->value 
+                   + ((ObjectString*)r)->value;
+        if(t==NT::Add){ //字符串 +
+            result = vm_gc->AllotString(str);
+        }
+
     }else{
+
+
 
     }
 
@@ -239,35 +266,67 @@ DefObject* Vm::Operate(Node *nl, Node *nr, NT t)
 }
 
 
-
 /**
  * 打印对象
  */
 DefObject* Vm::Print(Node *n)
 {
-    DefObject* obj = Evaluat(n); // 求值
+    DefObject* obj = Evaluat(n);
+    Print( obj ); // 求值并打印
+    cout << endl;
 
-    OT t = obj->type; // 获取类型
-
-    if( t==OT::Int ){ // 整数
-
-        // cout<<"Print Int"<<endl;
-        cout << ((ObjectInt*)obj)->value << endl;
-
-    }else{
-
-    }
-
+    // 临时变量释放
     if( n->IsValue() || n->IsOperate() ){
         //cout<<"Free Literals or Algorithm Value"<<endl;
         Free(obj);
     }
 
-    // 错误测试
-    // Error::System(1);
+    return obj;
+}
+
+
+
+/**
+ * 打印对象
+ */
+DefObject* Vm::Print(DefObject *obj)
+{
+    OT t = obj->type; // 获取类型
+
+    if( t==OT::Int ){
+
+        //cout<<"-Print Int-"<<endl;
+        cout << ((ObjectInt*)obj)->value;
+
+    }else if(t==OT::String){
+
+        cout << "\"";
+        cout << ((ObjectString*)obj)->value;
+        cout << "\"";
+
+    }else if(t==OT::List){
+
+        //cout<<"-Print List-"<<endl;
+        ObjectList* list = (ObjectList*)obj;
+        cout << "[";
+        //size_t sz = obj->Size();
+        size_t sz = list->Size();
+        for(size_t i=0; i<sz; i++){
+            if(i>0){
+                cout<<" ";
+            }
+            Print( list->Visit(i) );
+        }
+        cout << "]";
+
+    }else{
+
+    }
 
     return obj;
 }
+
+
 
 
 
@@ -278,12 +337,12 @@ DefObject* Vm::StructList(Node* p)
 {
     p = (NodeList*)p;
 
-    ObjectList* list = new ObjectList();
+    ObjectList* list = vm_gc->AllotList();
     size_t i = 0
          , s = p->ChildSize();
     while( i < s ){
         // 添加数组项目
-        list->Push( Evaluat(p->Child(i)) );
+        list->Push( vm_gc->Allot( p->Child(i) ) );
         i++;
     }
 
@@ -342,3 +401,7 @@ DefObject* Vm::ControlIf(Node* p)
 #undef OT   // ObjectType
 #undef NT   // NodeType
 
+
+
+} // end namespace de
+} // end namespace vm
