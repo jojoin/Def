@@ -57,8 +57,7 @@ enum class NodeType
 	If,  // if elif else
 	While,  // while 循环
 
-	// 终止
-	End
+	End,   // 终止并返回
 	
 }; // --end-- enum class NodeType
 
@@ -167,6 +166,21 @@ struct NodeGroup : NodeTree{
 };
 
 
+// def 函数定义结构
+struct NodeFuncDefine : Node{
+	NodeGroup* body; //函数体
+	NodeFuncDefine(Word &w)
+		: Node(NT::FuncDefine, w){}
+};
+
+
+// def 函数调用结构
+struct NodeFuncCall : Node{
+	NodeFuncCall(Word &w)
+		: Node(NT::FuncCall, w){}
+};
+
+
 // [] 列表数据结构
 struct NodeList : NodeTree{
 	NodeList(Word &w)
@@ -211,6 +225,7 @@ struct NodeTwinTree : Node{
 	}
 };
 
+
 // while 循环控制
 struct NodeWhile : NodeTwinTree{
 	NodeWhile(Word &w)
@@ -218,6 +233,13 @@ struct NodeWhile : NodeTwinTree{
 };
 
 
+/*
+// end 执行并返回
+struct NodeEnd : NodeTwinTree{
+	NodeEnd(Word &w)
+		: NodeTwinTree(NT::Return, w){}
+};
+*/
 
 // = 赋值节点
 struct NodeAssign: NodeTwinTree{

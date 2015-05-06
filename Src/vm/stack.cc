@@ -46,11 +46,11 @@ DefObject* Stack::VarGet(string name)
 /**
  * 注册当前栈帧新创建的变量，用于垃圾回收
  * @return 新变量栈帧大小
- */
+ *
 size_t Stack::Regist(DefObject* obj)
 {
     //cout<<"Stack::Regist()"<<endl;
 	o_create.push_back(obj);
 	return o_create.size();
 }
-
+*/

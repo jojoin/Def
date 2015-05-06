@@ -27,6 +27,11 @@ int main(int argc, char *argv[])
     }
 
 
+    cout << "Welcome to use Def !" << endl;
+
+    return 0;
+
+    /*
     //参数个数如下，其中第一个参数为当前可执行程序
     printf("param count is %d\n", argc);
     for(int i = 0; i < argc; ++i)
@@ -35,6 +40,7 @@ int main(int argc, char *argv[])
         printf("param %d is %s\n",(i+1), argv[i]);
     }
     return  0;
+    */
 
 
 
