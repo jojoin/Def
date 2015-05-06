@@ -143,12 +143,12 @@ class Token {
 		str[0] = tok;
 		return IsSign(str);
 	}
-	static bool IsSign(string str)
+	static bool IsSign(string tok)
 	{
-		int num = (int)Sign::_Num;
+		int num = sizeof(signs)/sizeof(signs[0]);
 		for(int i=0; i<num; i++)
 		{
-			if(signs[i] == str)
+			if(signs[i] == tok)
 			{
 				return true;
 			}
@@ -163,7 +163,7 @@ class Token {
 	}*/
 	static bool IsKeyword(string tok)
 	{
-		int num = (int)Sign::_Num;
+		int num = sizeof(keywords)/sizeof(keywords[0]);
 		for(int i=0; i<num; i++)
 		{
 			if(keywords[i] == tok)
@@ -186,9 +186,11 @@ class Token {
 
 	// 获取转义字符
 	static char GetEscapeChat(char);
+	static string GetEscapeChat(string);
 
 	// 判断字符所属状态
 	static State GetState(char);
+	static State GetState(string);
 
 
 

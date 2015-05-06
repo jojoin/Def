@@ -25,7 +25,7 @@ class Nodezer {
 
 	public:
 
-	Nodezer(vector<Word>&, string);
+	Nodezer(vector<Word>*, string);
 
 	// 错误中断抛出
 	inline bool Error(int code){
@@ -45,11 +45,11 @@ class Nodezer {
 	inline void Read(){
 		//cout<<"i: "<<i<<endl;
 		try{
-			if(i>0) prev = words.at(i-1);
-			cur = words.at(i);
-			next = words.at(i+1);
+			if(i>0) prev = words->at(i-1);
+			cur = words->at(i);
+			next = words->at(i+1);
 		}catch(const exception& e){
-			size_t sz = words.size();
+			size_t sz = words->size();
 			if(i+1>=sz) next = endword;
 			if(i>=sz) cur = endword;
 			if(i-1>=sz) prev = endword;
@@ -93,7 +93,7 @@ class Nodezer {
 
 	T cnt; //当前节点类型
 
-	vector<Word>& words; // 单词列表
+	vector<Word>* words; // 单词列表
 	string filepath; //编译文件
 
 }; // --end-- class Nodezer

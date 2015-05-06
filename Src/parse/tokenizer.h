@@ -40,7 +40,7 @@ class Tokenizer {
 
 	public:
 
-	Tokenizer(bool, string, vector<Word>&);
+	Tokenizer(bool, string, vector<Word>*);
 
 	// 抛出错误
 	inline bool Error(int code){
@@ -53,7 +53,7 @@ class Tokenizer {
 	};
 
 	// 读取一个字符 并移动指针
-	inline char Read(){
+	inline string Read(){
 		pprev_tok = prev_tok; // 存储
 		prev_tok = tok; // 存储
 		tok = Peek();
@@ -62,8 +62,19 @@ class Tokenizer {
 	};
 
 	// 预先查看后一个字符
+	/*
 	inline char Peek(size_t c=1){
 		return (char)text[cursor+(--c)];
+	};
+	*/
+	inline string Peek(size_t c=1){
+		size_t idx = cursor+(--c);
+    	// cout << "Peek " << idx << endl;
+		try{
+			return text.substr(idx,1);
+		}catch(const exception& e){
+			return "\0";
+		}
 	};
 
 	// 向前一步
@@ -77,8 +88,8 @@ class Tokenizer {
 	};
 
 	// 缓存当前的字符
-	inline void Buf(char t='\0'){
-		if(t!='\0'){
+	inline void Buf(string t=""){
+		if(t!=""){
 			buf += t;
 		}else{
 			buf += tok;
@@ -99,11 +110,11 @@ class Tokenizer {
 		line_start = 0;
 		word_pos = 1;
 		cursor = 0;
-		pprev_tok = '\0';
-		prev_tok = '\0';
-		tok = '\0';
+		pprev_tok = "";
+		prev_tok = "";
+		tok = "";
 		buf = "";
-		words.clear();
+		words->clear();
 	};
 
 
@@ -119,13 +130,16 @@ class Tokenizer {
 
 	string filepath;  // 需要分析的文件名
 	string text;  // 需要分析的文本
-	char pprev_tok; // 上上一个字符
-	char prev_tok; // 上一个字符
-	char tok;      // 当前字符
+	// char pprev_tok; // 上上一个字符
+	// char prev_tok; // 上一个字符
+	// char tok;      // 当前字符
+	string pprev_tok; // 上上一个字符
+	string prev_tok; // 上一个字符
+	string tok;      // 当前字符
 	size_t cursor;  // 当前字符读取位置
 	
 	string buf;   // 缓存的字符
-	vector<Word> & words;  // 词法分析后的单词列表
+	vector<Word>* words;  // 词法分析后的单词列表
 
 }; // --end-- class Token
 

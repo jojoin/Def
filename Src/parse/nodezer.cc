@@ -23,7 +23,7 @@ using namespace def::node;
 /**
  * 构造
  */
-Nodezer::Nodezer(vector<Word>& w, string file=""):
+Nodezer::Nodezer(vector<Word>*w, string file=""):
     words(w),
     filepath(file)
 {

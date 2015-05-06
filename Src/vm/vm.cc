@@ -49,7 +49,8 @@ bool Vm::Error(int code){
 bool Vm::Eval(string txt, bool ispath=false)
 {
     // 词法分析
-    vector<Word> words; // 词法分析结果
+    vector<Word>* words = new vector<Word>(1024);
+    //vector<Word> words; // 词法分析结果
     Tokenizer T(ispath, txt, words); // 初始化词法分析器
     T.Scan(); // 执行词法分析
 
@@ -74,6 +75,7 @@ bool Vm::Eval(string txt, bool ispath=false)
     
     
 
+    delete words; // 析构tok数组
     delete node; // 析构语法树
     
 	return true;

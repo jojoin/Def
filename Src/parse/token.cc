@@ -32,6 +32,12 @@ namespace token {
 /**
  * 获取转义字符
  */
+string Token::GetEscapeChat(string tok)
+{
+	char tk = (char)tok[0];
+	char re = GetEscapeChat(tk);
+	return ""+re;
+}
 char Token::GetEscapeChat(char tok)
 {
 	switch (tok) {
@@ -53,6 +59,10 @@ char Token::GetEscapeChat(char tok)
 /**
  * 判断字符所属状态
  */
+Token::State Token::GetState(string tok)
+{
+	return GetState(tok[0]);
+}
 Token::State Token::GetState(char tok)
 {
 	if( (tok>='a' && tok<='z') || 
