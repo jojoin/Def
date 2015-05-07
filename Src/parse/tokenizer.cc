@@ -96,9 +96,16 @@ Tokenizer::Tokenizer(bool isFile, string txt, vector<Word>* wds):
  */
 void Tokenizer::Push(S sta=S::Normal)
 {
-	if( sta!=S::NewLine && buf==""){
-		return;
+	if(buf==""){
+		if(sta==S::String){
+			// 允许保存空字符串
+		}else if(sta==S::NewLine){
+			// 允许换行Push
+		}else{
+			return; // 不保存
+		}
 	}
+
 	// 判断是否为关键字
 	if(sta==S::Identifier){
 		if(Token::IsKeyword(buf)){
@@ -198,7 +205,7 @@ void Tokenizer::Scan()
 				//Push(S::NewLine);
 				//ss = S::Normal;
 			}else if(s==S::DQuotation){
-				if(Peek()=="\""&&Peek(2)=="\""){
+				if(Peek(1)=="\""&&Peek(2)=="\""){
 					Jump(2);
 					line_start = line; //记录开始行
 					ss = S::BlockDQuotation;
@@ -206,7 +213,7 @@ void Tokenizer::Scan()
 					ss = S::DQuotation;
 				}
 			}else if(s==S::Quotation){
-				if(Peek()=="\""&&Peek(2)=="\""){
+				if(Peek(1)=="\'" &&Peek(2)=="\'"){
 					Jump(2);
 					line_start = line; //记录开始行
 					ss = S::BlockQuotation;
