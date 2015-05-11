@@ -165,46 +165,41 @@ void Tokenizer::Scan()
 
 		// 当前字符状态
     	S s = Token::GetState(tok);
-
-    	//cout << "Read();" << endl;
     	//cout << tok << endl;
 
-		//Log::log(tok);
+		if(s==S::End){ // 结束
+			Push(S::End);
+			break; //结束
+		}
 
-		//cout<<"State"<<endl;
-
+		// 处理其他情况
 		if(ss==S::Normal){
 
-			if(s==S::Normal){
-				Push();
-			}else if(s==S::Number){
+			if( s==S::Normal || s==S::Space || s==S::NewLine ){
+
+				ss = S::Normal; // 忽略
+
+			}else if(s==S::Number || s==S::Sign){
+
 				Buf();
-				ss = S::Number;
-			}else if(s==S::Annotation){//注释
-				if(Peek()=="#"&&Peek(2)=="#"){
-					//块注释
-					do{ Jump(); }while(Peek()!="\n");
-					ss = S::BlockAnnotation;
+				ss = s;
+
+			}else if(s==S::Character){
+
+				Buf();
+				ss = S::Identifier; // 标识符
+
+			}else if(s==S::Annotation){ // 注释
+
+				if(Peek(1)=="-"&&Peek(2)=="-"){
+					Jump(2);
+					ss = S::BlockAnnotation; // 块注释
 				}else{
 					ss = S::Annotation;
 				}
-			}else if(s==S::Character){
-				Buf();
-				ss = S::Character;
-			}else if(s==S::Sign){
-				Buf();
-				string next = Peek();
-				if(Token::IsSign(next)&&Token::IsSign(tok+next)){
-					Buf(next);
-					Jump();
-				}
-				Push(S::Sign);
-				ss = S::Normal;
-			//}else if(s==S::NewLine){
-				//Buf();
-				//Push(S::NewLine);
-				//ss = S::Normal;
+
 			}else if(s==S::DQuotation){
+
 				if(Peek(1)=="\""&&Peek(2)=="\""){
 					Jump(2);
 					line_start = line; //记录开始行
@@ -212,7 +207,9 @@ void Tokenizer::Scan()
 				}else{
 					ss = S::DQuotation;
 				}
+
 			}else if(s==S::Quotation){
+
 				if(Peek(1)=="\'" &&Peek(2)=="\'"){
 					Jump(2);
 					line_start = line; //记录开始行
@@ -220,39 +217,30 @@ void Tokenizer::Scan()
 				}else{
 					ss = S::Quotation;
 				}
-			}else if(s==S::End){ // 结束
-				Push(S::End);
-				break;
+
 			}else if(s==S::Unknow){
+
 				// 未识别的符号
 				Error(1);
+
 			}
 
-		}else if(ss==S::Space||ss==S::NewLine){ // 空白符 忽略
+		// 标识符
+		}else if(ss==S::Identifier){
 
+			if(s==S::Character||s==S::Number){
+				Buf();
+			}else{
+				Push(S::Identifier);
+				if( tok=="[" || tok=="(" ){
+					Push(S::NextTo); // 容器访问 函数调用
+				}
+				Back(); // 回退
 				ss = S::Normal;
-
-		}else if(ss==S::Annotation){ // 注释 忽略
-
-			if(s==S::NewLine){
-				ss = S::Normal;
-			}else if(s==S::End){
-				break; //结束
 			}
 
-		}else if(ss==S::BlockAnnotation){ // 块注释 忽略
-
-			if(s==S::End){
-				break;
-			}else if(tok=="#"&&prev_tok=="#"&&pprev_tok=="#"){
-				//块注释结束
-				while(Peek()!="\n"){
-					Jump();
-				};
-				ss = S::Normal;  // 结束
-			}
-
-		}else if(ss==S::Number){ // 数字
+		// 数字
+		}else if(ss==S::Number){
 
 			if(s==S::Number||tok=="."){
 				Buf();
@@ -261,35 +249,38 @@ void Tokenizer::Scan()
 				ERR("T0002");
 			}else{
 				Push(S::Number);
-				if(s!=S::NewLine) Back();
+				Back(); // 回退
 				ss = S::Normal;
 			}
 
-		}else if(ss==S::Character){ // 字母
+		// 符号
+		}else if(ss==S::Sign){
 
-			if(s==S::Character||s==S::Number){
-				Buf();
-			}else{
-				Push(S::Identifier);
-				if(s!=S::NewLine) Back();
-				ss = S::Normal;
-			}
-
-		}else if(ss==S::Sign){ // 有效符号
-
-			if(s==S::Sign){
-				Buf();
+			if(s==S::Sign&&Token::IsSign(buf+tok)){
+				Buf(); // 多元操作符
 			}else{
 				Push(S::Sign);
-				if(s!=S::NewLine) Back();
+				Back(); // 回退
 				ss = S::Normal;
+			}
+
+		}else if(ss==S::Annotation){ // 注释
+
+			if(s==S::NewLine){
+				ss = S::Normal;  // 注释结束
+			}
+
+		}else if(ss==S::BlockAnnotation){ // 块注释
+
+			if(tok=="#"&&prev_tok=="-"&&pprev_tok=="-"){
+				ss = S::Normal;  // 块注释结束
 			}
 
 		}else if(ss==S::DQuotation){ //双引号字符串
 
 			if(s==S::DQuotation){
 				Push(S::String);
-				ss = S::Normal;
+				ss = S::Normal; // 字符串结束
 			}else if(tok=="\\"){//转义
 				Read();
 				Buf(Token::GetEscapeChat(tok));
@@ -301,7 +292,7 @@ void Tokenizer::Scan()
 
 			if(s==S::Quotation){
 				Push(S::String);
-				ss = S::Normal;
+				ss = S::Normal; // 字符串结束
 			}else if(tok=="\\"){//转义
 				Read();
 				Buf(Token::GetEscapeChat(tok));
@@ -312,9 +303,9 @@ void Tokenizer::Scan()
 		}else if(ss==S::BlockDQuotation){ //块字符串
 
 			if(tok=="\""&&prev_tok=="\""&&pprev_tok=="\""){
-				Pop(2); //删除引号
+				Pop(2); //跳过引号
 				Push(S::BlockDQuotation);
-				ss = S::Normal;
+				ss = S::Normal; // 块字符串结束
 			}else{
 				Buf();
 			}
@@ -322,25 +313,20 @@ void Tokenizer::Scan()
 		}else if(ss==S::BlockQuotation){ //块字符串
 
 			if(tok=="\'"&&prev_tok=="\'"&&pprev_tok=="\'"){
-				Pop(2); //删除引号
+				Pop(2); //跳过引号
 				Push(S::BlockQuotation);
-				ss = S::Normal;
+				ss = S::Normal; // 块字符串结束
 			}else{
 				Buf();
 			}
 
-		}else if(ss==S::End){ // 结束
-
-			Push(S::End);
-			break; //结束
 		}else{
 
 			// 未识别的符号
 			Error(1);
 		}
 
-
-    	// 换行
+    	// 换行纪录
 		if(s==S::NewLine){
 			//cout<<"line: "<<line<<endl;
 			line++; //新行

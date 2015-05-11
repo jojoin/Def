@@ -92,7 +92,10 @@ class Token {
 		BlockAnnotation,   // 块注释
 		Space,        // 空格、tab等制表符
 		NewLine,      // 换行
-		
+
+		NextTo,   // 紧接着的，表示上一个和下一个两个词是连在一起 中间没有任何分隔的
+					// 用于判断容器访问和函数调用紧接着的 [ 和 ( 符号 等
+
 		Unknow,       // 不明字符
 		End           // 结束符
 	};
@@ -157,10 +160,6 @@ class Token {
 	}
 
 	// 判断字符是否为关键字
-	/*
-	static bool IsKeyword(Value tok) {
-		return value_type[tok] == 'K'; // tok is unsigned
-	}*/
 	static bool IsKeyword(string tok)
 	{
 		int num = sizeof(keywords)/sizeof(keywords[0]);

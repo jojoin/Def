@@ -48,33 +48,18 @@ bool Vm::Error(int code){
  */
 bool Vm::Eval(string txt, bool ispath=false)
 {
-    // 词法分析
+    // 词法分析结果
     vector<Word>* words = new vector<Word>(1024);
-    //vector<Word> words; // 词法分析结果
     Tokenizer T(ispath, txt, words); // 初始化词法分析器
     T.Scan(); // 执行词法分析
-
-    // cout<<"T.Scan()"<<endl;
 
     // 语法分析
     Nodezer N(words, ispath ? txt : ""); // 初始化语法分析器
     Node *node = N.BuildAST(); // 解析得到语法树（表达式）
 
-    // cout<<"N.BuildAST()"<<endl;
-
     // 解释执行分析树
     bool done = ExplainAST(node);
-
-    // cout<<"ExplainAST()"<<endl;
-
-    /*
-    cout <<
-    node->Child(2)->Right()->GetName()
-    << endl;
-    */
     
-    
-
     delete words; // 析构tok数组
     delete node; // 析构语法树
     
@@ -150,7 +135,7 @@ DefObject* Vm::Evaluat(Node* n)
         // cout<<"Assign name="<<name<<endl;
         DefObject *exi = vm_stack->VarGet(name);   // 查找变量是否存在
         if(exi!=NULL){
-            cout<<"vm_gc->Free()"<<endl;
+            // cout<<"vm_gc->Free()"<<endl;
             Free(exi);       // 变量重新赋值则释放之前的变量
         }
         vm_gc->Quote(rv);          // 引用计数 +1
@@ -321,6 +306,14 @@ DefObject* Vm::Print(DefObject *obj)
         }
         cout << "]";
 
+    }else if(t==OT::None){
+        cout << "none";
+    }else if(t==OT::Bool){
+        if( Conversion::Bool(obj) ){
+            cout << "true";
+        }else{
+            cout << "false";
+        }
     }else{
 
     }

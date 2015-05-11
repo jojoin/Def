@@ -40,6 +40,8 @@ enum class NodeType
 	List,   // 列表
 	Dict,   // 字典
 
+	ContainerAccess, // 容器访问
+
 	// 叶节点
 
 	Variable,   // 变量符号           // 11
