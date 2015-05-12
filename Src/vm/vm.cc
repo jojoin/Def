@@ -53,12 +53,22 @@ bool Vm::Eval(string txt, bool ispath=false)
     Tokenizer T(ispath, txt, words); // 初始化词法分析器
     T.Scan(); // 执行词法分析
 
+    // cout << words->at(0).value << endl;
+    // cout << words->at(1).value << endl;
+
     // 语法分析
     Nodezer N(words, ispath ? txt : ""); // 初始化语法分析器
     Node *node = N.BuildAST(); // 解析得到语法树（表达式）
 
+    // cout << node->Child(0)->GetName() << endl;
+    // cout << node->Right()->Child(1)->Left()->GetName() << endl;
+
+    node->Print();
+    // cout << "node->ChildSize() = " << node->ChildSize() << endl;
+
+
     // 解释执行分析树
-    bool done = ExplainAST(node);
+    // bool done = ExplainAST(node);
     
     delete words; // 析构tok数组
     delete node; // 析构语法树

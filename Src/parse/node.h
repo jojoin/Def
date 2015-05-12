@@ -16,8 +16,56 @@ using namespace def::util;
 namespace def {
 namespace node {
 
+#define NODELIST(N, D)             \
+								\
+	N(Normal, 0)              	\
+	D(Group, 0)              	\
+								\
+	D(Variable, 0)				\
+	D(None, 0)					\
+	D(Bool, 0)					\
+	D(Int, 0)					\
+	D(Float, 0)					\
+	D(String, 0)				\
+								\
+	D(Assign, 1)              	\
+								\
+	D(Add, 2)					\
+	D(Sub, 2)					\
+								\
+	D(Mul, 3)					\
+	D(Div, 3)					\
+								\
+								\
+	D(If, 0)					\
+	D(While, 0)              	\
+								\
+	D(FuncCall, 0)				\
+	D(ContainerAccess, 0)		\
+								\
+	D(List, 0)					\
+	D(Dict, 0)					\
+								\
+	D(FuncDefine, 0)			\
+								\
+	D(Print, 0)              	\
+								\
+	N(End, 0)            
+
+
+	// 符号与关键字具体值
+#define N(name, priority) name,
+#define D(name, priority) name,
+	enum class NodeType {
+		NODELIST(N, D)
+	};
+#undef N
+#undef D
+
+
+/*
 // 节点类型
-enum class NodeType
+enum class NodeType1
 {
 	Normal,   // 默认状态
 
@@ -62,12 +110,12 @@ enum class NodeType
 	End,   // 终止并返回
 	
 }; // --end-- enum class NodeType
-
-
+*/
 
 #define NT NodeType
 
-
+// 打印节点缩进
+#define PRT "| "
 
 // 节点
 struct Node{
@@ -76,7 +124,7 @@ struct Node{
 	NT type;       // 节点类型
 	// 构造方法
 	Node(NT t, Word &w)
-		: type(t)
+	: type(t)
 	{
 		line = w.line;
 		posi = w.posi;
@@ -112,7 +160,7 @@ struct Node{
 	virtual ~Node()=0;
 	virtual void AddChild(Node*){};
 	virtual void ClearChild(){};
-	virtual Node* Child(size_t i){};
+	virtual Node* Child(size_t i=0){};
 	virtual size_t ChildSize(){};
 	virtual Node* Left(Node*n=NULL){};
 	virtual Node* Right(Node*n=NULL){};
@@ -120,82 +168,28 @@ struct Node{
 	virtual long GetInt(){};
 	virtual double GetFloat(){};
 	virtual string GetName(){};
+	virtual void SetName(string n){};
 	virtual string GetString(){};
+	virtual void Print(string prefix=""){};
+	virtual bool IsTwinTree(){};
 };
 
 
-// 多叉节点
-struct NodeTree : Node{
-	vector<Node*> childs; // 子节点指针列表
-	NodeTree(NT t, Word &w)
-		: Node(t, w){}
-	virtual ~NodeTree(){
-		size_t s = childs.size();
-		for(size_t i=0; i<s; i++)
-		{
-        	//cout<<"delete child "<<i<<endl;
-			delete childs[i];
-		}
-		childs.clear();
-	};
-	inline void AddChild(Node* n){
-        //cout<<"add child "<<(int)n->type<<endl;
-		childs.push_back(n);
+// 二叉节点
+struct NodeOneTree : Node{
+	Node* child;   // 子节点
+	NodeOneTree(NT t, Word &w, Node* ch=NULL)
+	: Node(t, w), child(ch){}
+	virtual ~NodeOneTree(){
+        //cout<<"delete child "<<(int)child->type<<endl;
+		delete child;
 	}
-	inline void ClearChild(){
-		childs.clear();
-	};
-	inline Node* Child(size_t i){
-		return i<childs.size() ? childs[i] : NULL;
+	inline Node* Child(size_t i=0){
+        return child;
 	}
-	inline size_t ChildSize(){ //子节点数量
-		return childs.size();
-	};
-	inline Node* ChildPop(size_t i=0){ //弹出某个子节点
-		Node* n = Child(i);
-		if(n){
-			childs.erase(childs.begin()+i);
-		}
-		return n;
-	};
-};
-
-
-// 组合表达式
-struct NodeGroup : NodeTree{
-	NodeGroup(Word &w)
-		: NodeTree(NT::Group, w){}
-};
-
-
-// def 函数定义结构
-struct NodeFuncDefine : Node{
-	NodeGroup* body; //函数体
-	NodeFuncDefine(Word &w)
-		: Node(NT::FuncDefine, w){}
-};
-
-
-// def 函数调用结构
-struct NodeFuncCall : Node{
-	NodeFuncCall(Word &w)
-		: Node(NT::FuncCall, w){}
-};
-
-
-// [] 列表数据结构
-struct NodeList : NodeTree{
-	NodeList(Word &w)
-		: NodeTree(NT::List, w){}
-};
-
-
-
-
-// If 控制流程
-struct NodeIf : NodeTree{
-	NodeIf(Word &w)
-		: NodeTree(NT::If, w){}
+	inline void AddChild(Node*n){
+		child = n; //设置
+	}
 };
 
 
@@ -204,13 +198,16 @@ struct NodeTwinTree : Node{
 	Node* left;   // 左子节点
 	Node* right;  // 右子节点
 	NodeTwinTree(NT t, Word &w, Node* lf=NULL, Node* rt=NULL)
-		: Node(t, w), left(lf), right(rt){}
+	: Node(t, w), left(lf), right(rt){}
 	virtual ~NodeTwinTree(){
         //cout<<"delete left "<<(int)left->type<<endl;
 		delete left;
         //cout<<"delete right "<<(int)right->type<<endl;
 		delete right;
-	};
+	}
+	inline bool IsTwinTree(){
+		return true;
+	}
 	inline Node* Left(Node*n=NULL){
         //cout<<"left child "<<(int)n->type<<endl;
         if(n!=NULL){
@@ -225,28 +222,182 @@ struct NodeTwinTree : Node{
         }
         return right;
 	}
+	inline void Print(string prefix=""){ // 打印
+		cout<<prefix+"NodeTwinTree: "<<endl;
+		Left()->Print(prefix+PRT);
+		Right()->Print(prefix+PRT);
+	};
+};
+
+
+// 多叉节点
+struct NodeTree : Node{
+	vector<Node*> childs; // 子节点指针列表
+	NodeTree(NT t, Word &w)
+	: Node(t, w){}
+	virtual ~NodeTree(){
+		size_t s = childs.size();
+		for(size_t i=0; i<s; i++)
+		{
+        	//cout<<"delete child "<<i<<endl;
+			delete childs[i];
+		}
+		childs.clear();
+	}
+	inline void AddChild(Node* n){
+        //cout<<"add child "<<(int)n->type<<endl;
+		childs.push_back(n);
+	}
+	inline void ClearChild(){
+		childs.clear();
+	}
+	inline Node* Child(size_t i){
+		return i<childs.size() ? childs[i] : NULL;
+	}
+	inline size_t ChildSize(){ //子节点数量
+		return childs.size();
+	}
+	inline Node* ChildPop(size_t i=0){ //弹出某个子节点
+		Node* n = Child(i);
+		if(n){
+			childs.erase(childs.begin()+i);
+		}
+		return n;
+	}
+	inline void Print(string prefix=""){ // 打印
+		size_t sz = ChildSize();
+		cout<< prefix+"NodeTree: "<<sz<<endl;
+		for(size_t i=0; i<sz; i++)
+		{
+			Child(i)->Print(prefix+PRT);
+		}
+	};
+};
+
+
+// 组合表达式
+struct NodeGroup : NodeTree{
+	NodeGroup(Word &w)
+	: NodeTree(NT::Group, w){}
+	inline void Print(string prefix=""){ // 打印
+		size_t sz = ChildSize();
+		cout<< prefix+"Group: "<<sz<<endl;
+		for(size_t i=0; i<sz; i++)
+		{
+			Child(i)->Print(prefix+PRT);
+		}
+	};
+};
+
+
+// def 函数定义结构
+struct NodeFuncDefine : Node{
+	NodeGroup* body; //函数体
+	NodeFuncDefine(Word &w)
+		: Node(NT::FuncDefine, w){}
+};
+
+
+// def 函数调用结构
+struct NodeFuncCall : NodeTwinTree{
+	string name;
+	NodeFuncCall(Word &w)
+	: NodeTwinTree(NT::FuncCall, w)
+	, name(w.value){
+
+	}
+	inline string GetName(){
+		return name;
+	}
+	inline void SetName(string n=""){
+		name = n;
+	}
+	inline void Print(string prefix=""){ // 打印
+		Node *pl = Right();
+		size_t sz = pl->ChildSize();
+		cout<<prefix+"FuncCall: "<<name<<" , para: "<<sz<<endl;
+		for(int i=0;i<sz;i++){
+			pl->Child(i)->Print(prefix+PRT);
+		}
+	};
+};
+
+
+// 列表和字典 容器访问结构
+struct NodeContainerAccess : NodeTwinTree{
+	NodeContainerAccess(Word &w)
+	: NodeTwinTree(NT::ContainerAccess, w){}
+	inline void Print(string prefix=""){ // 打印
+		cout<<prefix+"ContainerAccess"<<endl;
+		Left()->Print(prefix+PRT);
+		Right()->Print(prefix+PRT);
+	};
 };
 
 
 // while 循环控制
 struct NodeWhile : NodeTwinTree{
 	NodeWhile(Word &w)
-		: NodeTwinTree(NT::While, w){}
+	: NodeTwinTree(NT::While, w){}
+	inline void Print(string prefix=""){ // 打印
+		cout<<prefix+"While"<<endl;
+		Left()->Print(prefix+PRT);
+		Right()->Print(prefix+PRT);
+	};
 };
 
 
-/*
-// end 执行并返回
-struct NodeEnd : NodeTwinTree{
-	NodeEnd(Word &w)
-		: NodeTwinTree(NT::Return, w){}
+// If 控制流程
+struct NodeIf : NodeTree{
+	NodeIf(Word &w)
+	: NodeTree(NT::If, w){}
+	inline void Print(string prefix=""){ // 打印
+		cout<<prefix+"If"<<endl;
+		Left()->Print(prefix+PRT);
+		Right()->Print(prefix+PRT);
+	};
 };
-*/
+
+
+
+// [] 列表数据结构
+struct NodeList : NodeTree{
+	NodeList(Word &w)
+	: NodeTree(NT::List, w){}
+	inline void Print(string prefix=""){ // 打印
+		size_t sz = ChildSize();
+		cout<< prefix+"List: "<<sz<<endl;
+		for(size_t i=0; i<sz; i++)
+		{
+			Child(i)->Print(prefix+PRT);
+		}
+	};
+};
+
+// {} 字典数据结构
+struct NodeDict : NodeTree{
+	NodeDict(Word &w)
+	: NodeTree(NT::Dict, w){}
+	inline void Print(string prefix=""){ // 打印
+		size_t sz = ChildSize();
+		cout<< prefix+"Dict: "<<sz<<endl;
+		for(size_t i=0; i<sz; i++)
+		{
+			Child(i)->Print(prefix+PRT);
+		}
+	};
+};
+
 
 // = 赋值节点
 struct NodeAssign: NodeTwinTree{
 	NodeAssign(Word &w)
-		: NodeTwinTree(NT::Assign, w){}
+	: NodeTwinTree(NT::Assign, w){}
+	inline void Print(string prefix=""){ // 打印
+		cout<<prefix+"Assign(=)"<<endl;
+		Left()->Print(prefix+PRT);
+		Right()->Print(prefix+PRT);
+	};
 };
 
 
@@ -254,6 +405,11 @@ struct NodeAssign: NodeTwinTree{
 struct NodeAdd: NodeTwinTree{
 	NodeAdd(Word &w)
 	: NodeTwinTree(NT::Add, w){}
+	inline void Print(string prefix=""){ // 打印
+		cout<<prefix+"Add(+)"<<endl;
+		Left()->Print(prefix+PRT);
+		Right()->Print(prefix+PRT);
+	};
 };
 
 
@@ -261,26 +417,44 @@ struct NodeAdd: NodeTwinTree{
 struct NodeSub: NodeTwinTree{
 	NodeSub(Word &w)
 	: NodeTwinTree(NT::Sub, w){}
+	inline void Print(string prefix=""){ // 打印
+		cout<<prefix+"Sub(-)"<<endl;
+		Left()->Print(prefix+PRT);
+		Right()->Print(prefix+PRT);
+	};
 };
 
 // * 乘操作节点
 struct NodeMul: NodeTwinTree{
 	NodeMul(Word &w)
 	: NodeTwinTree(NT::Mul, w){}
+	inline void Print(string prefix=""){ // 打印
+		cout<<prefix+"Mul(*)"<<endl;
+		Left()->Print(prefix+PRT);
+		Right()->Print(prefix+PRT);
+	};
 };
 
 // / 除操作节点
 struct NodeDiv: NodeTwinTree{
 	NodeDiv(Word &w)
 	: NodeTwinTree(NT::Div, w){}
+	inline void Print(string prefix=""){ // 打印
+		cout<<prefix+"Div(/)"<<endl;
+		Left()->Print(prefix+PRT);
+		Right()->Print(prefix+PRT);
+	};
 };
 
 
 // print 打印变量至屏幕
 struct NodePrint : NodeTwinTree{
 	NodePrint(Word &w)
-	: NodeTwinTree(NT::Print, w)
-	{}
+	: NodeTwinTree(NT::Print, w){}
+	inline void Print(string prefix=""){ // 打印
+		cout<<prefix+"Print: "<<endl;
+		Right()->Print(prefix+PRT);
+	};
 };
 
 
@@ -288,11 +462,15 @@ struct NodePrint : NodeTwinTree{
 struct NodeVariable : Node{
 	string name;
 	NodeVariable(Word &w)
-	: Node(NT::Variable, w){
-		name = w.value;
+	: Node(NT::Variable, w)
+	, name(w.value){
+
 	}
 	inline string GetName(){
 		return name;
+	};
+	inline void Print(string prefix=""){ // 打印
+		cout<<prefix+"Variable: "<<name<<endl;
 	};
 };
 
@@ -300,7 +478,10 @@ struct NodeVariable : Node{
 // none 节点
 struct NodeNone : Node{
 	NodeNone(Word &w)
-	: Node(NT::None, w){}
+		: Node(NT::None, w){}
+	inline void Print(string prefix=""){ // 打印
+		cout<<prefix+"None"<<endl;
+	};
 };
 
 
@@ -313,6 +494,9 @@ struct NodeBool : Node{
 	}
 	inline bool GetBool(){
 		return value;
+	}
+	inline void Print(string prefix=""){ // 打印
+		cout<<prefix+"Bool: "<<value<<endl;
 	};
 };
 
@@ -326,6 +510,9 @@ struct NodeInt : Node{
 	}
 	inline long GetInt(){
 		return value;
+	}
+	inline void Print(string prefix=""){ // 打印
+		cout<<prefix+"Int: "<<value<<endl;
 	};
 };
 
@@ -339,6 +526,9 @@ struct NodeFloat : Node{
 	}
 	inline double GetFloat(){
 		return value;
+	}
+	inline void Print(string prefix=""){ // 打印
+		cout<<prefix+"Float: "<<value<<endl;
 	};
 };
 
@@ -352,10 +542,23 @@ struct NodeString : Node{
 	}
 	inline string GetString(){
 		return value;
+	}
+	inline void Print(string prefix=""){ // 打印
+		cout<<prefix+"String: \""<<value<<"\""<<endl;
 	};
 };
 
+
+
+
+
+
+
+
+
 #undef NT   // NodeType
+
+#undef PRT   // 打印缩进
 
 
 

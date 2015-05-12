@@ -76,7 +76,7 @@ class Token {
 	enum class State {
 		Normal,                 // 默认
 		Identifier,             // 标识符 包含关键字
-		  Symbol,                 // 变量名
+		  Variable,                 // 变量名
 		  Keyword,                // 关键字
 		Character,              // 英文字母
 		Sign,                   // 符号
@@ -93,7 +93,7 @@ class Token {
 		Space,        // 空格、tab等制表符
 		NewLine,      // 换行
 
-		NextTo,   // 紧接着的，表示上一个和下一个两个词是连在一起 中间没有任何分隔的
+		JoinWith,   // 紧接着的，表示后面出现的两个词是连在一起 中间没有任何分隔的
 					// 用于判断容器访问和函数调用紧接着的 [ 和 ( 符号 等
 
 		Unknow,       // 不明字符

@@ -43,11 +43,13 @@ class Nodezer {
 	};
 
 	inline void Read(){
-		//cout<<"i: "<<i<<endl;
+
+
 		try{
 			if(i>0) prev = words->at(i-1);
 			cur = words->at(i);
 			next = words->at(i+1);
+			// cout<<"Read(): i="<<i<<","<<cur.value<<endl;
 		}catch(const exception& e){
 			size_t sz = words->size();
 			if(i+1>=sz) next = endword;
@@ -66,6 +68,7 @@ class Nodezer {
 		i = 0;
 		endword = Word{0,0,Token::State::End,""};
 		prev = cur = next = endword;
+    	cnode = NULL;
 		//ctn = NodeType::Expression;
 		//tn_stk.clear();
 		//tn_stk.push_back(NodeType::Expression);
@@ -74,13 +77,17 @@ class Nodezer {
 	static bool IsType(T,T,T,T,T,T,T,T,T,T,T); // 节点类型是否匹配
 	T GetNodeType(Word&); // 获得节点类型
 	T CurNodeType(); // 判断当前节点类型
-	Node* CreatNode(int, Node*, Node*); //从当前单词新建节点
-	Node* Express(Node*,T); // 扫描单词 构建表达式
+	//Node* CreatNode(int, Node*, Node*); //从当前单词新建节点
+	Node* CreatNode(); //从当前单词新建节点
+	Node* ParseNode(Node*,Node*); //解析当前节点
+	Node* AssembleNode(Node*,Node*); //组合当前两个节点
+
+	Node* Express(Node*); // 扫描单词 构建表达式
 	Node* Group(); // 构建表达式组
 	Node* BuildAST();   // 扫描单词 构建语法树
-	//Node* Tuple(); // 构建元组
-	//Node* Array(); // 构建数组
-	//Node* IfElse(); // 构建数组
+	int GetPriority(Node*); // 取得节点优先级
+
+	bool IsGroupEnd(); // 表达式组结束标志
 
 	private:
 
@@ -91,7 +98,8 @@ class Nodezer {
 
 	Word endword;  // 空单词
 
-	T cnt; //当前节点类型
+	T cnt; // 当前节点类型
+	Node* cnode; // 当前节点，用于缓存
 
 	vector<Word>* words; // 单词列表
 	string filepath; //编译文件

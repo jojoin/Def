@@ -96,6 +96,7 @@ Tokenizer::Tokenizer(bool isFile, string txt, vector<Word>* wds):
  */
 void Tokenizer::Push(S sta=S::Normal)
 {
+	/*
 	if(buf==""){
 		if(sta==S::String){
 			// 允许保存空字符串
@@ -105,13 +106,14 @@ void Tokenizer::Push(S sta=S::Normal)
 			return; // 不保存
 		}
 	}
+	*/
 
 	// 判断是否为关键字
 	if(sta==S::Identifier){
 		if(Token::IsKeyword(buf)){
 			sta = S::Keyword; //关键字
 		}else{
-			sta = S::Symbol; //变量名
+			sta = S::Variable; //变量名
 		}
 	}
 
@@ -131,11 +133,16 @@ void Tokenizer::Push(S sta=S::Normal)
 		buf
 	};
 
+	if(sta==S::Space || sta==S::JoinWith ){
+		wd.value = "";
+	}else{
+		buf = "";
+		word_pos++;
+		line_start = 0;
+	}
+
 	words->push_back(wd);
 
-	line_start = 0;
-	buf = "";
-	word_pos++;
 };
 
 
@@ -231,14 +238,13 @@ void Tokenizer::Scan()
 			if(s==S::Character||s==S::Number){
 				Buf();
 			}else{
-				Push(S::Identifier);
-				if( tok=="[" || tok=="(" ){
-					Push(S::NextTo); // 容器访问 函数调用
+				if( s==S::Sign && (tok=="["||tok=="(") ){
+					Push(S::JoinWith); // 容器访问 函数调用
 				}
+				Push(S::Identifier);
 				Back(); // 回退
 				ss = S::Normal;
 			}
-
 		// 数字
 		}else if(ss==S::Number){
 
