@@ -133,7 +133,7 @@ void Tokenizer::Push(S sta=S::Normal)
 		buf
 	};
 
-	if(sta==S::Space || sta==S::JoinWith ){
+	if(sta==S::Space ){
 		wd.value = "";
 	}else{
 		buf = "";
@@ -152,6 +152,9 @@ void Tokenizer::Push(S sta=S::Normal)
  */
 void Tokenizer::Scan()
 {
+
+
+#define IS_SIGN(str) tok==str&&s==S::Sign
 
     // cout << "void Tokenizer::Scan()" << endl;
 
@@ -238,10 +241,15 @@ void Tokenizer::Scan()
 			if(s==S::Character||s==S::Number){
 				Buf();
 			}else{
-				if( s==S::Sign && (tok=="["||tok=="(") ){
-					Push(S::JoinWith); // 容器访问 函数调用
+				if( IS_SIGN("(") ){
+					Push(S::FuncCall); // 函数调用
+				}else if( IS_SIGN("[") ){
+					Push(S::ContainerAccess); // 容器访问 
+				//}else if( IS_SIGN(".") ){
+				//	Push(S::ContainerAccess); // 对象访问 
+				}else{
+					Push(S::Identifier); //普通变量
 				}
-				Push(S::Identifier);
 				Back(); // 回退
 				ss = S::Normal;
 			}
@@ -346,6 +354,9 @@ void Tokenizer::Scan()
     // cout << "void Tokenizer::Scan() end" << endl;
 
 	// 语法分析执行完毕
+
+#undef IS_SIGN
+
 
 }
 

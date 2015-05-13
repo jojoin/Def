@@ -93,8 +93,10 @@ class Token {
 		Space,        // 空格、tab等制表符
 		NewLine,      // 换行
 
-		JoinWith,   // 紧接着的，表示后面出现的两个词是连在一起 中间没有任何分隔的
-					// 用于判断容器访问和函数调用紧接着的 [ 和 ( 符号 等
+		// 语义化 word 类型
+		FuncCall,         //函数调用
+		ContainerAccess,  //容器访问
+		//ObjectAccess,     //对象访问
 
 		Unknow,       // 不明字符
 		End           // 结束符

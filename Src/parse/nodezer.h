@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <stack>  
 #include <exception>
 
 #include "tokenizer.h"
@@ -60,15 +61,16 @@ class Nodezer {
 
 	inline void Move(int s=1){
 		i += s;
-        //Read();
+        Read();
 	}
 
 	inline void Clear(){
 		i = 0;
 		cur = endword = Word{0,0,Token::State::End,""};
 
+		nodebuf = NULL;
+
 		//prev = cur = next = endword;
-    	cnode = NULL;
 		//ctn = NodeType::Expression;
 		//tn_stk.clear();
 		//tn_stk.push_back(NodeType::Expression);
@@ -79,8 +81,8 @@ class Nodezer {
 	T CurNodeType(); // 判断当前节点类型
 	//Node* CreatNode(int, Node*, Node*); //从当前单词新建节点
 	Node* CreatNode(); //从当前单词新建节点
-	Node* CreatMolecule(Node*,Node*); // 构建表达式分子，例如括号优先级，数组结构等
-	Node* ParseNode(Node*,Node*); //解析当前节点
+	//Node* CreatMolecule(Node*,Node*); // 构建表达式分子，例如括号优先级，数组结构等
+	Node* ParseNode(Node*); //解析当前节点
 	Node* AssembleNode(Node*,Node*); //组合当前两个节点
 	Node* Express(Node*); // 扫描单词 构建表达式
 	Node* Group(T type=T::Group); // 构建表达式组
@@ -99,7 +101,8 @@ class Nodezer {
 	Word endword;  // 空单词
 
 	T cnt; // 当前节点类型
-	Node* cnode; // 当前节点，用于缓存
+	//stack<Node*> nodebuf; // 缓存待用的节点
+	Node* nodebuf; // 缓存待用的节点
 
 	vector<Word>* words; // 单词列表
 	string filepath; //编译文件

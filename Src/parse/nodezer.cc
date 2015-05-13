@@ -78,10 +78,13 @@ NodeType Nodezer::GetNodeType(Word &cwd)
 
         return T::Variable; // 变量名
 
-    /* }else if(s==S::None){
-        return T::None;
-    }else if(s==S::Bool){
-        return T::Bool; */
+    }else if(s==S::FuncCall){
+        //cout<<"GetNodeType: "<<(int)s<<"-> s==S::FuncCall "<<v<<endl;
+        return T::FuncCall; // 函数调用
+ 
+    }else if(s==S::ContainerAccess){
+        return T::ContainerAccess; // 容器访问
+
     }else if(s==S::Int){
         return T::Int;
     }else if(s==S::Float){
@@ -128,25 +131,6 @@ NodeType Nodezer::GetNodeType(Word &cwd)
             return T::Priority; // 优先级 ()
         **/
         }
-
-    }else if(s==S::JoinWith){
-
-        Move(1); Read();
-        if(cur.type==S::Variable){
-            Move(1); Read();
-            if(cur.type==S::Sign){
-                string v = cur.value;
-                if(v=="["){
-                    Move(-1); Read();
-                    return T::ContainerAccess; // 容器访问
-                }else if(v=="("){
-                    Move(-1); Read();
-                    return T::FuncCall;     // 函数调用
-                }
-            }
-        }
-        return CurNodeType();
-
     }else if(s==S::End){
 
         return T::End; // 终止符
@@ -171,8 +155,8 @@ int Nodezer::GetPriority(Node*p)
 
     switch(p->type){
 
-#define N(name, priority) 
-#define D(name, priority) case T::name: return priority;
+#define N(name, priori) 
+#define D(name, priori) case T::name: return priori;
     NODELIST(N, D)
 #undef N
 #undef D
@@ -202,16 +186,16 @@ int Nodezer::GetPriority(Node*p)
  */
 Node* Nodezer::CreatNode()
 {
-    Read();
+    //Read();
     T cnt = CurNodeType();
-    Move(1);
+    //Move(1);
 
-    // cout<<"CreatNode: "<<(int)cnt<<"->"<<cur.value<<endl;
+    cout<<"CreatNode: "<<(int)cnt<<"->"<<cur.value<<endl;
 
     switch(cnt){
 
-#define N(name, priority) 
-#define D(name, priority) case T::name: return new Node##name(cur);
+#define N(name, priori) 
+#define D(name, priori) case T::name: return new Node##name(cur);
     NODELIST(N, D)
 #undef N
 #undef D
@@ -226,14 +210,9 @@ Node* Nodezer::CreatNode()
 /**
  * 解析延展部分节点
  */
-Node* Nodezer::ParseNode(Node*op=NULL, Node*p=NULL)
+Node* Nodezer::ParseNode(Node*p=NULL)
 {
     if(p==NULL){ 
-        if(cur.type!=S::End){
-            // 其它情况 非结束 回退一个词
-            Move(-1); Read();
-        }
-        //cout<<"Can't ParseNode"<<endl;
         return NULL; //表达式完成
     }
 
@@ -243,30 +222,44 @@ Node* Nodezer::ParseNode(Node*op=NULL, Node*p=NULL)
     // 优先级包含
     if( t==T::Priority ){
 
-        //cout << "-Priority-" << endl;
+        cout << "-Priority-" << endl;
+        Move(1); //jump (
         Node *e = Express( NULL );
+
+        //cout << " Node *e = Express( " << endl;
         if(IS_NO_SIGN(")") ){
-            ERR("err: IS_SIGN no ) !");
+            ERR("err: Priority IS_SIGN no ) !");
         }
         if(e==NULL){
             ERR("err: () priority is empty !");
         }
-        p->AddChild(e);
-        //cout<<"priority filish e="<<e<<endl;
+        //cout << "e = " << e << endl;
+        if(!GetPriority(e)){ // 不影响优先级计算
+            //cout<<"delete priority"<<endl;
+            delete p; // 省略优先级括号
+            p = e;
+        }else{
+            p->AddChild(e);
+        }
+        cout<<"priority filish p="<<p<<endl;
         Move(1); //jump )
         return p;
 
     // list 列表
     }else if( t==T::List ){
 
-        //cout << "-List-" << endl;
+        cout << "-List-" << endl;
+        Move(1); //jump [
         while(1){
+            if(IS_SIGN("]")){
+                //Move(1); //jump ]
+                break; //列表结束
+            }
             Node *e = Express( NULL );
-            if(!e) break;
+            if(!e){
+                ERR("err: List parse , IS_SIGN no ]");
+            }
             p->AddChild(e);
-        }
-        if(IS_NO_SIGN("]") ){
-            ERR("err: IS_SIGN no ] !");
         }
         Move(1); //jump ]
         return p;
@@ -275,25 +268,26 @@ Node* Nodezer::ParseNode(Node*op=NULL, Node*p=NULL)
     }else if( t==T::FuncCall ){
 
         // cout << "-FuncCall-" << endl;
-        Move(1); // 跳过左括号
+        Move(2); // jump func name and (
         Node* list = Group();
-        if(IS_SIGN(")")){
-            Move(1); // 跳过又括号
-            //cout << "-Node* list = Group();-" << endl;
-            p->Right( list ); // 参数列表
-            return p;
-        }else{
-            ERR("err  IS_SIGN no ) !"); // 
+        if(IS_NO_SIGN(")")){
+            ERR("err: FuncCall IS_SIGN no ) !"); // 
         }
+        Move(1); // jump )
+        //cout << "-Node* list = Group();-" << endl;
+        p->AddChild( list ); // 参数列表
+        return p;
 
     // ContainerAccess
     }else if( t==T::ContainerAccess ){
 
+        return p;
 
     }
 
     // cout << "-ParseNode  p->type  nothing-" << endl;
-
+    // 当前节点不需要扩展 跳到下一个
+    Move(1); //下一个
     return p;
 }
 
@@ -309,7 +303,7 @@ Node* Nodezer::AssembleNode(Node*p1, Node*p2)
     int s1 = GetPriority(p1);
     int s2 = GetPriority(p2);
 
-    //cout<<"s1="<<s1<<", s2="<<s2<<endl;
+    // cout<<"s1="<<s1<<", s2="<<s2<<endl;
 
     if( s1 && s2>s1 ){
 
@@ -319,7 +313,9 @@ Node* Nodezer::AssembleNode(Node*p1, Node*p2)
             ERR("ERR: !p1r ");
         }
         p2->Left( p1r );
+        Move(1); // 下一个参与组合
         p1->Right( Express( p2 ) ); //递归下降
+        Move(-1); // 下降返回后需要回退，以便于上级节点重新组合 
         return p1;
 
     }else if( s2 ){ // 左叶
@@ -333,14 +329,13 @@ Node* Nodezer::AssembleNode(Node*p1, Node*p2)
         //cout << " p1->Right( p1r ) " << endl;
         Node *p1r = p1->Right();
         if(p1r){
-            cnode = p2; // 缓存
             return NULL; // 表达式完成
         }
         p1->Right( p2 );
         return p1;
     }
 
-
+    // 无法组装节点  表达式完成
     return NULL;
 
 }
@@ -354,29 +349,20 @@ Node* Nodezer::AssembleNode(Node*p1, Node*p2)
  */
 Node* Nodezer::Express(Node *p1=NULL)
 {
-    Node *p2 = NULL;
-
     while(1){
 
-
-        if(cnode){ // 缓存
-            p2 = cnode; cnode=NULL;
-        }else{
-            p2 = CreatNode();
-        }
+        Node *p2 = CreatNode();
 
         if(cur.type==S::End){ // 全部结束
             return p2 ? p2 : p1;
         }
-
-        p2 = ParseNode( p1, p2 ); // 延展完善节点
 
         if(!p2){ //表达式完成
             return p1;
         }
 
         if(!p1){
-            p1 = p2; 
+            p1 = ParseNode( p2 ); //延展完善
             continue; // 获取下一个
         }
 
@@ -385,22 +371,36 @@ Node* Nodezer::Express(Node *p1=NULL)
         // 按优先级组合节点
         Node* pn = AssembleNode(p1, p2);
         //cout << "  Node* pn =  " <<pn<< endl;
-        if(pn){
+        if(pn){ // 可以组合
+            p2 = ParseNode( p2 ); // 延展完善节点
             p1 = pn;
-            // cout << " p1 = pn;" << endl;
-            continue; //优先级组合成功
+            continue; //优先级组合成功，下一步组合
         }
 
-        // 查找无法组合原因
+        // 节点无法组合
+        delete p2; //释放新建的节点，下一步重新开始
+        cout <<"DeleteNode:"<<endl;
+        return p1;
+
+
+
+
+        //cout<<" can't assemble node"<<endl;
+
+        /* 查找无法组合原因
         int s1 = GetPriority(p1);
         int s2 = GetPriority(p2);
 
         if( !s2 ){ // 表达式完成
 
-            //cout << " cnode = p2; " << endl;
-            cnode = p2;
-            return p1;
+            Move(-1);
+
+            nodebuf = p2;
+            cout << " cnode = p2 = " << p2 << endl;
+            return p2 ? p2 : p1;
         }
+
+        */
 
     }
 
@@ -693,6 +693,7 @@ Node* Nodezer::Express(Node *pp=NULL, T tt=T::Normal)
  */
 Node* Nodezer::BuildAST()
 {
+    Read();
     return Group();
 }
 

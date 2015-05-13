@@ -312,10 +312,10 @@ struct NodeFuncDefine : Node{
 
 
 // def 函数调用结构
-struct NodeFuncCall : NodeTwinTree{
+struct NodeFuncCall : NodeOneTree{
 	string name;
 	NodeFuncCall(Word &w)
-	: NodeTwinTree(NT::FuncCall, w)
+	: NodeOneTree(NT::FuncCall, w)
 	, name(w.value){
 
 	}
@@ -326,7 +326,7 @@ struct NodeFuncCall : NodeTwinTree{
 		name = n;
 	}
 	inline void Print(string prefix=""){ // 打印
-		Node *pl = Right();
+		Node *pl = Child();
 		size_t sz = pl->ChildSize();
 		cout<<prefix+"FuncCall: "<<name<<" , para: "<<sz<<endl;
 		for(int i=0;i<sz;i++){
