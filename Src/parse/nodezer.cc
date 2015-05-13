@@ -108,6 +108,12 @@ NodeType Nodezer::GetNodeType(Word &cwd)
 
         if(v=="="){
             return T::Assign; //赋值 =
+        }else if(v=="("){
+            return T::Priority; //优先级 (
+        }else if(v=="["){
+            return T::List; //列表 [
+        }else if(v=="{"){
+            return T::Dict; //字典 [
 
         }else if(v=="+"){
             return T::Add; // 加 +
@@ -155,7 +161,7 @@ NodeType Nodezer::GetNodeType(Word &cwd)
 
 
 /**
- * 返回节点的优先级
+ * 取得节点的优先级
  */
 int Nodezer::GetPriority(Node*p)
 {
@@ -178,15 +184,15 @@ int Nodezer::GetPriority(Node*p)
 
 
 
-// 值 叶节点
+// 节点类型定义
 #define TN_VALUE T::Variable,T::None,T::Bool,T::Int,T::Float,T::String
 #define TN_AS T::Add,T::Sub
 #define TN_MD T::Mul,T::Div
 #define TN_ASMD TN_AS,TN_MD
 #define IS_SIGN(str) cur.type==S::Sign&&cur.value==str
+#define IS_NO_SIGN(str) cur.type!=S::Sign||cur.value!=str
 #define IS_KEYWORD(str) cur.type==S::Keyword&&cur.value==str
-#define ELIF_CTN }else if(IsType(c,T)){ t=c; continue;
-
+#define IS_NO_KEYWORD(str) cur.type!=S::Keyword||cur.value!=str
 
 
 
@@ -200,7 +206,7 @@ Node* Nodezer::CreatNode()
     T cnt = CurNodeType();
     Move(1);
 
-    cout<<"CreatNode: "<<(int)cnt<<"->"<<cur.value<<endl;
+    // cout<<"CreatNode: "<<(int)cnt<<"->"<<cur.value<<endl;
 
     switch(cnt){
 
@@ -218,35 +224,75 @@ Node* Nodezer::CreatNode()
 
 
 /**
- * 解析并建立节点
+ * 解析延展部分节点
  */
 Node* Nodezer::ParseNode(Node*op=NULL, Node*p=NULL)
 {
     if(p==NULL){ 
-        return NULL;
+        if(cur.type!=S::End){
+            // 其它情况 非结束 回退一个词
+            Move(-1); Read();
+        }
+        //cout<<"Can't ParseNode"<<endl;
+        return NULL; //表达式完成
     }
+
 
     T t = p->type;
 
-    // ContainerAccess
-    if( t==T::ContainerAccess ){
+    // 优先级包含
+    if( t==T::Priority ){
 
+        //cout << "-Priority-" << endl;
+        Node *e = Express( NULL );
+        if(IS_NO_SIGN(")") ){
+            ERR("err: IS_SIGN no ) !");
+        }
+        if(e==NULL){
+            ERR("err: () priority is empty !");
+        }
+        p->AddChild(e);
+        //cout<<"priority filish e="<<e<<endl;
+        Move(1); //jump )
         return p;
 
-    // FuncCall
+    // list 列表
+    }else if( t==T::List ){
+
+        //cout << "-List-" << endl;
+        while(1){
+            Node *e = Express( NULL );
+            if(!e) break;
+            p->AddChild(e);
+        }
+        if(IS_NO_SIGN("]") ){
+            ERR("err: IS_SIGN no ] !");
+        }
+        Move(1); //jump ]
+        return p;
+
+    // 函数调用
     }else if( t==T::FuncCall ){
 
         // cout << "-FuncCall-" << endl;
-        Move(1); // 跳过括号
-        Node* list = Group();  
-        cout << "-Node* list = Group();-" << endl;
-        p->Right( list ); // 参数列表
-        //Move(1); // 跳过括号
-        return p;
+        Move(1); // 跳过左括号
+        Node* list = Group();
+        if(IS_SIGN(")")){
+            Move(1); // 跳过又括号
+            //cout << "-Node* list = Group();-" << endl;
+            p->Right( list ); // 参数列表
+            return p;
+        }else{
+            ERR("err  IS_SIGN no ) !"); // 
+        }
+
+    // ContainerAccess
+    }else if( t==T::ContainerAccess ){
+
+
     }
 
     // cout << "-ParseNode  p->type  nothing-" << endl;
-
 
     return p;
 }
@@ -255,7 +301,7 @@ Node* Nodezer::ParseNode(Node*op=NULL, Node*p=NULL)
 
 
 /**
- * 按优先级组合表达式
+ * 按优先级组合语法节点
  */
 Node* Nodezer::AssembleNode(Node*p1, Node*p2)
 {
@@ -287,7 +333,8 @@ Node* Nodezer::AssembleNode(Node*p1, Node*p2)
         //cout << " p1->Right( p1r ) " << endl;
         Node *p1r = p1->Right();
         if(p1r){
-            return NULL; //表达式完成
+            cnode = p2; // 缓存
+            return NULL; // 表达式完成
         }
         p1->Right( p2 );
         return p1;
@@ -300,8 +347,10 @@ Node* Nodezer::AssembleNode(Node*p1, Node*p2)
 
 
 
+
+
 /**
- * 创建语法表达式节点
+ * 建立语法表达式
  */
 Node* Nodezer::Express(Node *p1=NULL)
 {
@@ -309,24 +358,31 @@ Node* Nodezer::Express(Node *p1=NULL)
 
     while(1){
 
+
         if(cnode){ // 缓存
             p2 = cnode; cnode=NULL;
-        }else{ // 延展
-            p2 = ParseNode( p1, CreatNode() );
+        }else{
+            p2 = CreatNode();
         }
 
-        if(!p2){ // 表达式结束
-            // Move(1);Read(); // 回退一个词
+        if(cur.type==S::End){ // 全部结束
+            return p2 ? p2 : p1;
+        }
+
+        p2 = ParseNode( p1, p2 ); // 延展完善节点
+
+        if(!p2){ //表达式完成
             return p1;
         }
 
         if(!p1){
-            p1 = p2;
-            continue;
+            p1 = p2; 
+            continue; // 获取下一个
         }
 
-        //cout<<"p1="<<(int)p1->type<<", p2="<<(int)p2->type<<endl;
+        // cout<<"p1="<<(int)p1->type<<", p2="<<(int)p2->type<<endl;
 
+        // 按优先级组合节点
         Node* pn = AssembleNode(p1, p2);
         //cout << "  Node* pn =  " <<pn<< endl;
         if(pn){
@@ -340,12 +396,12 @@ Node* Nodezer::Express(Node *p1=NULL)
         int s2 = GetPriority(p2);
 
         if( !s2 ){ // 表达式完成
+
             //cout << " cnode = p2; " << endl;
             cnode = p2;
             return p1;
         }
 
-        p1 = p2;
     }
 
 
@@ -643,23 +699,27 @@ Node* Nodezer::BuildAST()
 
 /**
  * 表达式组合
- * @param t 组合类型
  */
-Node* Nodezer::Group()
+Node* Nodezer::Group(T type)
 {
-    NodeGroup *node = new NodeGroup(cur);
+    Node* node = NULL;
+    if(type==T::List){
+        node = new NodeList(cur);
+    }else{
+        node = new NodeGroup(cur);
+    }
      
     while(1){
         // 循环建立表达式
-        Node *e = Express();
+        Node *e = Express( NULL );
         // cout << "-Nodezer::Group while-" << endl;
         if(e){
             node->AddChild( e );
-            if(IsGroupEnd()){
-                return node;
-            }
         }else{
             break;
+        }
+        if(IsGroupEnd()){ // 结束符号
+            return node;
         }
     }
     return node;
@@ -668,10 +728,10 @@ Node* Nodezer::Group()
 
 /**
  * 表达式组合完结
+ * @param endl 要检测的结束符号 ) ] } ; 
  */
 bool Nodezer::IsGroupEnd()
 {
-    
     if(cur.type==S::Sign){
         string v = cur.value;
         if( v==")" ||
@@ -679,7 +739,7 @@ bool Nodezer::IsGroupEnd()
             v=="}" ||
             v==";" 
         ){
-            cout<<")]};"<<endl;
+            //cout<<"end by )]}; ＝ "<<v<<endl;
             return true; // 表达式组结束
         }
     }
@@ -690,16 +750,15 @@ bool Nodezer::IsGroupEnd()
 
 
 
-
-
-
-
 #undef TN_VALUE
 #undef TN_ASMD
 #undef TN_AS
 #undef TN_MD
 #undef IS_SIGN
-    
+#undef IS_NO_SIGN
+#undef IS_KEYWORD
+#undef IS_NO_KEYWORD
+
 
 
 

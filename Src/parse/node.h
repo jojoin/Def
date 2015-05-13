@@ -48,6 +48,8 @@ namespace node {
 								\
 	D(FuncDefine, 0)			\
 								\
+	D(Priority, 0)				\
+								\
 	D(Print, 0)              	\
 								\
 	N(End, 0)            
@@ -175,7 +177,7 @@ struct Node{
 };
 
 
-// 二叉节点
+// 单叉节点
 struct NodeOneTree : Node{
 	Node* child;   // 子节点
 	NodeOneTree(NT t, Word &w, Node* ch=NULL)
@@ -286,6 +288,17 @@ struct NodeGroup : NodeTree{
 		{
 			Child(i)->Print(prefix+PRT);
 		}
+	};
+};
+
+
+// 优先级
+struct NodePriority : NodeOneTree{
+	NodePriority(Word &w ,Node*ch=NULL)
+	: NodeOneTree(NT::Priority, w, ch){}
+	inline void Print(string prefix=""){ // 打印
+		cout<<prefix+"Priority:"<<endl;
+		Child()->Print(prefix);
 	};
 };
 
