@@ -232,16 +232,19 @@ Node* Nodezer::ParseNode(Node*p=NULL)
         if(e==NULL){
             ERR("err: () priority is empty !");
         }
+
+        Move(1); //jump )
         //cout << "e = " << e << endl;
+        /*
         if(!GetPriority(e)){ // 不影响优先级计算
             //cout<<"delete priority"<<endl;
+
             delete p; // 省略优先级括号
-            p = e;
-        }else{
-            p->AddChild(e);
+            return e;
         }
+        */
+        p->AddChild(e);
         //cout<<"priority filish p="<<p<<endl;
-        Move(1); //jump )
         return p;
 
     // list 列表
