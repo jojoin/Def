@@ -67,7 +67,6 @@ class Nodezer {
 	inline void Clear(){
 		i = 0;
 		cur = endword = Word{0,0,Token::State::End,""};
-
 		nodebuf = NULL;
 
 		//prev = cur = next = endword;

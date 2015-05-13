@@ -286,7 +286,9 @@ struct NodeGroup : NodeTree{
 		cout<< prefix+"Group: "<<sz<<endl;
 		for(size_t i=0; i<sz; i++)
 		{
-			Child(i)->Print(prefix+PRT);
+			Node*cd = Child(i);
+			if(cd) cd->Print(prefix+PRT);
+			else cout<<prefix+PRT+"*null*"<<endl; //可能为空 占位符
 		}
 	};
 };
@@ -349,13 +351,16 @@ struct NodeContainerAccess : NodeTwinTree{
 
 
 // while 循环控制
-struct NodeWhile : NodeTwinTree{
+struct NodeWhile : NodeTree{
 	NodeWhile(Word &w)
-	: NodeTwinTree(NT::While, w){}
+	: NodeTree(NT::While, w){}
 	inline void Print(string prefix=""){ // 打印
-		cout<<prefix+"While"<<endl;
-		Left()->Print(prefix+PRT);
-		Right()->Print(prefix+PRT);
+		size_t sz = ChildSize();
+		cout<< prefix+"While: size="<<sz<<endl;
+		for(size_t i=0; i<sz; i++)
+		{
+			Child(i)->Print(prefix+PRT);
+		}
 	};
 };
 
@@ -365,9 +370,12 @@ struct NodeIf : NodeTree{
 	NodeIf(Word &w)
 	: NodeTree(NT::If, w){}
 	inline void Print(string prefix=""){ // 打印
-		cout<<prefix+"If"<<endl;
-		Left()->Print(prefix+PRT);
-		Right()->Print(prefix+PRT);
+		size_t sz = ChildSize();
+		cout<< prefix+"If: branch="<<sz<<endl;
+		for(size_t i=0; i<sz; i++)
+		{
+			Child(i)->Print(prefix+PRT);
+		}
 	};
 };
 
@@ -379,7 +387,7 @@ struct NodeList : NodeTree{
 	: NodeTree(NT::List, w){}
 	inline void Print(string prefix=""){ // 打印
 		size_t sz = ChildSize();
-		cout<< prefix+"List: "<<sz<<endl;
+		cout<< prefix+"List: size="<<sz<<endl;
 		for(size_t i=0; i<sz; i++)
 		{
 			Child(i)->Print(prefix+PRT);
@@ -393,7 +401,7 @@ struct NodeDict : NodeTree{
 	: NodeTree(NT::Dict, w){}
 	inline void Print(string prefix=""){ // 打印
 		size_t sz = ChildSize();
-		cout<< prefix+"Dict: "<<sz<<endl;
+		cout<< prefix+"Dict: size="<<sz<<endl;
 		for(size_t i=0; i<sz; i++)
 		{
 			Child(i)->Print(prefix+PRT);

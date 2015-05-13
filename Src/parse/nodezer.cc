@@ -190,7 +190,7 @@ Node* Nodezer::CreatNode()
     T cnt = CurNodeType();
     //Move(1);
 
-    cout<<"CreatNode: "<<(int)cnt<<"->"<<cur.value<<endl;
+    // cout<<"CreatNode: "<<(int)cnt<<"->"<<cur.value<<endl;
 
     switch(cnt){
 
@@ -216,13 +216,12 @@ Node* Nodezer::ParseNode(Node*p=NULL)
         return NULL; //表达式完成
     }
 
-
     T t = p->type;
 
     // 优先级包含
     if( t==T::Priority ){
 
-        cout << "-Priority-" << endl;
+        //cout << "-Priority-" << endl;
         Move(1); //jump (
         Node *e = Express( NULL );
 
@@ -241,14 +240,14 @@ Node* Nodezer::ParseNode(Node*p=NULL)
         }else{
             p->AddChild(e);
         }
-        cout<<"priority filish p="<<p<<endl;
+        //cout<<"priority filish p="<<p<<endl;
         Move(1); //jump )
         return p;
 
     // list 列表
     }else if( t==T::List ){
 
-        cout << "-List-" << endl;
+        //cout << "-List-" << endl;
         Move(1); //jump [
         while(1){
             if(IS_SIGN("]")){
@@ -278,7 +277,59 @@ Node* Nodezer::ParseNode(Node*p=NULL)
         p->AddChild( list ); // 参数列表
         return p;
 
-    // ContainerAccess
+    // 容器访问
+    }else if( t==T::ContainerAccess ){
+
+        return p;
+
+    // 条件分支
+    }else if( t==T::If ){
+
+        //cout << "-If-" << endl;
+        Move(1); // jump if
+        // 开始构建 If 块结构
+        Node *gr = new NodeGroup(cur);
+        while(1){
+
+            if(IS_KEYWORD("elif")){
+                p->AddChild(gr);
+                gr = new NodeGroup(cur);
+                Move(1); // jump elif
+                continue;
+            }else if(IS_KEYWORD("else")){
+                p->AddChild(gr);
+                gr = new NodeGroup(cur);
+                gr->AddChild(NULL); //第一个子节点为空节点，表示为 else 节点
+                Move(1); // jump else
+                continue;
+            }else if(IS_SIGN(";")){
+                p->AddChild(gr);
+                gr = new NodeGroup(cur);
+                Move(1); // jump ;
+                break; //If结构结束
+            }
+            //添加表达式
+            gr->AddChild( Express(NULL) );
+
+        }//end while
+
+        return p;
+
+    }else if( t==T::While ){
+
+        //cout << "-While-" << endl;
+        //Node *wh = new NodeWhile(cur);
+        Move(1); // jump while
+        while(1){
+            if(IS_SIGN(";")){
+                break; //If结构结束
+            }
+            //添加表达式
+            p->AddChild( Express(NULL) );
+        }//end while
+        Move(1); // jump ;
+        return p;
+
     }else if( t==T::ContainerAccess ){
 
         return p;
@@ -351,7 +402,12 @@ Node* Nodezer::Express(Node *p1=NULL)
 {
     while(1){
 
-        Node *p2 = CreatNode();
+        Node *p2;
+        if(nodebuf){ // 获取上一步缓存节点
+            p2 = nodebuf; nodebuf = NULL;
+        }else{
+            p2 = CreatNode(); //新建
+        }
 
         if(cur.type==S::End){ // 全部结束
             return p2 ? p2 : p1;
@@ -378,29 +434,9 @@ Node* Nodezer::Express(Node *p1=NULL)
         }
 
         // 节点无法组合
-        delete p2; //释放新建的节点，下一步重新开始
-        cout <<"DeleteNode:"<<endl;
+        //cout <<"DeleteNode:"<<endl;
+        nodebuf = p2; //缓存新建的节点，下一步重新开始
         return p1;
-
-
-
-
-        //cout<<" can't assemble node"<<endl;
-
-        /* 查找无法组合原因
-        int s1 = GetPriority(p1);
-        int s2 = GetPriority(p2);
-
-        if( !s2 ){ // 表达式完成
-
-            Move(-1);
-
-            nodebuf = p2;
-            cout << " cnode = p2 = " << p2 << endl;
-            return p2 ? p2 : p1;
-        }
-
-        */
 
     }
 
