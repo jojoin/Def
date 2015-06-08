@@ -41,12 +41,15 @@ namespace node {
 	D(While, 0)              	\
 								\
 	D(FuncCall, 0)				\
+	D(ProcCall, 0)				\
 	D(ContainerAccess, 0)		\
 								\
+	D(Tuple, 0)					\
 	D(List, 0)					\
 	D(Dict, 0)					\
 								\
 	D(FuncDefine, 0)			\
+	D(ProcDefine, 0)			\
 								\
 	D(Priority, 0)				\
 								\
@@ -160,20 +163,33 @@ struct Node{
 	}
 
 	virtual ~Node()=0;
-	virtual void AddChild(Node*){};
-	virtual void ClearChild(){};
+
+	virtual void AddChild(Node*n=NULL, bool f=false){};
 	virtual Node* Child(size_t i=0){};
 	virtual size_t ChildSize(){};
+	virtual void ClearChild(){};
+
 	virtual Node* Left(Node*n=NULL){};
 	virtual Node* Right(Node*n=NULL){};
+
 	virtual bool GetBool(){};
 	virtual long GetInt(){};
 	virtual double GetFloat(){};
+
 	virtual string GetName(){};
-	virtual void SetName(string n){};
+	virtual void SetName(string n=""){};
+
 	virtual string GetString(){};
+	virtual void SetString(string n=""){};
+
 	virtual void Print(string prefix=""){};
 	virtual bool IsTwinTree(){};
+
+	virtual void SetArgv(Node*g=NULL){};
+	virtual Node* GetArgv(){};
+
+	virtual void SetBody(Node*g=NULL){};
+	virtual Node* GetBody(){};
 };
 
 
@@ -189,8 +205,11 @@ struct NodeOneTree : Node{
 	inline Node* Child(size_t i=0){
         return child;
 	}
-	inline void AddChild(Node*n){
+	inline void AddChild(Node*n, bool f=false){
+        cout << "NodeOneTree AddChild, n = " << (int)n << endl;
 		child = n; //设置
+        cout << "child = " << (int)child << endl;
+
 	}
 };
 
@@ -246,9 +265,11 @@ struct NodeTree : Node{
 		}
 		childs.clear();
 	}
-	inline void AddChild(Node* n){
+	inline void AddChild(Node* n, bool f=false){
         //cout<<"add child "<<(int)n->type<<endl;
-		childs.push_back(n);
+        if(f) childs.insert(childs.begin(), n);
+        else childs.push_back(n);
+		
 	}
 	inline void ClearChild(){
 		childs.clear();
@@ -305,13 +326,66 @@ struct NodePriority : NodeOneTree{
 };
 
 
-// def 函数定义结构
-struct NodeFuncDefine : Node{
-	NodeGroup* body; //函数体
-	NodeFuncDefine(Word &w)
-		: Node(NT::FuncDefine, w){}
+// def defun 处理器和函数公用定义结构
+struct NodeExDefine : Node{
+	string name; //处理器名称，可匿名
+	Node* argv; //处理器参数列表
+	Node* body; //处理器体
+	NodeExDefine(NT t, Word &w, string n="")
+	: Node(t, w)
+	, name(n)
+	{
+		argv = NULL;
+		body = NULL;
+	}
+	virtual ~NodeExDefine(){
+		delete argv;
+		delete body;
+	}
+	inline string GetName(){ return name; }
+	inline void SetName(string n=""){ name = n; }
+	inline Node* GetArgv(){ return argv; }
+	inline void SetArgv(Node*g=NULL){ argv = g; }
+	inline Node* GetBody(){ return body; }
+	inline void SetBody(Node*g=NULL){ body = g; }
+	inline void Print(string prefix=""){ // 打印
+		string head = type==NT::ProcDefine ? "ProcDefine" : "FuncDefine";
+		cout<<prefix+head+": "<<name<<endl;
+		prefix += PRT;
+		cout<<prefix<<"argv: "<<endl;
+		if(argv) argv->Print(prefix);
+		cout<<prefix+"body: "<<endl;
+		if(body) body->Print(prefix);
+	};
+
+
 };
 
+// def 处理器定义结构
+struct NodeProcDefine : NodeExDefine{
+	NodeProcDefine(Word &w)
+	: NodeExDefine(NT::ProcDefine, w)
+	{}
+};
+
+// defun 函数定义结构
+struct NodeFuncDefine : NodeExDefine{
+	NodeFuncDefine(Word &w)
+	: NodeExDefine(NT::FuncDefine, w)
+	{}
+};
+
+
+
+// def 函数调用结构
+struct NodeProcCall : NodeOneTree{
+	string name;
+	NodeProcCall(Word &w)
+	: NodeOneTree(NT::ProcCall, w)
+	, name(w.value){
+
+	}
+};
 
 // def 函数调用结构
 struct NodeFuncCall : NodeOneTree{
@@ -381,6 +455,20 @@ struct NodeIf : NodeTree{
 
 
 
+// () 元组数据结构
+struct NodeTuple : NodeTree{
+	NodeTuple(Word &w)
+	: NodeTree(NT::List, w){}
+	inline void Print(string prefix=""){ // 打印
+		size_t sz = ChildSize();
+		cout<< prefix+"Tuple: size="<<sz<<endl;
+		for(size_t i=0; i<sz; i++)
+		{
+			Child(i)->Print(prefix+PRT);
+		}
+	};
+};
+
 // [] 列表数据结构
 struct NodeList : NodeTree{
 	NodeList(Word &w)
@@ -415,7 +503,7 @@ struct NodeAssign: NodeTwinTree{
 	NodeAssign(Word &w)
 	: NodeTwinTree(NT::Assign, w){}
 	inline void Print(string prefix=""){ // 打印
-		cout<<prefix+"Assign(=)"<<endl;
+		cout<<prefix+"Assign(:)"<<endl;
 		Left()->Print(prefix+PRT);
 		Right()->Print(prefix+PRT);
 	};

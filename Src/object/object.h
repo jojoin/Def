@@ -19,6 +19,9 @@ namespace object {
 // Def 对象类型
 enum class ObjectType
 {
+	// 系统
+	Error,   // 执行错误
+
 	// 基本
 	None,    // none
 	Bool,    // 布尔
@@ -26,9 +29,15 @@ enum class ObjectType
 	Float,   // 浮点数
 	String,  // 字符串
 
-	// 内建容器
-	List, // 数组
-	Dict, // 字典
+	// 容器
+	Tuple, // 元组
+	List,  // 数组
+	Dict,  // 字典
+
+	// 节点
+	Func,  // 函数
+	Proc,  // 处理器
+	Node,  // 解析树节点
 
 	// 高级
 	Class  // 类

@@ -53,34 +53,6 @@ Tokenizer::Tokenizer(bool isFile, string txt, vector<Word>* wds):
 		text = strdata;
 		// cout << text << endl;
 
-
-		/*
-		//std::locale::global(std::locale("")); //设置语言环境，支持中文路径
-		//setlocale(LC_ALL,"Chinese-simplified"); 
-		cout << "isFile" << endl;
-
-		ifstream file;
-
-		cout << "ifstream" << endl;
-
-    	file.open(txt);
-
-		cout << "file.open" << endl;
-
-    	if(!file){
-    		ERR("打开文件\""+txt+"\"出错！");
-    	}else{
-			cout << "getline" << endl;
-    		getline(file, text, '\0');
-    	}
-
-    	filepath = txt;
-
-    	file.close();
-    	
-    	//getcwd();
-    	*/
-
 	}
 
 	// 末尾加上换行 用于兼容
@@ -96,26 +68,6 @@ Tokenizer::Tokenizer(bool isFile, string txt, vector<Word>* wds):
  */
 void Tokenizer::Push(S sta=S::Normal)
 {
-	/*
-	if(buf==""){
-		if(sta==S::String){
-			// 允许保存空字符串
-		}else if(sta==S::NewLine){
-			// 允许换行Push
-		}else{
-			return; // 不保存
-		}
-	}
-	*/
-
-	// 判断是否为关键字
-	if(sta==S::Identifier){
-		if(Token::IsKeyword(buf)){
-			sta = S::Keyword; //关键字
-		}else{
-			sta = S::Variable; //变量名
-		}
-	}
 
 	// 判断是整形还是浮点
 	if(sta==S::Number){
@@ -197,7 +149,7 @@ void Tokenizer::Scan()
 			}else if(s==S::Character){
 
 				Buf();
-				ss = S::Identifier; // 标识符
+				ss = S::Character; // 标识符
 
 			}else if(s==S::Annotation){ // 注释
 
@@ -236,19 +188,23 @@ void Tokenizer::Scan()
 			}
 
 		// 标识符
-		}else if(ss==S::Identifier){
+		}else if(ss==S::Character){
 
 			if(s==S::Character||s==S::Number){
 				Buf();
 			}else{
-				if( IS_SIGN("(") ){
-					Push(S::FuncCall); // 函数调用
-				}else if( IS_SIGN("[") ){
-					Push(S::ContainerAccess); // 容器访问 
-				//}else if( IS_SIGN(".") ){
-				//	Push(S::ContainerAccess); // 对象访问 
+				if(Token::IsKeyword(buf)){// 关键字？
+					Push(S::Keyword);
 				}else{
-					Push(S::Identifier); //普通变量
+					if( IS_SIGN("(") ){
+						Push(S::FuncCall); // 函数调用
+					}else if( IS_SIGN("{") ){
+						Push(S::ProcCall); // 处理器调用
+					}else if( IS_SIGN("[") ){
+						Push(S::ContainerAccess); // 容器访问
+					}else{
+						Push(S::Variable); //变量名
+					}
 				}
 				Back(); // 回退
 				ss = S::Normal;

@@ -20,10 +20,9 @@ namespace token {
 #define TOKEN_LIST(S, K)             \
 									\
 	/* 符号 */						\
-	S(Assing, "=", 0)              \
+	S(Assing, ":", 0)              \
 	S(Comma, ",", 0)              \
 	S(Dot, ".", 0)              \
-	S(Colon, ":", 0)              \
 	S(Semicolon, ";", 0)              \
 	/*S(Conditional, "?", 0)*/              \
 	/*S(Exclamation, "!", 0)*/              \
@@ -47,25 +46,35 @@ namespace token {
 									\
 	S(Pound, "#", 0)              \
 									\
-	S(Equal, "==", 0)              \
-	/*S(Array, ":[", 0)*/              \
+	S(Equal, "=", 0)              \
+	S(More, ">", 0)              \
+	S(Less, "<", 0)              \
+	S(MoreEqual, ">=", 0)              \
+	S(LessEqual, "<=", 0)              \
+	S(NotEqual, "~=", 0)              \
+	S(Not, "~", 0)               \
 									\
 	/* 关键字 */					\
+	K(Def, "def", 0)                \
+	K(Defun, "defun", 0)            \
+	K(Class, "class", 0)            \
+									\
 	K(None, "none", 0)              \
 	K(True, "true", 0)              \
 	K(False, "false", 0)            \
 									\
-	K(Print, "print", 0)              \
+	K(Print, "print", 0)            \
 									\
-	K(If, "if", 0)              \
+	K(If, "if", 0)                  \
 	K(Elif, "elif", 0)              \
 	K(Else, "else", 0)              \
-	K(While, "while", 0)              \
+	K(While, "while", 0)            /*
 									\
-	K(And, "and", 0)              \
-	K(Or, "or", 0)              \
-	K(Is, "is", 0)              \
+	K(And, "and", 0)                \
+	K(Or, "or", 0)                  \
+	K(Is, "is", 0)                  \
 	K(As, "as", 0)
+	*/
 
 
 class Token {
@@ -75,10 +84,9 @@ class Token {
 	// 状态 包含 word 类型
 	enum class State {
 		Normal,                 // 默认
-		Identifier,             // 标识符 包含关键字
+		Character,              // 英文字母（变量名和关键字）
 		  Variable,                 // 变量名
 		  Keyword,                // 关键字
-		Character,              // 英文字母
 		Sign,                   // 符号
 		Number,                 // 数字
 		  Int,                    // 整形
@@ -93,10 +101,9 @@ class Token {
 		Space,        // 空格、tab等制表符
 		NewLine,      // 换行
 
-		// 语义化 word 类型
 		FuncCall,         //函数调用
+		ProcCall,         //处理器调用
 		ContainerAccess,  //容器访问
-		//ObjectAccess,     //对象访问
 
 		Unknow,       // 不明字符
 		End           // 结束符

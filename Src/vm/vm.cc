@@ -55,6 +55,11 @@ bool Vm::Eval(string txt, bool ispath=false)
 
     // cout << words->at(0).value << endl;
     // cout << words->at(1).value << endl;
+    // cout << words->at(2).value << endl;
+    // cout << words->at(3).value << endl;
+    // cout << words->at(4).value << endl;
+    // cout << words->at(5).value << endl;
+    // cout << words->at(6).value << endl;
 
     // 语法分析
     Nodezer N(words, ispath ? txt : ""); // 初始化语法分析器

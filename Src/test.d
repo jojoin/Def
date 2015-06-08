@@ -4,83 +4,119 @@
 
 
 
-# [ 0 ( 1 + func( [a b c=5]  ) *100 ) *3  4]
 
-
-#( 1 + func() * 3 +4 )
-
-
-
-# [1 4 9 9 [2 [5 [7 8] [7 [7 [7 88888] 8]8] [7 8] 6] 3] 4]
-
-# 1+ func(a b c) * 3 + 10
+(1+2 4)
 
 
 
-num = 3 + [9 9 9] + ( 9 + 9 * func(a b c=1) ) + name(key="yang") + 10
+# 处理器定义
+def mydeal{1 2}
+	a : 1
+	2
+	3
+;
+
+
+
+
+
+
+# 函数定义
+defun myfunc()
+	a : a+1
+	b : a+c
+;
+
+
+#--
+
+
+--#
+
+
+
+
+
 
 
 
 
 #--
 
-#import sys
+v : 1         # 变量赋值
+v:: 1         # 向上搜索赋值
+a+b-c*d/e     # 加减乘除
+a=b           # 相等比较
+a>b
+a<b
+a>=b
+a<=b
+a~=b          # 不相等比较
+a&b           #（与）
+a|b           #（或）
+~a=b          #（取反）
 
-print 999
+(a+b)*c       # 优先级
+(a b c)       # 元组
+[a b c]       # 数组
+{'a'a  'b'b}  # 字典
+
+array[i]      # 容器访问
+getVar(a b)   # 函数调用
+dealit{a a+b} # 处理器调用
+
+# 关键字
+
+def
+defun
+class
+
+if
+while
+
+return
+break
+continue
 
 
-sur = "yang"
-name = "jie"
-
-surname = sur + name
-
-print surname
-
-li = [1 "yang" 3]
-
-print li
-
-print "1234567890"
 
 
+# 定义处理器
+def repeat{a b}
+	...
+;
 
-if sur
-	print surname
+# 定义函数
+defun function(a b)
+	...
+;
+
+# if 分支
+if a
+	...
+elif b
+	...
 else
-	print name
+	...
+;
+
+# while 循环
+while num
+	...
 ;
 
 
 --#
 
 
-#--
 
 
-# 函数定义
-# 返回值：return后面的一个表达式  或者 最后一个执行的表达式结果
-class Func(a)
-{
-	num = 0
-	def{
-		num := num + 1
-	}
-}
-
-# 函数调用
-
-num = Func(3)
-
-num()
-
-# 类对象
-func = Func(1)
-
-func.num = 5
 
 
-Def
 
 
---#
+
+
+
+
 

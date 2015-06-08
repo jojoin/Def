@@ -75,22 +75,16 @@ NodeType Nodezer::GetNodeType(Word &cwd)
     // cout<<"GetNodeType: "<<(int)s<<"->"<<v<<endl;
 
     if(s==S::Variable){
-
         return T::Variable; // 变量名
 
-    }else if(s==S::FuncCall){
-        //cout<<"GetNodeType: "<<(int)s<<"-> s==S::FuncCall "<<v<<endl;
-        return T::FuncCall; // 函数调用
- 
-    }else if(s==S::ContainerAccess){
-        return T::ContainerAccess; // 容器访问
-
-    }else if(s==S::Int){
-        return T::Int;
-    }else if(s==S::Float){
-        return T::Float;
-    }else if(s==S::String){
-        return T::String;
+#define ST_ELSE_IF(name) }else if(s==S::name){ return T::name;
+     ST_ELSE_IF(Int)  
+     ST_ELSE_IF(Float)
+     ST_ELSE_IF(String)
+     ST_ELSE_IF(FuncCall) // 函数调用
+     ST_ELSE_IF(ProcCall) // 处理器调用
+     ST_ELSE_IF(ContainerAccess) // 容器访问
+#undef ST_ELSE_IF
 
     }else if(s==S::Keyword){ // 关键字
 
@@ -98,6 +92,11 @@ NodeType Nodezer::GetNodeType(Word &cwd)
             return T::None;
         }else if(v=="true"||v=="false"){
             return T::Bool;
+
+        }else if(v=="def"){
+            return T::ProcDefine;
+        }else if(v=="defun"){
+            return T::FuncDefine;
 
         }else if(v=="print"){
             return T::Print;
@@ -109,14 +108,14 @@ NodeType Nodezer::GetNodeType(Word &cwd)
 
     }else if(s==S::Sign){ // 符号
 
-        if(v=="="){
-            return T::Assign; //赋值 =
+        if(v==":"){
+            return T::Assign; //赋值 :
         }else if(v=="("){
             return T::Priority; //优先级 (
         }else if(v=="["){
             return T::List; //列表 [
         }else if(v=="{"){
-            return T::Dict; //字典 [
+            return T::Dict; //字典 {
 
         }else if(v=="+"){
             return T::Add; // 加 +
@@ -218,34 +217,43 @@ Node* Nodezer::ParseNode(Node*p=NULL)
 
     T t = p->type;
 
-    // 优先级包含
+    // 优先级 or 元组
     if( t==T::Priority ){
 
-        //cout << "-Priority-" << endl;
+        // cout << "-Priority or tuple-" << endl;
+        NodeTuple* tp = new NodeTuple(cur);
         Move(1); //jump (
         Node *e = Express( NULL );
-
-        //cout << " Node *e = Express( " << endl;
-        if(IS_NO_SIGN(")") ){
-            ERR("err: Priority IS_SIGN no ) !");
+        if(!e){
+            ERR("err: () priority or tuple is empty !");
         }
-        if(e==NULL){
-            ERR("err: () priority is empty !");
+        if(IS_NO_SIGN(")") ){ // 转换为元组
+            delete p;
+            tp->AddChild(e);
+            while(1){
+                if(IS_SIGN(")")){
+                    Move(1); // jump )
+                    return tp;// 元组结束
+                }
+                Node *e = Express( NULL );
+                if(!e){
+                    ERR("err: tuple parse , IS_SIGN no )");
+                }
+                tp->AddChild(e);
+            }
+        }else{
+            delete tp;
+            if(!GetPriority(e)){ //不影响优先级计算
+                delete p;
+                Move(1); // jump )
+                return e; 
+            }
+            p->AddChild(e);
+            cout << "e = " << (int)e << endl;
+            cout << "p->Child = " << (int)p->Child() << endl;
+            Move(1); // jump )
+            return p; //优先级结束
         }
-
-        Move(1); //jump )
-        //cout << "e = " << e << endl;
-        /*
-        if(!GetPriority(e)){ // 不影响优先级计算
-            //cout<<"delete priority"<<endl;
-
-            delete p; // 省略优先级括号
-            return e;
-        }
-        */
-        p->AddChild(e);
-        //cout<<"priority filish p="<<p<<endl;
-        return p;
 
     // list 列表
     }else if( t==T::List ){
@@ -254,7 +262,6 @@ Node* Nodezer::ParseNode(Node*p=NULL)
         Move(1); //jump [
         while(1){
             if(IS_SIGN("]")){
-                //Move(1); //jump ]
                 break; //列表结束
             }
             Node *e = Express( NULL );
@@ -266,11 +273,37 @@ Node* Nodezer::ParseNode(Node*p=NULL)
         Move(1); //jump ]
         return p;
 
+    // dict 字典
+    }else if( t==T::Dict ){
+
+        //cout << "-Dict-" << endl;
+        Move(1); //jump {
+        while(1){
+            if(IS_SIGN("}")){
+                break; //字典结束
+            }
+            Node *e = Express( NULL );
+            if(!e){
+                ERR("err: dict parse , IS_SIGN no }");
+            }
+            p->AddChild(e);
+        }
+        Move(1); //jump }
+        return p;
+
+    // 处理器调用
+    }else if( t==T::ProcCall ){
+
+        // cout << "-ProcCall-" << endl;
+        //Move(2); // jump func name,{
+        //Node* list = Group();
+        return p;
+
     // 函数调用
     }else if( t==T::FuncCall ){
 
         // cout << "-FuncCall-" << endl;
-        Move(2); // jump func name and (
+        Move(2); // jump func name,(
         Node* list = Group();
         if(IS_NO_SIGN(")")){
             ERR("err: FuncCall IS_SIGN no ) !"); // 
@@ -283,6 +316,41 @@ Node* Nodezer::ParseNode(Node*p=NULL)
     // 容器访问
     }else if( t==T::ContainerAccess ){
 
+        return p;
+
+
+    // 处理器定义
+    }else if( t==T::ProcDefine ){
+        // cout << "-ProcDefine-" << endl;
+        Move(1); // jump def
+        if(cur.type==S::ProcCall){
+            p->SetName( cur.value ); //处理器名
+            Move(1); // jump ProcCall
+        }
+        if(IS_SIGN("{")){ // 处理器参数
+            Move(1); // jump {
+            p->SetArgv( Group() );
+            Move(1); // jump }
+        }
+        p->SetBody( Group() );
+        Move(1); // jump ;
+        return p;
+
+    // 函数定义
+    }else if( t==T::FuncDefine ){
+        // cout << "-FuncDefine-" << endl;
+        Move(1); // jump def
+        if(cur.type==S::FuncCall){
+            p->SetName( cur.value ); //处理器名
+            Move(1); // jump ProcCall
+        }
+        if(IS_SIGN("(")){ // 处理器参数
+            Move(1); // jump {
+            p->SetArgv( Group() );
+            Move(1); // jump }
+        }
+        p->SetBody( Group() );
+        Move(1); // jump ;
         return p;
 
     // 条件分支
@@ -331,10 +399,6 @@ Node* Nodezer::ParseNode(Node*p=NULL)
             p->AddChild( Express(NULL) );
         }//end while
         Move(1); // jump ;
-        return p;
-
-    }else if( t==T::ContainerAccess ){
-
         return p;
 
     }
@@ -750,6 +814,9 @@ Node* Nodezer::Group(T type)
     }
      
     while(1){
+        if(IsGroupEnd()){ // 结束符号
+            break;
+        }
         // 循环建立表达式
         Node *e = Express( NULL );
         // cout << "-Nodezer::Group while-" << endl;
@@ -757,9 +824,6 @@ Node* Nodezer::Group(T type)
             node->AddChild( e );
         }else{
             break;
-        }
-        if(IsGroupEnd()){ // 结束符号
-            return node;
         }
     }
     return node;
