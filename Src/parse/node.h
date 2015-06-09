@@ -40,13 +40,14 @@ namespace node {
 	D(If, 0)					\
 	D(While, 0)              	\
 								\
-	D(FuncCall, 0)				\
-	D(ProcCall, 0)				\
-	D(ContainerAccess, 0)		\
+	D(FuncCall, 4)				\
+	D(ProcCall, 4)				\
+	D(ContainerAccess, 4)		\
+	D(MemberAccess, 5)		    \
 								\
-	D(Tuple, 0)					\
 	D(List, 0)					\
 	D(Dict, 0)					\
+	D(Block, 0)					\
 								\
 	D(FuncDefine, 0)			\
 	D(ProcDefine, 0)			\
@@ -68,59 +69,12 @@ namespace node {
 #undef D
 
 
-/*
-// 节点类型
-enum class NodeType1
-{
-	Normal,   // 默认状态
 
-	// 枝节点
-
-	Group,    // 组合表达式
-
-	Assign,   // 赋值语句
-
-	Add,   // + 加法计算              // 5
-	Sub,   // - 减法计算
-	Mul,   // * 乘法计算
-	Div,   // / 除法计算
-
-	FuncDefine,   // 函数定义
-	FuncCall,     // 函数调用
-
-	Print,   // 打印
-
-	List,   // 列表
-	Dict,   // 字典
-
-	ContainerAccess, // 容器访问
-
-	// 叶节点
-
-	Variable,   // 变量符号           // 11
-
-	None,    // 值 none
-	Bool,    // 值 布尔
-	Int,     // 值 整数
-	Float,   // 值 浮点数
-	String,  // 值 字符串
-
-	Priority,  // () 括号优先级
-
-	// 控制流结构
-
-	If,  // if elif else
-	While,  // while 循环
-
-	End,   // 终止并返回
-	
-}; // --end-- enum class NodeType
-*/
 
 #define NT NodeType
 
 // 打印节点缩进
-#define PRT "| "
+#define PRT "  "
 
 // 节点
 struct Node{
@@ -174,6 +128,7 @@ struct Node{
 
 	virtual bool GetBool(){};
 	virtual long GetInt(){};
+	virtual void SetInt(long n=0){};
 	virtual double GetFloat(){};
 
 	virtual string GetName(){};
@@ -206,12 +161,14 @@ struct NodeOneTree : Node{
         return child;
 	}
 	inline void AddChild(Node*n, bool f=false){
-        cout << "NodeOneTree AddChild, n = " << (int)n << endl;
+        // cout << "NodeOneTree AddChild, n = " << (int)n << endl;
 		child = n; //设置
-        cout << "child = " << (int)child << endl;
+        // cout << "child = " << (int)child << endl;
 
 	}
 };
+
+
 
 
 // 二叉节点
@@ -321,7 +278,8 @@ struct NodePriority : NodeOneTree{
 	: NodeOneTree(NT::Priority, w, ch){}
 	inline void Print(string prefix=""){ // 打印
 		cout<<prefix+"Priority:"<<endl;
-		Child()->Print(prefix);
+		if(child) child->Print(prefix);
+		// Child()->Print(prefix);
 	};
 };
 
@@ -378,36 +336,28 @@ struct NodeFuncDefine : NodeExDefine{
 
 
 // def 函数调用结构
-struct NodeProcCall : NodeOneTree{
-	string name;
+struct NodeProcCall : NodeTwinTree{
 	NodeProcCall(Word &w)
-	: NodeOneTree(NT::ProcCall, w)
-	, name(w.value){
+	: NodeTwinTree(NT::ProcCall, w)
+	{}
+	inline void Print(string prefix=""){ // 打印
+		cout<<prefix+"ProcCall:"<<endl;
+		Left()->Print(prefix+PRT);
+		Right()->Print(prefix+PRT);
+	};
 
-	}
 };
 
-// def 函数调用结构
-struct NodeFuncCall : NodeOneTree{
-	string name;
-	NodeFuncCall(Word &w)
-	: NodeOneTree(NT::FuncCall, w)
-	, name(w.value){
 
-	}
-	inline string GetName(){
-		return name;
-	}
-	inline void SetName(string n=""){
-		name = n;
-	}
+// def 函数调用结构
+struct NodeFuncCall : NodeTwinTree{
+	NodeFuncCall(Word &w)
+	: NodeTwinTree(NT::FuncCall, w)
+	{}
 	inline void Print(string prefix=""){ // 打印
-		Node *pl = Child();
-		size_t sz = pl->ChildSize();
-		cout<<prefix+"FuncCall: "<<name<<" , para: "<<sz<<endl;
-		for(int i=0;i<sz;i++){
-			pl->Child(i)->Print(prefix+PRT);
-		}
+		cout<<prefix+"FuncCall:"<<endl;
+		Left()->Print(prefix+PRT);
+		Right()->Print(prefix+PRT);
 	};
 };
 
@@ -417,11 +367,26 @@ struct NodeContainerAccess : NodeTwinTree{
 	NodeContainerAccess(Word &w)
 	: NodeTwinTree(NT::ContainerAccess, w){}
 	inline void Print(string prefix=""){ // 打印
-		cout<<prefix+"ContainerAccess"<<endl;
+		cout<<prefix+"ContainerAccess:"<<endl;
 		Left()->Print(prefix+PRT);
 		Right()->Print(prefix+PRT);
 	};
 };
+
+
+// 类或模块成员访问
+struct NodeMemberAccess : NodeTwinTree{
+	NodeMemberAccess(Word &w)
+	: NodeTwinTree(NT::MemberAccess, w){}
+	inline void Print(string prefix=""){ // 打印
+		cout<<prefix+"MemberAccess:"<<endl;
+		Left()->Print(prefix+PRT);
+		Right()->Print(prefix+PRT);
+	};
+};
+
+
+
 
 
 // while 循环控制
@@ -455,21 +420,7 @@ struct NodeIf : NodeTree{
 
 
 
-// () 元组数据结构
-struct NodeTuple : NodeTree{
-	NodeTuple(Word &w)
-	: NodeTree(NT::List, w){}
-	inline void Print(string prefix=""){ // 打印
-		size_t sz = ChildSize();
-		cout<< prefix+"Tuple: size="<<sz<<endl;
-		for(size_t i=0; i<sz; i++)
-		{
-			Child(i)->Print(prefix+PRT);
-		}
-	};
-};
-
-// [] 列表数据结构
+// () 列表数据结构
 struct NodeList : NodeTree{
 	NodeList(Word &w)
 	: NodeTree(NT::List, w){}
@@ -483,7 +434,7 @@ struct NodeList : NodeTree{
 	};
 };
 
-// {} 字典数据结构
+// [] 字典数据结构
 struct NodeDict : NodeTree{
 	NodeDict(Word &w)
 	: NodeTree(NT::Dict, w){}
@@ -496,6 +447,25 @@ struct NodeDict : NodeTree{
 		}
 	};
 };
+
+// {} 块结构
+struct NodeBlock : NodeTree{
+	NodeBlock(Word &w)
+	: NodeTree(NT::Block, w){}
+	inline void Print(string prefix=""){ // 打印
+		size_t sz = ChildSize();
+		cout<< prefix+"Block: size="<<sz<<endl;
+		for(size_t i=0; i<sz; i++)
+		{
+			Child(i)->Print(prefix+PRT);
+		}
+	};
+};
+
+
+
+
+
 
 
 // = 赋值节点
@@ -528,7 +498,8 @@ struct NodeSub: NodeTwinTree{
 	: NodeTwinTree(NT::Sub, w){}
 	inline void Print(string prefix=""){ // 打印
 		cout<<prefix+"Sub(-)"<<endl;
-		Left()->Print(prefix+PRT);
+		// 没有左叶则为取负操作
+		if(Left()) Left()->Print(prefix+PRT);
 		Right()->Print(prefix+PRT);
 	};
 };
@@ -557,12 +528,12 @@ struct NodeDiv: NodeTwinTree{
 
 
 // print 打印变量至屏幕
-struct NodePrint : NodeTwinTree{
+struct NodePrint : NodeOneTree{
 	NodePrint(Word &w)
-	: NodeTwinTree(NT::Print, w){}
+	: NodeOneTree(NT::Print, w){}
 	inline void Print(string prefix=""){ // 打印
 		cout<<prefix+"Print: "<<endl;
-		Right()->Print(prefix+PRT);
+		if(child) child->Print(prefix+PRT);
 	};
 };
 
@@ -579,7 +550,7 @@ struct NodeVariable : Node{
 		return name;
 	};
 	inline void Print(string prefix=""){ // 打印
-		cout<<prefix+"Variable: "<<name<<endl;
+		cout<<prefix+"Variable: $"<<name<<endl;
 	};
 };
 
@@ -605,7 +576,8 @@ struct NodeBool : Node{
 		return value;
 	}
 	inline void Print(string prefix=""){ // 打印
-		cout<<prefix+"Bool: "<<value<<endl;
+		string bl = value ? "true" : "false";
+		cout<<prefix+"Bool: "<<bl<<endl;
 	};
 };
 
@@ -616,6 +588,9 @@ struct NodeInt : Node{
 	NodeInt(Word &w)
 	: Node(NT::Int, w){
 		value = Str::s2l(w.value);
+	}
+	inline void SetInt(long n){
+		value = n;
 	}
 	inline long GetInt(){
 		return value;

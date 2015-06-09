@@ -196,14 +196,13 @@ void Tokenizer::Scan()
 				if(Token::IsKeyword(buf)){// 关键字？
 					Push(S::Keyword);
 				}else{
+					Push(S::Variable); //变量名
 					if( IS_SIGN("(") ){
 						Push(S::FuncCall); // 函数调用
 					}else if( IS_SIGN("{") ){
 						Push(S::ProcCall); // 处理器调用
 					}else if( IS_SIGN("[") ){
 						Push(S::ContainerAccess); // 容器访问
-					}else{
-						Push(S::Variable); //变量名
 					}
 				}
 				Back(); // 回退

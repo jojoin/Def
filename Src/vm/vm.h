@@ -59,8 +59,18 @@ class Vm {
 	DefObject* ControlIf(Node*); // if 结构
 	DefObject* ControlWhile(Node*); // while 结构
 
-	DefObject* StructList(Node*); // list 列表
-	//DefObject* StructDict(Node*); // dict 字典
+	DefObject* StructList(Node*);  // list 列表
+	DefObject* StructDict(Node*);  // dict 字典
+	DefObject* StructBlock(Node*); // block 块
+	
+	DefObject* DefineProc(Node*); // 处理器定义
+	DefObject* DefineFunc(Node*); // 函数定义
+
+	DefObject* ContainerAccess(Node*); // 容器访问
+
+	
+
+	
 
 	
 

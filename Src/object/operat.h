@@ -16,12 +16,17 @@ using namespace def::object;
 namespace def {
 namespace operat {
 
+
+
 // 类型转换
 class Conversion
 {
 	public:
 	static bool Bool(DefObject*); // 转换为 bool 类型
+	static string String(DefObject*); // 转换为 string 类型
 };
+
+
 
 
 // 数学计算

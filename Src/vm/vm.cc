@@ -3,6 +3,7 @@
  */
 
 #include <iostream>
+#include <cstdlib>
 
 #include "vm.h"
 
@@ -18,6 +19,9 @@ using namespace def::gc;
 
 namespace def {
 namespace vm {
+
+// Log::log
+#define ERR(str) cerr<<str<<endl;exit(1);
 
 
 Vm::Vm(){
@@ -56,10 +60,6 @@ bool Vm::Eval(string txt, bool ispath=false)
     // cout << words->at(0).value << endl;
     // cout << words->at(1).value << endl;
     // cout << words->at(2).value << endl;
-    // cout << words->at(3).value << endl;
-    // cout << words->at(4).value << endl;
-    // cout << words->at(5).value << endl;
-    // cout << words->at(6).value << endl;
 
     // 语法分析
     Nodezer N(words, ispath ? txt : ""); // 初始化语法分析器
@@ -69,13 +69,14 @@ bool Vm::Eval(string txt, bool ispath=false)
     // cout << node->Right()->Child(1)->Left()->GetName() << endl;
 
     node->Print();
+    cout<<endl<<endl;
     // cout << "node->ChildSize() = " << node->ChildSize() << endl;
 
 
     // 解释执行分析树
     // bool done = ExplainAST(node);
     
-    delete words; // 析构tok数组
+    delete words; // 析构words数组
     delete node; // 析构语法树
     
 	return true;
@@ -161,6 +162,10 @@ DefObject* Vm::Evaluat(Node* n)
     }else if(t==T::Variable){ // 通过名字取得变量值
         return vm_stack->VarGet(n->GetName());
 
+
+    }else if(t==T::ProcDefine){ // 处理器定义
+        return DefineProc(n);
+
     }else if(t==T::List){ // list 数组
 
         //cout<<"List !!!"<<endl;
@@ -172,7 +177,7 @@ DefObject* Vm::Evaluat(Node* n)
     }else if(t==T::Print){ // print 打印
 
         // cout<<"print!!!"<<endl;
-        return Print( n->Right() ); // 打印
+        return Print( n->Child() ); // 打印
 
     }else if(t==T::Add||t==T::Sub||t==T::Mul||t==T::Div){ // + - * / 算法操作
 
@@ -196,8 +201,13 @@ DefObject* Vm::Evaluat(Node* n)
         //DefObject *crt = vm_gc->Allot(n);   // 分配新变量
         //Regist(crt);    // 登记新变量
         //return crt;
+        
+    }else if(t==T::ContainerAccess){ // 容器访问
+        return ContainerAccess(n);
+
 
     }else{
+
 
     }
 
@@ -219,6 +229,18 @@ DefObject* Vm::Evaluat(Node* n)
 DefObject* Vm::Operate(Node *nl, Node *nr, NT t)
 {
 
+    // 取负运算
+    if( !nl && t==NT::Sub){
+        DefObject *r = Evaluat(nr);
+        if(r->type==OT::Int){
+            return vm_gc->AllotInt( 0 - ((ObjectInt*)r)->value );
+        }else if(r->type==OT::Float){
+            return vm_gc->AllotInt( 0.0 - ((ObjectFloat*)r)->value );
+        }
+        ERR("Err:  only <Int> and <Float> type can get negative value !");
+    }
+
+    // 正式运算
     DefObject *l = Evaluat(nl);
     DefObject *r = Evaluat(nr);
     DefObject *result = NULL;
@@ -226,7 +248,7 @@ DefObject* Vm::Operate(Node *nl, Node *nr, NT t)
     OT lt = l->type;
     OT rt = r->type;
 
-    // 整数相加
+    // 整数算法
     if( lt==OT::Int && lt==OT::Int ){
 
         long vl = ((ObjectInt*)l)->value
@@ -339,34 +361,12 @@ DefObject* Vm::Print(DefObject *obj)
 
 
 
-
-/**
- * list 数据结构建立
- */
-DefObject* Vm::StructList(Node* p)
-{
-    p = (NodeList*)p;
-
-    ObjectList* list = vm_gc->AllotList();
-    size_t i = 0
-         , s = p->ChildSize();
-    while( i < s ){
-        // 添加数组项目
-        list->Push( vm_gc->Allot( p->Child(i) ) );
-        i++;
-    }
-
-    return list;
-}
-
-
-
 /**
  * If 控制结构
  */
-DefObject* Vm::ControlWhile(Node* p)
+DefObject* Vm::ControlWhile(Node* n)
 {
-    p = (NodeWhile*)p;
+    NodeWhile* p = (NodeWhile*)n;
     while(1){
         if(Conversion::Bool( Evaluat( p->Left() ) )){
             ExplainAST( p->Right() ); //执行 while 块
@@ -381,9 +381,9 @@ DefObject* Vm::ControlWhile(Node* p)
 /**
  * If 控制结构
  */
-DefObject* Vm::ControlIf(Node* p)
+DefObject* Vm::ControlIf(Node* n)
 {
-    p = (NodeIf*)p;
+    NodeIf* p = (NodeIf*)n;
     size_t i = 0
          , s = p->ChildSize();
     while(1){
@@ -402,6 +402,94 @@ DefObject* Vm::ControlIf(Node* p)
     }
     return NULL;
 }
+
+
+
+/**
+ * list 列表结构建立
+ */
+DefObject* Vm::StructList(Node* n)
+{
+    NodeList* p = (NodeList*)n;
+
+    ObjectList* list = vm_gc->AllotList();
+    size_t i = 0
+         , s = p->ChildSize();
+    while( i < s ){
+        // 添加数组项目
+        list->Push( vm_gc->Allot( p->Child(i) ) );
+        i++;
+    }
+
+    return list;
+}
+
+
+/**
+ * dict 数据结构建立
+ */
+DefObject* Vm::StructDict(Node* n)
+{
+    NodeDict* p = (NodeDict*)n;
+
+    ObjectDict* dict = vm_gc->AllotDict();
+    size_t i = 0
+         , s = p->ChildSize();
+    while( i < s ){
+        // 添加数组项目
+        string key = Conversion::String( Evaluat( p->Child(i) ) );
+        if(key!=""){
+            dict->Push( 
+                key, 
+                Evaluat( p->Child(i+1) )
+            );
+        }
+        i += 2;
+    }
+
+    return dict;
+}
+
+
+
+
+/**
+ * def 处理器定义
+ */
+DefObject* Vm::DefineProc(Node* n)
+{
+    NodeProcDefine* p = (NodeProcDefine*)n;
+
+
+    return NULL;
+}
+
+
+
+
+
+/**
+ * ContainerAccess 容器访问
+ */
+DefObject* Vm::ContainerAccess(Node* n)
+{
+    NodeContainerAccess* p = (NodeContainerAccess*)n;
+
+
+
+
+    return NULL;
+}
+
+
+
+
+
+
+
+
+
+
 
 
 

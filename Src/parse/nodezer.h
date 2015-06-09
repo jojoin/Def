@@ -81,10 +81,10 @@ class Nodezer {
 	//Node* CreatNode(int, Node*, Node*); //从当前单词新建节点
 	Node* CreatNode(); //从当前单词新建节点
 	//Node* CreatMolecule(Node*,Node*); // 构建表达式分子，例如括号优先级，数组结构等
-	Node* ParseNode(Node*); //解析当前节点
-	Node* AssembleNode(Node*,Node*); //组合当前两个节点
-	Node* Express(Node*); // 扫描单词 构建表达式
-	Node* Group(T type=T::Group); // 构建表达式组
+	Node* ParseNode(Node*,Node*); //解析当前节点
+	Node* AssembleNode(Node*,Node*,bool); //组合当前两个节点
+	Node* Express(Node*pp=NULL,bool down=false); // 扫描单词 构建表达式
+	Node* Group(); // 构建表达式组
 	Node* BuildAST();   // 扫描单词 构建语法树
 	int GetPriority(Node*); // 取得节点优先级
 

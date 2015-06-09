@@ -5,18 +5,64 @@
 
 
 
-(1+2 4)
+
+
+
+
+
+#--
 
 
 
 # 处理器定义
-def mydeal{1 2}
-	a : 1
+def mmm{a b}
+	mydeal{a}
+	1
 	2
 	3
 ;
 
 
+
+
+mydeal{a}
+
+
+
+cc : -123.99
+
+# 函数定义
+defun printl(a ,-123 b c:cc)
+	a
+;
+
+
+# 字典
+dt : [
+	false value
+	'key' name
+]
+
+
+print obj.dt.use{ none ,-2 true }
+
+
+# 列表
+a : (-999  1  ,-2  a-b  a:1+3)
+
+
+
+
+# 字典
+dt : [
+	'key' value
+]
+
+
+# 块，不执行
+{
+	a : a+1
+}
 
 
 
@@ -28,10 +74,24 @@ defun myfunc()
 ;
 
 
-#--
-
 
 --#
+
+
+1/f() + 1*m.d.c{a fun() ,-999} + 100
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

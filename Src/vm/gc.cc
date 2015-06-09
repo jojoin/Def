@@ -93,6 +93,30 @@ ObjectList* Gc::AllotList()
 	return new ObjectList();
 }
 
+
+/**
+ * 创建 dict 对象
+ */
+ObjectDict* Gc::AllotDict()
+{
+	return new ObjectDict();
+}
+
+
+/**
+ * 创建 block 对象
+ */
+ObjectBlock* Gc::AllotBlock()
+{
+	return new ObjectBlock();
+}
+
+
+
+
+
+
+
 /**
  * 从语法节点分配新的对象
  */
@@ -119,9 +143,15 @@ DefObject* Gc::Allot(Node* n)
 
 		return AllotString(n->GetString());
 
-	}else if(t==T::List){ // list
 
+	}else if(t==T::List){ // list
 		return AllotList();
+	}else if(t==T::Dict){ // dict
+		return AllotDict();
+	}else if(t==T::Block){ // block
+		return AllotBlock();
+
+
 
 	}
 
@@ -219,6 +249,28 @@ bool Gc::Recycle(DefObject* obj)
 			return true;
 		}
 
+	}else if(t==T::List){
+		ObjectList* o = (ObjectList*)obj;
+		size_t len = o->Size();
+		for(size_t i=0; i<len; i++){
+			Free(o->Visit(i)); //递归回收
+		}
+
+	}else if(t==T::Dict){
+		//遍历dict
+		map<string, DefObject*> value = ((ObjectDict*)obj)->value;
+		map<string, DefObject*>::iterator iter;
+	    for(iter = value.begin(); iter != value.end(); iter++)
+	    {
+	        Free(iter->second);
+	    }
+
+	}else if(t==T::Block){
+		ObjectBlock* o = (ObjectBlock*)obj;
+		size_t len = o->Size();
+		for(size_t i=0; i<len; i++){
+			Free(o->Visit(i)); //递归回收
+		}
 	}
 
 	// cout<<"delete obj"<<endl;
