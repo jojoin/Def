@@ -45,7 +45,8 @@ enum class ObjectType
 	Node,  // 解析树节点
 
 	// 高级
-	Class  // 类
+	Class,   // 类
+	Object   // 对象实例
 };
 
 
@@ -204,6 +205,9 @@ struct ObjectDict : DefObject{
 	// 访问元素
 	DefObject* Visit(string key){
         // cout<<"dict visit"<<endl;
+        if(key==""){
+        	return NULL;
+        }
         map<string, DefObject*>::iterator iter = value.find(key);
 		if(iter!=value.end())
 		{

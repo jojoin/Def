@@ -51,6 +51,7 @@ namespace node {
 								\
 	D(FuncDefine, 0)			\
 	D(ProcDefine, 0)			\
+	D(ClassDefine, 0)			\
 								\
 	D(Priority, 0)				\
 								\
@@ -307,7 +308,12 @@ struct NodeExDefine : Node{
 	inline Node* GetBody(){ return body; }
 	inline void SetBody(Node*g=NULL){ body = g; }
 	inline void Print(string prefix=""){ // 打印
-		string head = type==NT::ProcDefine ? "ProcDefine" : "FuncDefine";
+		string head = "";
+		switch(type){
+			case NT::ProcDefine: head = "ProcDefine"; break;
+			case NT::FuncDefine: head = "FuncDefine"; break;
+			case NT::ClassDefine: head = "ClassDefine"; break;
+		}
 		cout<<prefix+head+": "<<name<<endl;
 		prefix += PRT;
 		cout<<prefix<<"argv: "<<endl;
@@ -332,6 +338,16 @@ struct NodeFuncDefine : NodeExDefine{
 	: NodeExDefine(NT::FuncDefine, w)
 	{}
 };
+
+// class 类定义结构
+struct NodeClassDefine : NodeExDefine{
+	NodeClassDefine(Word &w)
+	: NodeExDefine(NT::ClassDefine, w)
+	{}
+};
+
+
+
 
 
 
@@ -468,7 +484,7 @@ struct NodeBlock : NodeTree{
 
 
 
-// = 赋值节点
+// : 赋值节点
 struct NodeAssign: NodeTwinTree{
 	NodeAssign(Word &w)
 	: NodeTwinTree(NT::Assign, w){}

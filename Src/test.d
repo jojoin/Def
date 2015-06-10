@@ -5,9 +5,39 @@
 
 
 
+# 字典
+dt : [
+	'name' "yangjie"
+	'age' 24
+]
+
+print dt['name']
 
 
 
+
+
+
+
+
+
+
+#--
+
+
+class myclass(name:'' age:25)
+
+	key : 'num'
+	val : 123
+
+	defun do()
+		val : val+1
+	;
+
+	def loop{val k v}
+
+	;
+;
 
 
 
@@ -20,11 +50,7 @@ def mmm{a b}
 ;
 
 
-
-
 mydeal{a}
-
-
 
 cc : -123.99
 
@@ -33,21 +59,16 @@ defun printl(a ,-123 b c:cc)
 	a
 ;
 
-
 # 字典
 dt : [
 	false value
 	'key' name
 ]
 
-
 print obj.dt.use{ none ,-2 true }
-
 
 # 列表
 a : (-999  1  ,-2  a-b  a:1+3)
-
-
 
 
 # 字典
@@ -61,9 +82,6 @@ dt : [
 	a : a+1
 }
 
-
-
-
 # 函数定义
 defun myfunc()
 	a : a+1
@@ -72,17 +90,12 @@ defun myfunc()
 
 
 
-
-
-
-#--
-
 --#
 
 
 
 
-1/fun() + 1*m.d.c{a arr[1 2] ,-999} + 100
+# 1/fun() + 1*m.d.c{a arr[1 2] ,-999} + 100
 
 
 

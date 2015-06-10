@@ -24,6 +24,8 @@ typedef list<DefObject*> ObjList;
 
 // 对象分配及回收
 class Gc{
+	
+	public:
 
 	ObjList free_int;      // 空闲 int 列表
 	ObjList free_float;    // 空闲 float 列表
@@ -35,7 +37,6 @@ class Gc{
 	ObjectInt*  prep_ints[270];      // int    小对象池  -10～260
 	//ObjectNone* prep_strings[52];   // string 小对象池 a~z A~Z  // 52=26+26
 
-	public:
 
 	Gc();
 

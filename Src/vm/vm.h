@@ -41,12 +41,14 @@ class Vm {
 	public:
 
 	Vm();
-
 	bool Error(int); // 运行时错误
 
 	bool Eval(string, bool); // 执行 Def 脚本
 	bool ExplainAST(Node*);     // 解释执行语法树
 	inline bool Free(DefObject*);   // 变量的解引用或垃圾回收
+	inline ObjectNone* NewObjNone(); //返回 none 对象
+	inline ObjectBool* NewObjTrue(); //返回 true 对象
+	inline ObjectBool* NewObjFalse(); //返回 false 对象
 	//bool Regist(DefObject*); // 登记新创建的变量，用于集中垃圾回收
 
 	DefObject* Evaluat(Node*);  // 对节点求值操作
@@ -68,9 +70,7 @@ class Vm {
 
 	DefObject* ContainerAccess(Node*); // 容器访问
 
-	
-
-	
+	//
 
 	
 

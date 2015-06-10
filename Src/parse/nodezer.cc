@@ -97,6 +97,8 @@ NodeType Nodezer::GetNodeType(Word &cwd)
             return T::ProcDefine;
         }else if(v=="defun"){
             return T::FuncDefine;
+        }else if(v=="class"){
+            return T::ClassDefine;
 
         }else if(v=="print"){
             return T::Print;
@@ -310,41 +312,26 @@ Node* Nodezer::ParseNode(Node*p1=NULL, Node*p=NULL)
         Move(1); //jump }
         return p;
 
-    // 处理器定义
-    }else if( t==T::ProcDefine ){
-        // cout << "-ProcDefine-" << endl;
-        Move(1); // jump def
+    // 函数 处理器 类 定义
+    }else if( t==T::FuncDefine || t==T::ProcDefine || t==T::ClassDefine ){
+        // cout << "-FuncDefine ProcDefine ClassDefine-" << endl;
+        bool pd = t==T::ProcDefine;
+        Move(1); // jump def/defun/class
         if(cur.type==S::Variable){
             string name = cur.value;
             Move(1); // jump name
-            if(cur.type==S::ProcCall){
-                p->SetName( name ); //处理器名
-                Move(1); // jump ProcCall
+            bool tpc = cur.type==S::ProcCall;
+            if( pd&&tpc || !pd&&cur.type==S::FuncCall){
+                p->SetName( name ); //名称
+                Move(1); // jump ...Call
             }else{
                 Move(-1); //复位
             }
         }
-        if(IS_SIGN("{")){ // 处理器参数
-            Move(1); // jump {
+        if( pd&&IS_SIGN("{") || !pd&&IS_SIGN("(") ){ // 参数
+            Move(1); // jump ( or {
             p->SetArgv( Group() );
-            Move(1); // jump }
-        }
-        p->SetBody( Group() );
-        Move(1); // jump ;
-        return p;
-
-    // 函数定义
-    }else if( t==T::FuncDefine ){
-        // cout << "-FuncDefine-" << endl;
-        Move(1); // jump def
-        if(cur.type==S::FuncCall){
-            p->SetName( cur.value ); //处理器名
-            Move(1); // jump ProcCall
-        }
-        if(IS_SIGN("(")){ // 处理器参数
-            Move(1); // jump {
-            p->SetArgv( Group() );
-            Move(1); // jump }
+            Move(1); // jump ) or }
         }
         p->SetBody( Group() );
         Move(1); // jump ;
@@ -534,284 +521,6 @@ Node* Nodezer::Express(Node *p1, bool down)
 
 
 }
-
-
-
-/**
- * 扫描单词 构建单条表达式
- * @param pp 上级递归父节点
- * @param tt 上级递归父节点类型
- *
-Node* Nodezer::Express(Node *pp=NULL, T tt=T::Normal)
-{
-
-    //T t = T::Normal; // 记录状态
-    //string cv = cur.value; // 当前值
-    Node *p = pp;
-    T t = tt;
-    T c = cnt;
-    size_t old_i = 0;
-
-
-    while(t!=T::End){
-
-        if(i==0||old_i!=i){ // 已经move至下一个，重新读取词
-            Read();
-            c = CurNodeType(); // 当前类型
-            //cout<<(int)c<<"->"<<cur.value<<endl;
-            old_i = i;
-        }else{ // 未 move，无需重新读取
-            t = c;
-        }
-
-        // cout<<(int)c<<"->"<<cur.value<<endl;
-
-        // 正式开始循环处理
-
-        //// Normal
-        if(t==T::Normal){ //默认状态
-
-            //cout << "-Normal-" << endl;
-            if( IsType(c,T::Print,T::If,T::While) ){
-                //cout << "Normal continue !" << endl;
-                t = c;
-                continue;
-
-            }else if( IsType(c,TN_VALUE) ){
-                p = CreatNode(1);
-                t = c;
-
-            // [] 列表数据结构
-            }else if(IS_SIGN("[")){
-                //cout << "[] continue !" << endl;
-                c = T::List;
-                continue;
-
-            }else{
-                return p;
-            }
-
-        //// Variable None Bool Int Float String
-        }else if( IsType(t,TN_VALUE) ){
-
-            // cout << "-TN_VALUE-" << endl;
-
-            if( t==T::Variable && c==T::ContainerAccess ){ // 容器访问 []
-                p = CreatNode(1, p);
-                Node *r = Express(); // 一条表达式 作为访问索引
-                if(IS_SIGN("]")) ERR("err: ]"); //错误处理
-                Move(1); //跳过右方括号 ]
-                p->Right(r);
-            }else if( t==T::Variable && c==T::FuncCall ){ // 函数调用 ()
-
-                string name = p->GetName();
-                p = CreatNode(1); // 右节点参数列表
-                p->SetName(name); // 设置函数名称
-                Node* paralist = Group();
-                p->Right(paralist); // 设置参数列表
-            
-            }else if( t==T::Variable && c==T::Assign ){ // 变量赋值
-                continue;
-
-            // 运算
-            }else if( IsType(c,TN_ASMD) ){
-                p = CreatNode(1, p);
-                t = c;
-            }else{
-
-                // cout << "}else{" << endl;
-                // cout << cur.value << endl;
-                return p; // 表达式结束
-            }
-
-
-        //// Add Sub
-        }else if( IsType(t,TN_AS) ){ // 加法 减法 + -
-
-            //cout << "-Add,Sub-" << endl;
-            if( IsType(c,TN_VALUE) ){
-                if(p->Right()){
-                    //已经存在右节点
-                    return p;
-                }
-                p->Right(CreatNode(1));
-            // 同级左结合算符 + -
-            }else if( IsType(c,TN_AS) ){
-                p = CreatNode(1, p);
-                t = c;
-            // 优先算符 * /
-            }else if( IsType(c,TN_MD) ){
-                Node *pn = CreatNode(1);
-                Node *r = p->Right();
-                pn->Left(r);
-                pn = Express(pn, c);
-                p->Right(pn);
-            }else{ 
-                return p;
-            }
-
-        //// Mul Div
-        }else if( IsType(t,TN_MD) ){ // 乘法 除法 * /
-
-            //cout << "-Mul,Div-" << endl;
-            if( IsType(c,TN_VALUE) ){
-                if(p->Right()){
-                    //已经存在右节点
-                    return p;
-                }
-                p->Right(CreatNode(1));
-            // 同级左结合算符
-            }else if( IsType(c,TN_MD) || 
-                //优先级低的算符且不是上一层递归传入
-                !pp && IsType(c,TN_AS)
-            ){
-                p = CreatNode(1, p);
-                t = c;
-            }else{
-                return p;
-            }
-
-
-        // FuncCall
-        }else if( t==T::FuncCall ){
-
-            //cout << "-FuncCall-" << endl;
-            NodeFuncCall* fp = CreatNode(1);
-            Move(1); // 跳过左括号 (
-            fp->Right( Group() ); // 设置参数列表
-            if(IS_SIGN(")")) ERR("err: )"); //错误处理
-            if(p!=NULL){ // 表达式
-                p->Right(fp);
-                t ＝ p->type; // 恢复状态
-            }else{
-                return fp;
-            }
-
-        // Assign
-        }else if( t==T::Assign ){
-
-            //cout << "-Assign-" << endl;
-            p = CreatNode(1, p);
-            // 赋值算法后面的所有内容都将被赋值给左边的变量
-            p->Right( Express() );
-            return p;
-
-        // While
-        }else if( t==T::While ){
-
-            //cout << "-While-" << endl;
-            p = CreatNode(1);
-            NodeGroup* g = new NodeGroup(cur);
-            while(1){
-                if(IS_SIGN(";")){
-                    size_t s = g->ChildSize();
-                    Node *nl = NULL
-                        ,*nr = NULL;
-                    if(s==0){
-                    }else if(s==1){
-                        nl = g->Child(0); // 第一个表达式作为 while 条件
-                    }else if(s>=2){
-                        nl = g->ChildPop(0);
-                        nr = g;
-                    }
-                    p->Left(nl);
-                    p->Right(nr);
-                    Move(1);
-                    break;
-                }
-                g->AddChild( Express() );
-            }
-            return p;
-
-        // If
-        }else if( t==T::If ){
-
-            //cout << "-If-" << endl;
-            p = CreatNode(1);
-            NodeGroup* g = new NodeGroup(cur);
-            string evt = "if";
-            // 开始构建 If 块结构
-            while(1){
-                bool end = IS_SIGN(";")
-                   , elif = IS_KEYWORD("elif")
-                   , el = IS_KEYWORD("else");
-                if(end||elif||el){ // 写入上部流程块
-                    size_t s = g->ChildSize();
-                    if(evt=="if"){
-                        if(s==0){
-                            p->AddChild(NULL);
-                            p->AddChild(NULL);
-                        }else if(s==1){
-                            p->AddChild(g->Child(0)); // 第一个表达式作为if条件
-                            p->AddChild(NULL);
-                        }else if(s>=2){
-                            p->AddChild(g->ChildPop(0));
-                            p->AddChild(g);
-                        }
-                    }else if(evt=="else"){
-                        p->AddChild(g);
-                    }
-                    Move(1);
-                    g = new NodeGroup(cur);
-                }
-                if(end){ // If 结束
-                    break;
-                }
-                if(el){
-                    evt = "else"; //块改变
-                }
-                g->AddChild( Express() );
-            }
-            return p;
-
-        // List 列表结构
-        }else if( t==T::List ){
-
-            //cout << "-List-" << endl;
-            Word start = cur;
-            Move(1); //跳过 [
-            NodeList *list = new NodeList(cur);
-            while(1){ // 列表项
-                Node *e = Express();
-                if(e) list->AddChild( e );
-                else break;
-                //cout<<"list item"<<endl;
-            }
-            if(IS_SIGN("]")){
-                //cout<<"IS_SIGN(])"<<endl;
-                Move(1); //跳过 ]
-                //cout<<"Move(1)"<<endl;
-                return list; //成功返回列表结构
-            }else{
-                //cout<<"Error(301)"<<endl;
-                Error(301, start); //缺少右括号匹配
-            }
-
-        // Print
-        }else if( t==T::Print ){
-
-            // cout << "-Print-" << endl;
-            p = CreatNode(1);
-            // print 关键字左边的第一个值将被打印
-            p->Right( Express() );
-            return p;
-
-        //// End 终止
-        }else if( t==T::End ){
-
-            //cout << "-End-" << endl;
-            return p;
-
-        }else{
-            return p;
-        }
-
-    }
-
-    return p;
-
-}
-*/
 
 
 

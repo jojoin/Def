@@ -69,12 +69,12 @@ bool Vm::Eval(string txt, bool ispath=false)
     // cout << node->Right()->Child(1)->Left()->GetName() << endl;
 
     node->Print();
-    cout<<endl<<endl;
+    cout<<endl;
     // cout << "node->ChildSize() = " << node->ChildSize() << endl;
 
 
     // 解释执行分析树
-    // bool done = ExplainAST(node);
+    bool done = ExplainAST(node);
     
     delete words; // 析构words数组
     delete node; // 析构语法树
@@ -113,24 +113,19 @@ inline bool Vm::Free(DefObject *obj)
 }
 
 
-
-/**
- * 登记新创建的变量，用于集中垃圾回收
- *
-bool Vm::Regist(DefObject *obj)
+//返回对象
+inline ObjectNone* Vm::NewObjNone()
 {
-    return true;
-    // 登记
-    size_t size = vm_stack->Regist(obj);
-    //cout<<"Vm::Regist() "<<size<<endl;
-    // 垃圾回收触发条件
-    if(size > 10){
-        Clean(); // 回收
-    }
-    return true;
+    return vm_gc->prep_none;
 }
-*/
-
+inline ObjectBool* Vm::NewObjTrue()
+{
+    return vm_gc->prep_true;
+}
+inline ObjectBool* Vm::NewObjFalse()
+{
+    return vm_gc->prep_false;
+}
 
 /**
  * 对语法节点进行求值操作
@@ -164,15 +159,16 @@ DefObject* Vm::Evaluat(Node* n)
 
 
     }else if(t==T::ProcDefine){ // 处理器定义
+        //cout<<"ProcDefine !!!"<<endl;
         return DefineProc(n);
 
     }else if(t==T::List){ // list 数组
-
         //cout<<"List !!!"<<endl;
         return StructList(n);
 
     }else if(t==T::Dict){ // dict 字典
-
+        //cout<<"Dict !!!"<<endl;
+        return StructDict(n);
 
     }else if(t==T::Print){ // print 打印
 
@@ -203,6 +199,7 @@ DefObject* Vm::Evaluat(Node* n)
         //return crt;
         
     }else if(t==T::ContainerAccess){ // 容器访问
+        // cout<<"ContainerAccess !!!"<<endl;
         return ContainerAccess(n);
 
 
@@ -315,6 +312,7 @@ DefObject* Vm::Print(Node *n)
  */
 DefObject* Vm::Print(DefObject *obj)
 {
+
     OT t = obj->type; // 获取类型
 
     if( t==OT::Int ){
@@ -473,12 +471,28 @@ DefObject* Vm::DefineProc(Node* n)
  */
 DefObject* Vm::ContainerAccess(Node* n)
 {
+    // cout<<"-Vm::ContainerAccess-"<<endl;
     NodeContainerAccess* p = (NodeContainerAccess*)n;
 
+    Node* con = p->Left();
+    Node* idx = p->Right();
+    size_t idxlen = idx->ChildSize();
+    // cout<<"idxlen="<<idxlen<<endl;
+    if(!idxlen){
+        return NewObjNone(); //索引为空 返回 none
+    }
 
+    DefObject* obj = Evaluat( con );
+    OT ot = obj->type;
 
+    if(ot==OT::Dict){ //字典访问
+        string key = Conversion::String( Evaluat( idx->Child(0) ) );
+        // cout<<"key = "<<key<<endl;
+        return ((ObjectDict*)obj)->Visit(key);
+    }
 
-    return NULL;
+    // cout<<"return none"<<endl;
+    return NewObjNone(); // 无效访问 返回 none
 }
 
 
