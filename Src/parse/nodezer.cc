@@ -219,7 +219,6 @@ Node* Nodezer::ParseNode(Node*p1=NULL, Node*p=NULL)
     // 列表 or 优先级 or 函数调用
     if( t==T::List ){
         // cout << "-List or Priority or FuncCall-" << endl;
-        /*
         if(p1 && p1->type==T::FuncCall){
             delete p;
             Move(1); //jump (
@@ -227,7 +226,6 @@ Node* Nodezer::ParseNode(Node*p1=NULL, Node*p=NULL)
             Move(1); //jump )
             return g; // 返回函数调用右节点
         }
-        */
         // 列表or优先级
         NodePriority* pp = new NodePriority(cur);
         Move(1); //jump (
