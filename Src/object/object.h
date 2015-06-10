@@ -168,13 +168,15 @@ struct ObjectList : DefObject{
 	// 返回列表大小
 	size_t Size(){
         // cout<<"list size"<<endl;
-        // cout<<value.size()<<endl;
         return value.size();
 	}
 	// 访问元素
 	DefObject* Visit(size_t i){
-        // cout<<"list visit"<<endl;
-		return value[i];
+		if( i>=0 && i<value.size() ){
+			return value[i];
+		}else{
+			return NULL;
+		}
 	}
 
 };

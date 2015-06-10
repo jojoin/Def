@@ -68,8 +68,8 @@ bool Vm::Eval(string txt, bool ispath=false)
     // cout << node->Child(0)->GetName() << endl;
     // cout << node->Right()->Child(1)->Left()->GetName() << endl;
 
-    node->Print();
-    cout<<endl;
+    // node->Print();
+    // cout<<endl;
     // cout << "node->ChildSize() = " << node->ChildSize() << endl;
 
 
@@ -415,7 +415,7 @@ DefObject* Vm::StructList(Node* n)
          , s = p->ChildSize();
     while( i < s ){
         // 添加数组项目
-        list->Push( vm_gc->Allot( p->Child(i) ) );
+        list->Push( Evaluat( p->Child(i) ) );
         i++;
     }
 
@@ -477,22 +477,31 @@ DefObject* Vm::ContainerAccess(Node* n)
     Node* con = p->Left();
     Node* idx = p->Right();
     size_t idxlen = idx->ChildSize();
+
+    DefObject* result = NULL; //容器访问结果
+
     // cout<<"idxlen="<<idxlen<<endl;
-    if(!idxlen){
-        return NewObjNone(); //索引为空 返回 none
+    if(idxlen){ //索引个数
+
+        DefObject* obj = Evaluat( con );
+        OT ot = obj->type;
+
+        if(ot==OT::Dict){ // 字典访问
+            string key = Conversion::String( Evaluat( idx->Child(0) ) );
+            // cout<<"key = "<<key<<endl;
+            result = ((ObjectDict*)obj)->Visit(key); 
+
+        }else if(ot==OT::List){ // 列表访问
+            if(idxlen==1){ // 单个获取
+                size_t i = Conversion::Long( Evaluat( idx->Child(0) ) );
+                // cout<<"idx = "<<i<<endl;
+                result = ((ObjectList*)obj)->Visit(i);
+            }
+        }
     }
 
-    DefObject* obj = Evaluat( con );
-    OT ot = obj->type;
-
-    if(ot==OT::Dict){ //字典访问
-        string key = Conversion::String( Evaluat( idx->Child(0) ) );
-        // cout<<"key = "<<key<<endl;
-        return ((ObjectDict*)obj)->Visit(key);
-    }
-
-    // cout<<"return none"<<endl;
-    return NewObjNone(); // 无效访问 返回 none
+    // cout<<"return result="<<(int)result<<endl;
+    return result ? result : NewObjNone(); // 无效访问 返回 none
 }
 
 

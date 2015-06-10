@@ -264,14 +264,14 @@ Node* Nodezer::ParseNode(Node*p1=NULL, Node*p=NULL)
 
     // 字典 or 容器访问
     }else if( t==T::Dict ){
-
         // cout << "-Dict or ContainerAccess-" << endl;
         Move(1); // jump [
         if(p1 && p1->type==T::ContainerAccess){
+            // cout << "Parse []" << endl;
             delete p;
             Node* g = Group(); 
             Move(1); //jump ]
-            return g; // 返回容器调用又节点
+            return g; // 返回容器调用右节点
         }
         // 字典
         while(1){
@@ -393,17 +393,6 @@ Node* Nodezer::ParseNode(Node*p1=NULL, Node*p=NULL)
         Move(1); // jump print
         p->AddChild( Express() );
         return p;
-
-
-    /*
-    }else if(t==T::Sub ){ //是否为负数
-
-        if( !p1 || !p->Left() ){ //负数加前缀0
-            Node* n = new NodeInt(cur);
-            n->SetInt(0);
-            p->Left(n);
-        }
-    */
 
     }
 

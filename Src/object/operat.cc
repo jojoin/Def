@@ -16,6 +16,10 @@ using namespace def::object;
 
 using namespace def::util;
 
+
+#define T ObjectType
+
+
 /**
  * 取得其 bool 值
  */
@@ -24,7 +28,6 @@ bool Conversion::Bool(DefObject *obj)
 
 	if(obj==NULL) return false;
 
-#define T ObjectType
 
 	T t = obj->type;
 
@@ -40,7 +43,6 @@ bool Conversion::Bool(DefObject *obj)
 		return true;
 	}
 
-#undef T
 
 }
 
@@ -53,8 +55,6 @@ string Conversion::String(DefObject *obj)
 {
 
 	if(obj==NULL) return "";
-
-#define T ObjectType
 
 	T t = obj->type;
 
@@ -71,8 +71,29 @@ string Conversion::String(DefObject *obj)
 		return "";
 	}
 
-#undef T
+}
 
 
+/**
+ * 取得 long 值
+ */
+long Conversion::Long(DefObject *obj)
+{
+
+	if(obj==NULL) return 0;
+
+	T t = obj->type;
+
+	if(t==T::String){
+		return Str::s2l( ((ObjectString*)obj)->value ); // string 转 long
+	}else if(t==T::Int){
+		return ((ObjectInt*)obj)->value;
+	}
+
+	return 0;
 
 }
+
+
+
+#undef T

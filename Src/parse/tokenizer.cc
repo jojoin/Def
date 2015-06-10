@@ -187,6 +187,17 @@ void Tokenizer::Scan()
 
 			}
 
+#define IF_PUSH_CALL                                 \
+	if(s==S::Sign){                                  \
+		if(tok=="("){                                \
+			Push(S::FuncCall); /*函数调用*/          \
+		}else if(tok=="{"){                          \
+			Push(S::ProcCall); /*处理器调用*/        \
+		}else if(tok=="["){                          \
+			Push(S::ContainerAccess); /*容器访问*/   \
+		}                                            \
+	}
+
 		// 标识符
 		}else if(ss==S::Character){
 
@@ -197,27 +208,8 @@ void Tokenizer::Scan()
 					Push(S::Keyword);
 				}else{
 					Push(S::Variable); //变量名
-					if( IS_SIGN("(") ){
-						Push(S::FuncCall); // 函数调用
-					}else if( IS_SIGN("{") ){
-						Push(S::ProcCall); // 处理器调用
-					}else if( IS_SIGN("[") ){
-						Push(S::ContainerAccess); // 容器访问
-					}
+					IF_PUSH_CALL // !访问和调用!
 				}
-				Back(); // 回退
-				ss = S::Normal;
-			}
-		// 数字
-		}else if(ss==S::Number){
-
-			if(s==S::Number||tok=="."){
-				Buf();
-			}else if(s==S::Character){
-				//TODO:: 【错误】数字后面不能跟字母
-				ERR("T0002");
-			}else{
-				Push(S::Number);
 				Back(); // 回退
 				ss = S::Normal;
 			}
@@ -228,7 +220,30 @@ void Tokenizer::Scan()
 			if(s==S::Sign&&Token::IsSign(buf+tok)){
 				Buf(); // 多元操作符
 			}else{
+				string bf = buf;
+				// cout<<"bf =  "<<bf<<endl;
 				Push(S::Sign);
+				// 是否连续调用
+				if(bf==")"||bf=="}"||bf=="]"){
+					// cout<<" string bf = buf; "<<endl;
+					IF_PUSH_CALL // !访问和调用!
+				}
+				Back(); // 回退
+				ss = S::Normal;
+			}
+
+#undef IF_PUSH_CALL
+
+		// 数字
+		}else if(ss==S::Number){
+
+			if(s==S::Number||tok=="."){
+				Buf();
+			}else if(s==S::Character){
+				//TODO:: 【错误】数字后面不能跟字母
+				ERR("T0002");
+			}else{
+				Push(S::Number);
 				Back(); // 回退
 				ss = S::Normal;
 			}
