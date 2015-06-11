@@ -165,6 +165,12 @@ struct ObjectList : DefObject{
 		value.push_back(obj);
 		return obj;
 	}
+	// 替换
+	DefObject* Push(size_t i, DefObject* obj){
+        // cout<<"list replace"<<endl;
+		value[i] = obj;
+		return obj;
+	}
 	// 返回列表大小
 	size_t Size(){
         // cout<<"list size"<<endl;

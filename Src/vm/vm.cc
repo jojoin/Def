@@ -140,23 +140,11 @@ DefObject* Vm::Evaluat(Node* n)
     T t = n->type; //当前节点类型
 
     if(t==T::Assign){ // 赋值
-
-        DefObject *rv = Evaluat(n->Right());   // 等号右值
-        string name = n->Left()->GetName();     // 名字
-        // cout<<"Assign name="<<name<<endl;
-        DefObject *exi = vm_stack->VarGet(name);   // 查找变量是否存在
-        if(exi!=NULL){
-            // cout<<"vm_gc->Free()"<<endl;
-            Free(exi);       // 变量重新赋值则释放之前的变量
-        }
-        vm_gc->Quote(rv);          // 引用计数 +1
-        // cout<<"vm_stack->VarPut()"<<name<<endl;
-        vm_stack->VarPut(name, rv);   // 变量入栈
-        return rv;
+        return Assign(n);
 
     }else if(t==T::Variable){ // 通过名字取得变量值
+        //cout<<"Variable !!!"<<endl;
         return vm_stack->VarGet(n->GetName());
-
 
     }else if(t==T::ProcDefine){ // 处理器定义
         //cout<<"ProcDefine !!!"<<endl;
@@ -171,9 +159,12 @@ DefObject* Vm::Evaluat(Node* n)
         return StructDict(n);
 
     }else if(t==T::Print){ // print 打印
-
         // cout<<"print!!!"<<endl;
-        return Print( n->Child() ); // 打印
+        return Print( n->Child() );
+
+    }else if(t==T::Priority){ // priority 括号优先级
+        // cout<<"priority!!!"<<endl;
+        return Evaluat( n->Child() ); //递归
 
     }else if(t==T::Add||t==T::Sub||t==T::Mul||t==T::Div){ // + - * / 算法操作
 
@@ -217,6 +208,81 @@ DefObject* Vm::Evaluat(Node* n)
 #define NT NodeType
 
 
+
+/**
+ * 赋值操作
+ */
+DefObject* Vm::Assign(Node*n)
+{
+    DefObject *rv = Evaluat(n->Right());   // 等号右值
+    Node* nl = n->Left();
+    NT nt = nl->type;
+
+    // 普通变量赋值
+    if(nt==NT::Variable){
+        // cout<<"Assign name="<<name<<endl;
+        string name = nl->GetName();     // 名字
+        DefObject *exi = vm_stack->VarGet(name);   // 查找变量是否存在
+        if(exi){
+            // cout<<"vm_gc->Free()"<<endl;
+            Free(exi);       // 变量重新赋值则释放之前的变量
+        }
+        // cout<<"vm_stack->VarPut()"<<name<<endl;
+        vm_stack->VarPut(name, rv);   // 变量入栈
+        vm_gc->Quote(rv); // 引用计数 +1
+
+    // 容器访问赋值
+    }else if(nt==NT::ContainerAccess){
+
+        DefObject *con = Evaluat( nl->Left() ); // 得到容器
+        OT ct = con->type; // 容器类型
+        Node *idx = nl->Right(); // 索引
+        size_t idx_sz = idx ? idx->ChildSize() : 0;
+
+        // 字典
+        if(ct==OT::Dict){ 
+            ObjectDict *dict = (ObjectDict*)con;
+            if(!idx_sz){
+                return rv; // do nothing
+            }
+            string key = Conversion::String( Evaluat( idx->Child(0) ) );
+            DefObject *exi = dict->Visit(key);
+            if(exi){ //已存在，则解引用
+                Free(exi);
+            }
+            dict->Push(key, rv); // 添加
+
+        // 列表
+        }else if(ct==OT::List){
+            ObjectList *list = (ObjectList*)con;
+            if(!idx_sz){ // 添加到末尾
+                list->Push(rv);
+            }else{ // 替换制定位置
+                DefObject *oi = Evaluat( idx->Child(0) );
+                if(oi->type!=OT::Int){
+                    return rv; // do nothing
+                }
+                size_t i = Conversion::Long( oi );
+                if(i<0){
+                    return rv; // do nothing
+                }
+                DefObject *exi = list->Visit(i);
+                if(exi){ //已存在，则解引用
+                    Free(exi);
+                }
+                list->Push(i, rv); // 添加到指定位置
+                
+            }
+
+
+
+        }
+
+    }
+
+    vm_gc->Quote(rv); // 引用计数 +1
+    return rv; // 返回右值
+}
 
 
 /**
@@ -326,18 +392,30 @@ DefObject* Vm::Print(DefObject *obj)
         cout << ((ObjectString*)obj)->value;
         cout << "\"";
 
-    }else if(t==OT::List){
+    }else if(t==OT::List){ // 列表
 
         //cout<<"-Print List-"<<endl;
         ObjectList* list = (ObjectList*)obj;
-        cout << "[";
+        cout << "(";
         //size_t sz = obj->Size();
         size_t sz = list->Size();
         for(size_t i=0; i<sz; i++){
-            if(i>0){
-                cout<<" ";
-            }
+            if(i) cout<<" ";
             Print( list->Visit(i) );
+        }
+        cout << ")";
+
+    }else if(t==OT::Dict){ // 字典
+
+        //cout<<"-Print Dict-"<<endl;
+        ObjectDict* dict = (ObjectDict*)obj;
+        cout << "[";
+        map<string, DefObject*>::iterator it = dict->value.begin();
+        bool dv = false;
+        for(;it!=dict->value.end();++it){
+            if(dv) cout<<", "; else dv=true;
+            cout<<"'"<<it->first<<"'";
+            Print( it->second );   
         }
         cout << "]";
 

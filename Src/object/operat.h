@@ -25,6 +25,8 @@ class Conversion
 	static bool Bool(DefObject*); // 转换为 bool 类型
 	static string String(DefObject*); // 转换为 string 类型
 	static long Long(DefObject*); // 转换为 long 类型
+
+	static bool CanLong(DefObject*); // 是否可以转换为 long
 };
 
 

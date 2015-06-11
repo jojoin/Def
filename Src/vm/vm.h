@@ -53,6 +53,8 @@ class Vm {
 
 	DefObject* Evaluat(Node*);  // 对节点求值操作
 
+	DefObject* Assign(Node*); // 赋值操作
+
 	DefObject* Print(Node*); // 打印操作
 	DefObject* Print(DefObject*); // 打印操作
 
