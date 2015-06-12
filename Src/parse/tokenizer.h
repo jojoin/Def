@@ -13,16 +13,13 @@
 #include "token.h"
 #include "../util/log.h"
 #include "../util/str.h"
-#include "../module/error.h"
 
 
 using namespace std;
-using namespace def::token;
-using namespace def::error;
-
 
 namespace def {
-namespace token {
+namespace parse {
+
 
 #define S Token::State
 
@@ -41,16 +38,6 @@ class Tokenizer {
 	public:
 
 	Tokenizer(bool, string, vector<Word>*);
-
-	// 抛出错误
-	inline bool Error(int code){
-		string msg = filepath + " ("
-			+Str::l2s(line) + ","
-			+Str::l2s(word_pos)
-			+") : " + tok;
-		//tok;
-		return Error::Throw(ErrorType::Token, code, msg);
-	};
 
 	// 读取一个字符 并移动指针
 	inline string Read(){
@@ -145,7 +132,7 @@ class Tokenizer {
 
 #undef S
 
-} // --end-- namespace token
+} // --end-- namespace parse
 } // --end-- namespace def
 
 

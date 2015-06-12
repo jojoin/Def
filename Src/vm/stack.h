@@ -19,28 +19,32 @@ using namespace def::object;
 
 
 namespace def {
-namespace stack {
+namespace vm {
 
 // Def 语言执行变量栈
 struct Stack{
 
 	map<string, DefObject*> v_local; // 本地变量名字表
-	//list<DefObject*> o_create;       // 本地新创建的变量（用于垃圾回收）
 	Stack* parent;                   // 父栈
-	//vector<Stack*> childs;         // 子栈列表
 
-	Stack();
-	
-	//size_t Regist(DefObject*);           // 登记新创建的值
-	DefObject* VarPut(string, DefObject*);   // 将变量入栈
-	DefObject* VarGet(string);         // 取变量值（不存在返回NULL）
+	public:
+
+	Stack(Stack*p=NULL);
+
+	// 变量操作
+	DefObject* VarPut(string, DefObject*);   // 将变量入当前栈（返回旧变量，不存在返回NULL）
+	DefObject* VarGet(string);         // 于当前栈取变量值（不存在返回NULL）
+
+	DefObject* VarPutUp(string, DefObject*, bool);   // 向上查找变量并入栈（返回旧变量，不存在返回NULL）
+	DefObject* VarGetUp(string);   // 向上查找取得变量值
 
 };
 
 
 
-} // --end-- namespace stack
+} // --end-- namespace vm
 } // --end-- namespace def
+
 
 #endif
 // --end-- DEF_STACK_H

@@ -10,11 +10,10 @@
 #include "object.h"
 
 using namespace std;
-using namespace def::object;
 
 
 namespace def {
-namespace operat {
+namespace object {
 
 
 
@@ -40,7 +39,7 @@ class Math
 };
 
 
-} // --end-- namespace operat
+} // --end-- namespace object
 } // --end-- namespace def
 
 

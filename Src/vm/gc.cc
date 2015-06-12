@@ -8,11 +8,11 @@
 
 using namespace std;
 
+using namespace def::parse;
 using namespace def::object;
-using namespace def::node;
-using namespace def::gc;
 
-
+namespace def {
+namespace vm {
 
 /**
  * 构造初始化
@@ -281,3 +281,7 @@ bool Gc::Recycle(DefObject* obj)
 
 #undef T
 #undef IS_CONTAINER_OBJ
+
+
+} // --end-- namespace vm
+} // --end-- namespace def

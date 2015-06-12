@@ -7,7 +7,7 @@
 #include "token.h"
 
 namespace def {
-namespace token {
+namespace parse {
 
 
 	// 符号数组
@@ -109,5 +109,5 @@ Token::State Token::GetState(char tok)
 
 
 
-} // --end-- namespace token
+} // --end-- namespace parse
 } // --end-- namespace def

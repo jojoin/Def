@@ -8,25 +8,24 @@
 
 #include "tokenizer.h"
 #include "node.h"
-#include "../module/error.h"
 
 using namespace std;
-using namespace def::token;
-using namespace def::node;
-using namespace def::error;
+
+
+namespace def {
+namespace parse {
+
 
 // NodeType
 #define T NodeType
-
-namespace def {
-namespace node {
-
 
 class Nodezer {
 
 	public:
 
 	Nodezer(vector<Word>*, string);
+
+	/*
 
 	// 错误中断抛出
 	inline bool Error(int code){
@@ -42,6 +41,10 @@ class Nodezer {
 		//tok;
 		return Error::Throw(ErrorType::Node, code, msg);
 	};
+
+	*/
+
+
 
 	inline void Read(){
 		try{
@@ -108,11 +111,14 @@ class Nodezer {
 
 }; // --end-- class Nodezer
 
-} // --end-- namespace node
-} // --end-- namespace def
 
 # undef T // NodeType
 
+
+} // --end-- namespace parse
+} // --end-- namespace def
+
+
+
 #endif
 // --end-- DEF_NODEZER_H
-

@@ -14,9 +14,9 @@ using namespace def::util;
 
 
 namespace def {
-namespace node {
+namespace parse {
 
-#define NODELIST(N, D)             \
+#define NODELIST(N, D)              \
 								\
 	N(Normal, 0)              	\
 	D(Group, 0)              	\
@@ -29,6 +29,7 @@ namespace node {
 	D(String, 0)				\
 								\
 	D(Assign, 1)              	\
+	D(AssignUp, 1)             	\
 								\
 	D(Add, 2)					\
 	D(Sub, 2)					\
@@ -56,6 +57,8 @@ namespace node {
 	D(Priority, 0)				\
 								\
 	D(Print, 0)              	\
+								\
+	D(Import, 0)              	\
 								\
 	N(End, 0)            
 
@@ -275,7 +278,7 @@ struct NodeGroup : NodeTree{
 
 // 优先级
 struct NodePriority : NodeOneTree{
-	NodePriority(Word &w ,Node*ch=NULL)
+	NodePriority(Word &w, Node*ch=NULL)
 	: NodeOneTree(NT::Priority, w, ch){}
 	inline void Print(string prefix=""){ // 打印
 		cout<<prefix+"Priority:"<<endl;
@@ -283,6 +286,18 @@ struct NodePriority : NodeOneTree{
 		// Child()->Print(prefix);
 	};
 };
+
+
+// 模块加载
+struct NodeImport : NodeOneTree{
+	NodeImport(Word &w, Node*ch=NULL)
+	: NodeOneTree(NT::Import, w, ch){}
+	inline void Print(string prefix=""){ // 打印
+		cout<<prefix+"Import:"<<endl;
+		if(child) child->Print(prefix);
+	};
+};
+
 
 
 // def defun 处理器和函数公用定义结构
@@ -495,6 +510,17 @@ struct NodeAssign: NodeTwinTree{
 	};
 };
 
+// :: 向上查找赋值节点
+struct NodeAssignUp: NodeTwinTree{
+	NodeAssignUp(Word &w)
+	: NodeTwinTree(NT::AssignUp, w){}
+	inline void Print(string prefix=""){ // 打印
+		cout<<prefix+"AssignUp(::)"<<endl;
+		Left()->Print(prefix+PRT);
+		Right()->Print(prefix+PRT);
+	};
+};
+
 
 // + 加操作节点
 struct NodeAdd: NodeTwinTree{
@@ -657,14 +683,13 @@ struct NodeString : Node{
 
 
 #undef NT   // NodeType
-
 #undef PRT   // 打印缩进
 
 
 
 
 
-} // --end-- namespace node
+} // --end-- namespace parse
 } // --end-- namespace def
 
 

@@ -13,18 +13,18 @@
 
 using namespace std;
 
+using namespace def::parse;
 using namespace def::object;
-using namespace def::node;
 
 namespace def {
-namespace gc {
+namespace vm {
 
 // 空闲对象列表
 typedef list<DefObject*> ObjList;
 
 // 对象分配及回收
 class Gc{
-	
+
 	public:
 
 	ObjList free_int;      // 空闲 int 列表
@@ -57,7 +57,7 @@ class Gc{
 };
 
 
-} // --end-- namespace gc
+} // --end-- namespace vm
 } // --end-- namespace def
 
 #endif

@@ -4,8 +4,8 @@
 
 #include "node.h"
 
-namespace def{
-namespace node{
+namespace def {
+namespace parse {
 
 Node::~Node(){}; // 纯虚析构函数的定义
 
@@ -18,5 +18,5 @@ Node::~Node(){}; // 纯虚析构函数的定义
 #undef NT   // NodeType
 
 
+} // end namespace parse
 } // end namespace def
-} // end namespace node

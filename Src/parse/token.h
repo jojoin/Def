@@ -15,18 +15,16 @@ using namespace def::util;
 
 
 namespace def {
-namespace token {
+namespace parse {
 
 #define TOKEN_LIST(S, K)             \
 									\
 	/* 符号 */						\
 	S(Assing, ":", 0)              \
+	S(AssignUp, "::", 0)              \
 	S(Comma, ",", 0)              \
 	S(Dot, ".", 0)              \
-	S(Semicolon, ";", 0)              \
-	/*S(Conditional, "?", 0)*/              \
-	/*S(Exclamation, "!", 0)*/              \
-	/*S(Tilde, "~", 0)*/              \
+	S(Semicolon, ";", 0)           \
                                 \
 	S(Add, "+", 0)              \
 	S(Sub, "-", 0)              \
@@ -63,18 +61,15 @@ namespace token {
 	K(True, "true", 0)              \
 	K(False, "false", 0)            \
 									\
-	K(Print, "print", 0)            \
-									\
 	K(If, "if", 0)                  \
 	K(Elif, "elif", 0)              \
 	K(Else, "else", 0)              \
-	K(While, "while", 0)            /*
+	K(While, "while", 0)            \
 									\
-	K(And, "and", 0)                \
-	K(Or, "or", 0)                  \
-	K(Is, "is", 0)                  \
-	K(As, "as", 0)
-	*/
+	K(Import, "import", 0)          \
+									\
+	K(Print, "print", 0)
+	
 
 
 class Token {
@@ -204,7 +199,8 @@ class Token {
 
 }; // --end-- class Token
 
-} // --end-- namespace token
+
+} // --end-- namespace parse
 } // --end-- namespace def
 
 

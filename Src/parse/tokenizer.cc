@@ -19,14 +19,18 @@
 
 using namespace std;
 
-using namespace def::token;
 using namespace def::util;
 
+
+namespace def {
+namespace parse {
+	
 // Log::log
 #define ERR(str) cerr<<str<<endl;exit(1);
 
 // Token::State
 #define S Token::State
+
 
 /**
  * 构造
@@ -134,7 +138,7 @@ void Tokenizer::Scan()
 			break; //结束
 		}
 
-		// 处理其他情况
+		// 处理默认情况
 		if(ss==S::Normal){
 
 			if( s==S::Normal || s==S::Space || s==S::NewLine ){
@@ -183,7 +187,7 @@ void Tokenizer::Scan()
 			}else if(s==S::Unknow){
 
 				// 未识别的符号
-				Error(1);
+				ERR(" no sign ！");
 
 			}
 
@@ -307,7 +311,7 @@ void Tokenizer::Scan()
 		}else{
 
 			// 未识别的符号
-			Error(1);
+			ERR(" no match sign ");
 		}
 
     	// 换行纪录
@@ -331,7 +335,9 @@ void Tokenizer::Scan()
 }
 
 
-
 #undef S // Token::State
 #undef ERR // Log::log exit
 
+
+} // --end-- namespace parse
+} // --end-- namespace def

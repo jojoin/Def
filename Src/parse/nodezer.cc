@@ -9,13 +9,16 @@
 
 #include "nodezer.h"
 
+using namespace std;
+
+
+namespace def {
+namespace parse {
+
+
 #define S Token::State
 #define T NodeType
 
-using namespace std;
-
-using namespace def::token;
-using namespace def::node;
 
 // Log::log
 #define ERR(str) cerr<<str<<endl;exit(1);
@@ -106,12 +109,17 @@ NodeType Nodezer::GetNodeType(Word &cwd)
             return T::If;
         }else if(v=="while"){
             return T::While;
+
+        }else if(v=="import"){
+            return T::Import; // 模块加载
         }
 
     }else if(s==S::Sign){ // 符号
 
         if(v==":"){
             return T::Assign; //赋值 :
+        }else if(v=="::"){
+            return T::AssignUp; //向上查找赋值 ::
         }else if(v=="("){
             return T::List; //列表or优先级 (
         }else if(v=="["){
@@ -370,6 +378,7 @@ Node* Nodezer::ParseNode(Node*p1=NULL, Node*p=NULL)
 
         return p;
 
+    // 循环
     }else if( t==T::While ){
 
         //cout << "-While-" << endl;
@@ -385,9 +394,8 @@ Node* Nodezer::ParseNode(Node*p1=NULL, Node*p=NULL)
         Move(1); // jump ;
         return p;
 
-
-    // 打印
-    }else if( t==T::Print ){
+    // 打印 模块加载
+    }else if( t==T::Print || t==T::Import ){
 
         //cout << "-Print-" << endl;
         Move(1); // jump print
@@ -595,3 +603,6 @@ bool Nodezer::IsGroupEnd()
 
 #undef NODELIST
 
+
+} // --end-- namespace parse
+} // --end-- namespace def

@@ -2,6 +2,19 @@
 	Minimal main program -- everything is loaded from the library
 */
 
+#ifdef _WIN32
+    #define WINDOWS 1
+#endif
+#ifdef WIN32
+    #define WINDOWS 1
+#endif
+#ifdef _WIN64
+    #define WINDOWS 1
+#endif
+#ifdef WIN64
+    #define WINDOWS 1
+#endif
+
 
 #include <iostream>
 #include <string>
@@ -19,7 +32,7 @@ int main(int argc, char *argv[])
     //cout << "argc= " << argc << endl;
 
     // 文件参数
-    if(sizeof(argv)>1){
+    if(sizeof(argv)>2){
         // cout << "code file is " << argv[1] << endl;
         Vm v = Vm(); // 初始化引擎
         v.Eval(argv[1], true);

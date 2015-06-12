@@ -5,23 +5,29 @@
 
 
 
+import "math"
 
 
-obj : ['k1' 123 'k2' 456]
-obj['k3'] : 789
-print obj
+
+
+
+obj : ['k1' 123 '1' 456]
+
+obj['3'] : 789
+
+print obj['k1']
 
 
 li : (1 2 3)
 
 li[1] : 999
 li[] : 'new'
-li[] : 'asdfasd'
-li[] : 'nedgfhdfgw'
-li[] : 'asdgdfhdfghdfgh'
+
+print li[4]
 
 
-print li
+
+
 
 
 

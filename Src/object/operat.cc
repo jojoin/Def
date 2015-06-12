@@ -8,13 +8,16 @@
 #include "../util/str.h"
 
 
-
 using namespace std;
 
-using namespace def::operat;
-using namespace def::object;
 
 using namespace def::util;
+
+
+namespace def {
+namespace object {
+
+
 
 
 #define T ObjectType
@@ -97,3 +100,8 @@ long Conversion::Long(DefObject *obj)
 
 
 #undef T
+
+
+
+} // --end-- namespace object
+} // --end-- namespace def

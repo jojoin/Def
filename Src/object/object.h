@@ -14,7 +14,7 @@
 
 using namespace std;
 
-using namespace def::node;
+using namespace def::parse;
 
 
 namespace def {
@@ -46,7 +46,10 @@ enum class ObjectType
 
 	// 高级
 	Class,   // 类
-	Object   // 对象实例
+	Object,  // 对象实例
+
+	Module   // 模块
+
 };
 
 
@@ -151,13 +154,13 @@ struct ObjectString : DefObject{
 
 
 
-// List 列表对象
-struct ObjectList : DefObject{
+// 顺序结构对象父类
+struct ObjectExArr : DefObject{
 	vector<DefObject*> value;
-	ObjectList()
-		: DefObject(T::List)
+	ObjectExArr(T t)
+		: DefObject(t)
 	{
-		value.clear();
+		value = vector<DefObject*>();
 	}
 	// 列表末尾添加对象
 	DefObject* Push(DefObject* obj){
@@ -188,14 +191,34 @@ struct ObjectList : DefObject{
 };
 
 
+// List 列表对象
+struct ObjectList : ObjectExArr{
+	ObjectList()
+	: ObjectExArr(T::List)
+	{}
 
-// Dict 字典对象
-struct ObjectDict : DefObject{
+};
+
+
+
+// Block 块对象
+struct ObjectBlock : ObjectExArr{
+	ObjectBlock()
+		: ObjectExArr(T::Block)
+	{}
+};
+
+
+
+
+
+// 字典型对象父类
+struct ObjectExPkg : DefObject{
 	map<string, DefObject*> value;
-	ObjectDict()
-		: DefObject(T::Dict)
+	ObjectExPkg(T t)
+		: DefObject(t)
 	{
-		//value.clear();
+		value = map<string, DefObject*>();
 	}
 	// 添加元素
 	DefObject* Push(string key,  DefObject* obj){
@@ -228,36 +251,37 @@ struct ObjectDict : DefObject{
 
 
 
-
-// Block 块对象
-struct ObjectBlock : DefObject{
-	vector<ObjectNode*> value;
-	ObjectBlock()
-		: DefObject(T::Block)
-	{
-		value.clear();
-	}
-	// 列表末尾添加对象
-	DefObject* Push(ObjectNode* obj){
-        // cout<<"list push"<<endl;
-		value.push_back(obj);
-		return obj;
-	}
-	// 返回列表大小
-	size_t Size(){
-        // cout<<"list size"<<endl;
-        // cout<<value.size()<<endl;
-        return value.size();
-	}
-	// 访问元素
-	ObjectNode* Visit(size_t i){
-        // cout<<"list visit"<<endl;
-		return value[i];
-	}
-
+// Dict 字典对象
+struct ObjectDict : ObjectExPkg{
+	ObjectDict()
+		: ObjectExPkg(T::Dict)
+	{}
 };
 
 
+// Class 类对象
+struct ObjectClass : ObjectExPkg{
+	ObjectClass()
+		: ObjectExPkg(T::Class)
+	{}
+};
+
+
+// Object 对象实例
+struct ObjectObject : ObjectExPkg{
+	ObjectObject()
+		: ObjectExPkg(T::Object)
+	{}
+};
+
+
+// Module 模块对象
+struct ObjectModule : ObjectExPkg{
+	string path; // 文件绝对路径
+	ObjectModule()
+		: ObjectExPkg(T::Module)
+	{}
+};
 
 
 
