@@ -8,6 +8,7 @@
 #include "module.h"
 
 #include "../util/path.h"
+#include "../util/fs.h"
 
 using namespace std;
 
@@ -34,51 +35,34 @@ Module::Module()
  * @param  name  模块名称
  * @param  basefile  当前文件
  */
-ObjectModule* Module::Load(string name, string basefile)
+ObjectModule* Module::GetCache(string file)
 {
-	ObjectModule* sysmd = LoadSys(name);
-	if(sysmd){
-		return sysmd; // 返回系统模块
-	}
-	vector<string> pts = MatchFiles(name, basefile);
-	size_t i = 0, len = pts.size();
-	while(i<len){
-		string file = pts[i];
-		// cout<<file<<endl;
-		map<string, ObjectModule*>::iterator iter = _exist.find(file);
-		// 是否已经缓存
-		if(iter!=_exist.end())
-		{
-		    return iter->second; // 返回缓存
-		}
-		// 读取文件
-		ifstream fin(file, ios::in);
-		if(fin)
-		{	// 存在文件
-			fin.close();
-			ObjectModule* mod = Create(file); // 建立模块
-			_exist.insert(map<string, ObjectModule*>::value_type(file, mod));
-			// _exist[file] = mod; // 缓存
-			return mod;
-		}
-		i++;
+	map<string, ObjectModule*>::iterator iter = _exist.find(file);
+	// 是否已经缓存
+	if(iter!=_exist.end())
+	{
+	    return iter->second; // 返回缓存
 	}
 
-	return NULL; // 未查找到模块
+	return NULL; // 未查找到系统模块或缓存
 }
 
 
 
 /**
- * 读取模块文件，并分析执行
+ * 缓存模块
  */
-ObjectModule* Module::Create(string file)
+void Module::SetCache(string file, ObjectModule* cache)
 {
-	
-	return NULL;
+    _exist.insert(map<string, ObjectModule*>::value_type(file, cache));
 }
 
-
+/**
+ * 清除模块缓存
+ */
+void Module::ClearCache(string name, string basefile)
+{
+}
 
 
 /**
@@ -91,12 +75,10 @@ ObjectModule* Module::LoadSys(string name)
 }
 
 
-
-
 /**
  * 获取目标文件列表
  */
-vector<string> Module::MatchFiles(string name, string basefile)
+string Module::MatchFile(string name, string basefile)
 {
 	vector<string> paths;
 	string basepath = basefile=="" ? Path::cwd() : Path::getDir(basefile);
@@ -104,20 +86,24 @@ vector<string> Module::MatchFiles(string name, string basefile)
 	string ext = Path::getFileExt(name);
 	// cout<<"ext="<<ext<<endl;
 	// cout<<"tar="<<tar<<endl;
-
 	if(ext!=""){
-		paths.push_back( tar );
+		return Fs::Exist(tar) ? tar : "";
 	}else{
 		string d = Path::div();
-		// paths.push_back( tar );
-		paths.push_back( tar+".d" );
-		paths.push_back( tar+d+"index.d" );
-		string fname = Path::getFileName(name);
-		paths.push_back( tar+d+fname+".d" );
+
+		string t1 = tar + ".d";
+		if( Fs::Exist(t1) ) return t1;
+
+		string t2 = tar + d + "index.d";
+		if( Fs::Exist(t2) ) return t2;
+
+		string t3 = tar + d + Path::getFileName(name) + ".d";
+		if( Fs::Exist(t3) ) return t3;
 	}
 
-	return paths;
+	return ""; // 未能匹配
 }
+
 
 
 

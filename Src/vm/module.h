@@ -31,13 +31,15 @@ class Module {
 
 	Module();
 
-	ObjectModule* Load(string name, string basefile=""); // 加载模块
+	// 判断并加载模块（模块已缓存或为系统模块则加载成功）
+	ObjectModule* Load(string name, string file=""); 
 	ObjectModule* LoadSys(string name); // 加载系统模块
 
-	vector<string> MatchFiles(string name, string basefile); // 获取目标文件列表
+	static string MatchFile(string name, string basefile=""); // 匹配模块文件
 
-	// 读取模块文件，并分析执行
-	ObjectModule* Create(string path);
+	ObjectModule* GetCache(string file); // 获取缓存模块
+	void SetCache(string file, ObjectModule* cache); // 缓存模块
+	void ClearCache(string name, string basefile=""); // 清除模块
 
 
 };

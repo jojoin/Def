@@ -67,9 +67,7 @@ struct DefObject{
 		: type(t)
 		, refcnt(r)
 	{}
-	// virtual DefObject* Push(DefObject*){};
-	// virtual DefObject* Visit(size_t){};
-	// virtual size_t Size(){};
+	static void Print(DefObject*); // 打印
 };
 
 
@@ -220,13 +218,20 @@ struct ObjectExPkg : DefObject{
 		: DefObject(t)
 	{}
 
-	// 添加元素
-	DefObject* Push(string key,  DefObject* obj){
+	// 替换设置元素
+	DefObject* Replace(string key,  DefObject* obj){
         // cout<<"dict push"<<endl;
-        value.insert(map<string, DefObject*>::value_type(key, obj));
-        //value[key] = obj;
+        // value.insert(map<string, DefObject*>::value_type(key, obj));
+        value[key] = obj;
 		return obj;
 	}
+	// 添加元素
+	DefObject* Insert(string key,  DefObject* obj){
+        // cout<<"dict push"<<endl;
+        value.insert(map<string, DefObject*>::value_type(key, obj));
+		return obj;
+	}
+
 	// 返回列表大小
 	size_t Size(){
         // cout<<"dict size"<<endl;
@@ -285,7 +290,23 @@ struct ObjectModule : ObjectExPkg{
 
 
 
+
 #undef T   // ObjectType
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 } // --end-- namespace object

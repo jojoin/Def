@@ -42,6 +42,7 @@ class Gc{
 
 	ObjectBool* AllotBool(bool);   // 分配 bool 对象
 	ObjectInt* AllotInt(long);     // 分配 int 对象
+	ObjectFloat* AllotFloat(double);     // 分配 float 对象
 	ObjectString* AllotString(string);     // 分配 string 对象
 
 	ObjectList* AllotList();       // 分配 list 对象

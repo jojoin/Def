@@ -54,9 +54,6 @@ class Exec {
 	static Node* Parse(string &text, string file=""); // 解析文本得到抽象语法树
 	bool Run(); // 执行调用帧
 
-
-
-
 	// 求值
 	DefObject* Evaluat(Node*);  // 对节点求值操作
 
@@ -65,7 +62,6 @@ class Exec {
 	DefObject* AssignUp(Node*); // 向上搜索赋值
 
 	DefObject* Print(Node*); // 打印操作
-	DefObject* Print(DefObject*); // 打印操作
 
 	DefObject* Operate(Node*, Node*, NodeType); // 算法操作
 
@@ -80,9 +76,10 @@ class Exec {
 	DefObject* FuncDefine(Node*); // 函数定义
 
 	DefObject* ContainerAccess(Node*); // 容器访问
-	// DefObject* MemberAccess(Node*);    // 成员访问
+	DefObject* MemberAccess(Node*);    // 成员访问
 	
-	DefObject* Import(Node*);    // 模块加载
+	DefObject* Import(Node*);        // 模块加载
+	ObjectModule* CreateModule(string); // 模块创建
 
 
 

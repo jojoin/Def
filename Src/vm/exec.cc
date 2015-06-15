@@ -5,7 +5,8 @@
 
 #include <iostream>
 #include <cstdlib>
-#include <direct.h>
+#include <string>
+#include <map>
 
 #include "exec.h"
 #include "../util/fs.h"
@@ -230,6 +231,7 @@ DefObject* Exec::Evaluat(Node* n)
         ELSE_IF(If)
         ELSE_IF(While)
         ELSE_IF(ContainerAccess)
+        ELSE_IF(MemberAccess)
         ELSE_IF(Import)
 #undef ELSE_IF
 
@@ -279,6 +281,19 @@ DefObject* Exec::Assign(Node*n)
         _stack->VarPut(name, rv);   // 变量入栈
         _gc->Quote(rv); // 引用计数 +1
 
+    // 成员访问赋值
+    }else if(nt==NT::MemberAccess){
+        // cout<<"MemberAccess Assign name="<<nl->Right()->GetName()<<endl;
+        ObjectModule *mod = (ObjectModule*)Evaluat( nl->Left() );
+        string member = nl->Right()->GetName();
+        DefObject *exi = mod->Visit(member);
+        if(exi){ //已存在，解引用
+            Free(exi);
+            mod->Replace(member, rv);
+        }else{
+       		mod->Insert(member, rv); // 设置成员
+        }
+
     // 容器访问赋值
     }else if(nt==NT::ContainerAccess){
 
@@ -302,8 +317,10 @@ DefObject* Exec::Assign(Node*n)
             DefObject *exi = dict->Visit(key);
             if(exi){ //已存在，解引用
                 Free(exi);
-            }
-            dict->Push(key, rv); // 添加
+            dict->Replace(key, rv);
+        }else{
+       		dict->Insert(key, rv); // 设置成员
+        }
 
         // 列表
         }else if(ct==OT::List){
@@ -429,7 +446,7 @@ DefObject* Exec::Operate(Node *nl, Node *nr, NT t)
 DefObject* Exec::Print(Node *n)
 {
     DefObject* obj = Evaluat( n->Child() );
-    Print( obj ); // 求值并打印
+    DefObject::Print( obj ); // 求值并打印
     cout << endl;
 
     // 临时变量释放
@@ -440,71 +457,6 @@ DefObject* Exec::Print(Node *n)
 
     return obj;
 }
-
-
-
-/**
- * 打印对象
- */
-DefObject* Exec::Print(DefObject *obj)
-{
-
-    OT t = obj->type; // 获取类型
-
-    if( t==OT::Int ){
-
-        //cout<<"-Print Int-"<<endl;
-        cout << ((ObjectInt*)obj)->value;
-
-    }else if(t==OT::String){
-
-        cout << "\"";
-        cout << ((ObjectString*)obj)->value;
-        cout << "\"";
-
-    }else if(t==OT::List){ // 列表
-
-        //cout<<"-Print List-"<<endl;
-        ObjectList* list = (ObjectList*)obj;
-        cout << "(";
-        //size_t sz = obj->Size();
-        size_t sz = list->Size();
-        for(size_t i=0; i<sz; i++){
-            if(i) cout<<" ";
-            Print( list->Visit(i) );
-        }
-        cout << ")";
-
-    }else if(t==OT::Dict){ // 字典
-
-        //cout<<"-Print Dict-"<<endl;
-        ObjectDict* dict = (ObjectDict*)obj;
-        cout << "[";
-        map<string, DefObject*>::iterator it = dict->value.begin();
-        bool dv = false;
-        for(;it!=dict->value.end();++it){
-            if(dv) cout<<", "; else dv=true;
-            cout<<"'"<<it->first<<"'";
-            Print( it->second );   
-        }
-        cout << "]";
-
-    }else if(t==OT::None){
-        cout << "none";
-    }else if(t==OT::Bool){
-        if( Conversion::Bool(obj) ){
-            cout << "true";
-        }else{
-            cout << "false";
-        }
-    }else{
-
-    }
-
-    return obj;
-}
-
-
 
 
 /**
@@ -589,7 +541,7 @@ DefObject* Exec::Dict(Node* n)
         // 添加数组项目
         string key = Conversion::String( Evaluat( p->Child(i) ) );
         if(key!=""){
-            dict->Push( 
+            dict->Insert( 
                 key, 
                 Evaluat( p->Child(i+1) )
             );
@@ -666,13 +618,42 @@ DefObject* Exec::ContainerAccess(Node* n)
 
 
 
+/**
+ * MumberAccess 成员访问
+ */
+DefObject* Exec::MemberAccess(Node* n)
+{
+    // cout<<"-Exec::MemberAccess-"<<endl;
+    NodeMemberAccess *p = (NodeMemberAccess*) n;
+
+    DefObject* result = NULL; //成员访问结果
+
+    Node* left = p->Left();
+    DefObject* base = Evaluat( left );
+	OT bt = base->type;
+    Node* right = p->Right();
+
+    if(right->type!=NT::Variable){
+    	ERR("Mumber name must be a Variable !");
+    }
+
+    if(bt==OT::Module){ // 模块访问
+        // cout<<"Module::key = "<<right->GetName()<<endl;
+        result = ((ObjectModule*)base)->Visit( right->GetName() ); 
+
+    }
+
+    // cout<<"return result="<<(int)result<<endl;
+    return result ? result : NewObjNone(); // 无效访问 返回 none
+}
+
 
 /**
  * Import 模块加载
  */
 DefObject* Exec::Import(Node* n)
 {
-	LOCALIZE_module
+	LOCALIZE_module;
 
     // cout<<"-Exec::Import-"<<endl;
 	DefObject* name = Evaluat( n->Child() );
@@ -681,18 +662,79 @@ DefObject* Exec::Import(Node* n)
 		ERR("Module import only <string> name or file path !");
 	}
 
-	// 加载模块
 	string mdname = Conversion::String( name );
-	ObjectModule* md = _module->Load(
-		mdname, ""
-	);
+	// 加载模块
+	
+	ObjectModule* md = _module->LoadSys( mdname );
+	if(md) return md; // 返回系统模块
 
-	if(!md){
-		// ERR("Can't find the module : "+mdname);
+	string mdfile = Module::MatchFile(mdname);
+	if(mdfile==""){
+		ERR("Can't find module\""+mdname+"\" !");
 	}
 
+	md = _module->GetCache( mdfile );
+	if(md) return md; // 返回已经加载过的缓存的模块
+	
+	// 创建
+	md = CreateModule(mdfile);
+
+	if(!md){
+		ERR("Can't create module\""+mdname+"\" !");
+	}
+
+	// 设置缓存
+	_module->SetCache(mdfile, md);
 
 	return md;
+}
+
+
+/**
+ * 模块创建
+ */
+ObjectModule* Exec::CreateModule(string file)
+{
+    // cout<<"-Exec::CreateModule-"<<file<<endl;
+	// 新建环境
+	Envir le = Envir(_envir);
+
+	le.SetFile( file );
+	le.Set( EnvirType::Module );
+
+	string text = Fs::ReadFile(file);
+	Node *nd = Parse(text, file);
+	// nd->Print();
+	le.Set( nd ); // 解析语法
+
+	Stack *stack = new Stack(); // 新栈帧
+	le.Set( stack );
+
+    // cout<<"Exec exec = Exec(le);"<<endl;
+	// 新建调用
+	Exec exec = Exec(le);
+
+    // cout<<"bool done = exec.Run();"<<endl;
+    // 执行模块调用
+    bool done = exec.Run();
+
+    if(!done){
+    	return NULL; // 执行失败
+    }
+
+    // cout<<"stack->Print();"<<endl;
+    // stack->Print();
+
+    // cout<<"ObjectModule *om = new ObjectModule();"<<endl;
+    // 生成模块对象
+    ObjectModule *om = new ObjectModule();
+    map<string, DefObject*>::iterator itr = stack->v_local.begin();
+    for(; itr != stack->v_local.end(); ++itr){
+        om->Insert( itr->first, itr->second );
+    }
+
+    // cout<<"CreateModule!!!  = "<<om<<endl;
+    return om;
 }
 
 

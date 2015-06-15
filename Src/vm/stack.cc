@@ -19,9 +19,7 @@ namespace vm {
 
 Stack::Stack(Stack*p)
 	: parent( p )
-{
-
-}
+{}
 
 
 /**
@@ -99,6 +97,40 @@ DefObject* Stack::VarGetUp(string name)
 }
 
 
+
+
+/**
+ * 打印栈帧
+ */
+void Stack::Print()
+{
+
+    cout<<"======== stack ========"<<endl;
+    map<string, DefObject*>::iterator itr = v_local.begin();
+    for(; itr != v_local.end(); ++itr){
+    	cout<<itr->first<<" : ";
+    	DefObject::Print( itr->second );
+    	cout<<endl;
+    }
+    cout<<"========= end ========="<<endl;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 } // --end-- namespace vm
 } // --end-- namespace def
+
+
 

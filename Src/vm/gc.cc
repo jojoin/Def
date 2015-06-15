@@ -64,6 +64,17 @@ ObjectInt* Gc::AllotInt(long val)
 }
 
 
+
+/**
+ * 创建 Float 对象
+ */
+ObjectFloat* Gc::AllotFloat(double val)
+{
+	//cout<<"float = "<<val<<endl;
+	return new ObjectFloat(val);
+}
+
+
 /**
  * 创建 String 对象
  */
@@ -132,15 +143,15 @@ DefObject* Gc::Allot(Node* n)
 		return prep_none;
 
 	}else if(t==T::Bool){ // bool
-
 		return AllotBool(n->GetBool());
 
 	}else if(t==T::Int){ // int
-
 		return AllotInt(n->GetInt());
 
-	}else if(t==T::String){ // string
+	}else if(t==T::Float){ // float
+		return AllotFloat(n->GetFloat());
 
+	}else if(t==T::String){ // string
 		return AllotString(n->GetString());
 
 

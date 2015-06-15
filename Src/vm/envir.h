@@ -44,6 +44,7 @@ class Envir {
 	public:
 
 	EnvirType _type;    // 调用类型
+	string    _file;    // 调用执行所在文件
 
 	Module* _module;   // 模块加载管理
 	Gc*     _gc;       // 对象分配及垃圾回收
@@ -54,6 +55,7 @@ class Envir {
 
 	// 完全初始化
 	Envir(void){
+		_file   = "";
 		_type   = EnvirType::Main;
 		_module = new Module();
 		_gc     = new Gc();
@@ -73,6 +75,7 @@ class Envir {
 	inline void Set(Gc       *o){ _gc     = o; }
 	inline void Set(Stack    *o){ _stack  = o; }
 	inline void Set(Node     *o){ _node   = o; }
+	inline void SetFile(string &o){ _file = o; }
 	// 全部析构
 	void Clear(){
 		delete _module;

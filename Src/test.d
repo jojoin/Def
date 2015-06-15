@@ -5,24 +5,42 @@
 
 
 
-import "math"
+math : import "math"
+
+print math.num 
+print math.PI
+
+math.num : 123456789
+
+print math.num
 
 
 
 
-obj : ['k1' 123 '1' 456]
-
-obj['3'] : 789
-
-print obj['k1']
 
 
-li : (1 2 3)
 
-li[1] : 999
-li[] : 'new'
+# print math.name
+# print math.dt
+# print math.dt['k2']
 
-print li[4]
+
+
+
+
+# obj : ['k1' 123 '1' 456]
+
+# obj['3'] : 789
+
+# print obj['k1']
+
+
+# li : (1 2 3)
+
+# li[1] : 999
+# li[] : 'new'
+
+# print li[4]
 
 
 

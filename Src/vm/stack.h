@@ -38,6 +38,9 @@ struct Stack{
 	DefObject* VarPutUp(string, DefObject*, bool);   // 向上查找变量并入栈（返回旧变量，不存在返回NULL）
 	DefObject* VarGetUp(string);   // 向上查找取得变量值
 
+	// 打印栈帧
+	void Print();
+
 };
 
 
