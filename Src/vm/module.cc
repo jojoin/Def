@@ -24,7 +24,7 @@ namespace vm {
 
 Module::Module()
 {
-	_exist = map<string, ObjectModule*>();
+
 }
 
 
@@ -74,6 +74,7 @@ ObjectModule* Module::Load(string name, string basefile)
  */
 ObjectModule* Module::Create(string file)
 {
+	
 	return NULL;
 }
 

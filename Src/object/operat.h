@@ -1,9 +1,8 @@
+#ifndef DEF_OBJECT_OPERAT_H
+#define DEF_OBJECT_OPERAT_H
 /** 
  * Def 对象 操作
  */
-
-#ifndef DEF_OPERAT_H
-#define DEF_OPERAT_H
 
 #include <string>
 
@@ -45,5 +44,5 @@ class Math
 
 
 #endif
-// --end-- DEF_OPERAT_H
+// --end-- DEF_OBJECT_OPERAT_H
 

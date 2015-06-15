@@ -1,5 +1,5 @@
-#ifndef DEF_GC_H
-#define DEF_GC_H
+#ifndef DEF_VM_GC_H
+#define DEF_VM_GC_H
 
 /**
  * Def 对象分配及垃圾回收
@@ -61,5 +61,5 @@ class Gc{
 } // --end-- namespace def
 
 #endif
-// --end-- DEF_STACK_H
+// --end-- DEF_VM_GC_H
 

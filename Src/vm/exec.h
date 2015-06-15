@@ -1,5 +1,5 @@
-#ifndef DEF_EXEC_H
-#define DEF_EXEC_H
+#ifndef DEF_VM_EXEC_H
+#define DEF_VM_EXEC_H
 
 /**
  * Def 执行上下文（函数、处理器调用环境）
@@ -16,6 +16,7 @@
 #include "gc.h"
 #include "stack.h"
 #include "module.h"
+#include "envir.h"
 
 using namespace std;
 
@@ -25,47 +26,38 @@ using namespace def::parse;
 namespace def {
 namespace vm {
 
-
-// 调用栈类型
-enum class ExecType{
-	Main,    // 主入口调用
-	Module,  // 模块调用
-	Func,    // 函数调用
-	Proc,    // 处理器调用
-};
-
-
-
-// 调用栈
+// 调用
 class Exec {
 
 	public:
 
-	ExecType type;    // 调用栈类型
-
-	Node* _node;      // 抽象语法树
-	Stack* _stack;    // 执行栈
-	Gc* _gc;          // 对象分配及垃圾回收
-	Module* _mod;     // 模块管理
+	Envir _envir; // 当前调用执行环境
 
 	public:
 
-	Exec(Node*, Gc*, Module*, ExecType=ExecType::Main);
-	Exec(Exec&, ExecType=ExecType::Main); // 拷贝构造
+	Exec();
+	Exec(Envir e); // 拷贝执行环境构造
+
+	//~Exec(); // 析构
+
 	void StackPush(string, DefObject*); // 执行栈变量初始化
 	inline Stack* StackParent(Stack*p=NULL);           // 指定&获取父栈
 
-
 	// 支持
-	inline bool Free(DefObject*);      // 变量的解引用或垃圾回收
+	inline bool Free(DefObject*);      // 变量的解引用
 	inline ObjectNone* NewObjNone();   // 返回 none 对象
 	inline ObjectBool* NewObjTrue();   // 返回 true 对象
 	inline ObjectBool* NewObjFalse();  // 返回 false 对象
 
-	// 
-	DefObject* Run();  // 执行调用帧
+	// 执行
+	bool Main(string); // 从入口文件开始执行
+	static Node* Parse(string &text, string file=""); // 解析文本得到抽象语法树
+	bool Run(); // 执行调用帧
 
-	// 执行求值
+
+
+
+	// 求值
 	DefObject* Evaluat(Node*);  // 对节点求值操作
 
 	// 节点求值
@@ -103,4 +95,4 @@ class Exec {
 } // --end-- namespace def
 
 #endif
-// --end-- DEF_EXEC_H
+// --end-- DEF_VM_EXEC_H

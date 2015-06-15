@@ -36,34 +36,17 @@ namespace parse {
  * 构造
  * @isFile 是否为本地文件路径
  */
-Tokenizer::Tokenizer(bool isFile, string txt, vector<Word>* wds):
+Tokenizer::Tokenizer(string &text):
 	filepath(""),
-	text(txt),
-	words(wds)
+	text(text)
 {
-	// 读取本地文件
-	if(isFile){
-
-		// 一次性读取文件所有内容至string
-		// cout << "isFile" << endl;
-		ifstream in(txt, ios::in);
-		// cout << "ifstream" << endl;
-		istreambuf_iterator<char> beg(in), end;
-		// cout << "istreambuf_iterator" << endl;
-		string strdata(beg, end);
-		// cout << "strdata" << endl;
-		in.close();
-		// cout << "close" << endl;
-		text = strdata;
-		// cout << text << endl;
-
-	}
-
 	// 末尾加上换行 用于兼容
-	text += "\n\n\n";
+	// text += "\n\n\n";
+	
+	words = new vector<Word>(1024);
 
 	// 清理 初始化数据
-	Clear(); 
+	Clear();
 }
 
 
@@ -106,7 +89,7 @@ void Tokenizer::Push(S sta=S::Normal)
 /**
  * 扫描
  */
-void Tokenizer::Scan()
+vector<Word>* Tokenizer::Scan()
 {
 
 
@@ -331,7 +314,7 @@ void Tokenizer::Scan()
 
 #undef IS_SIGN
 
-
+	return words;
 }
 
 

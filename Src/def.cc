@@ -19,9 +19,7 @@
 #include <iostream>
 #include <string>
 
-#include "./vm/vm.h"
-
-//#include "Def.h" //wchar_t 
+#include "./vm/exec.h"
 
 using namespace std;
 using namespace def::vm;
@@ -34,9 +32,10 @@ int main(int argc, char *argv[])
     // 文件参数
     if(sizeof(argv)>2){
         // cout << "code file is " << argv[1] << endl;
-        Vm v = Vm(); // 初始化引擎
-        v.Eval(argv[1], true);
-        return 0;
+        
+        Exec exec = Exec(); // 初始化调用
+
+        return exec.Main(argv[1]); // 入口文件执行
     }
 
 

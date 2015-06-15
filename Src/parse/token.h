@@ -1,5 +1,5 @@
-#ifndef DEF_TOKEN_H
-#define DEF_TOKEN_H
+#ifndef DEF_VM_TOKEN_H
+#define DEF_VM_TOKEN_H
 
 
 ///////
@@ -206,5 +206,5 @@ class Token {
 
 
 #endif
-// --end-- DEF_TOKEN_H
+// --end-- DEF_VM_TOKEN_H
 

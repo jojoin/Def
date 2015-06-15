@@ -2,16 +2,19 @@
  * Def 执行上下文
  */
 
+
 #include <iostream>
 #include <cstdlib>
 #include <direct.h>
 
 #include "exec.h"
+#include "../util/fs.h"
 
 using namespace std;
 
 using namespace def::parse;
 using namespace def::object;
+using namespace def::util;
 
 
 namespace def {
@@ -24,34 +27,33 @@ namespace vm {
 #define OT ObjectType
 #define NT NodeType
 
+// 将环境变量初始化
+#define LOCALIZE_module    Module *_module = _envir._module;
+#define LOCALIZE_gc        Gc     *_gc     = _envir._gc;
+#define LOCALIZE_stack     Stack  *_stack  = _envir._stack;
+#define LOCALIZE_node      Node   *_node   = _envir._node;
 
 
 /**
- * 构造函数，采用统一的Gc
+ * 完全构造
  */
-Exec::Exec(Node* n, Gc* g, Module* m, ExecType t )
-: _node( n )
-, _gc( g )
-, _mod( m )
-, type( t )
+Exec::Exec(void)
 {
-    _stack = new Stack(); // 新建执行栈
+    _envir = Envir(); // 新建执行环境
 }
 
-
 /**
- * 拷贝构造
+ * 拷贝构造执行环境
  */
-Exec::Exec(Exec&e, ExecType t )
-{
-	Exec(e._node, e._gc, e._mod, t);
+Exec::Exec(Envir e){
+	_envir = Envir(e);
 }
 
 
 // 执行栈变量初始化
 void Exec::StackPush(string name, DefObject* obj)
 {
-	_stack->VarPut(name, obj);
+	_envir._stack->VarPut(name, obj);
 }
 
 
@@ -59,18 +61,82 @@ void Exec::StackPush(string name, DefObject* obj)
 // 指定&获取父栈
 Stack* Exec::StackParent(Stack*p)
 {
-	return _stack->parent = p;
+	return _envir._stack->parent = p;
 }       
+
+
+
+
+/**
+ * 从入口文件开始执行
+ */
+bool Exec::Main(string file)
+{
+	if(!Fs::Exist(file)){
+		ERR("File \""+file+"\" is not find !");
+	}
+
+	string text = Fs::ReadFile(file);
+
+	Node *nd = Parse(text, file); // 解析语法
+
+	_envir.Set(nd); // 设置环境
+
+    // 解释执行
+    bool done = Run();
+
+    // 清除数据
+    _envir.Clear();
+
+    return done;
+
+}
+
+
+/**
+ * 解析得到抽象语法树
+ */
+Node* Exec::Parse(string &text, string file)
+{
+
+    // 词法分析结果
+    Tokenizer T(text); // 初始化词法分析器
+    T.SetFile(file);
+    vector<Word>* words = T.Scan(); // 执行词法分析
+
+    // cout << words->at(0).value << endl;
+    // cout << words->at(1).value << endl;
+    // cout << words->at(2).value << endl;
+
+    // 语法分析
+    Nodezer N(words); // 初始化语法分析器
+    N.SetFile(file);
+    Node* node = N.BuildAST(); // 解析得到语法树（表达式）
+
+    // cout << node->Child(0)->GetName() << endl;
+    // cout << node->Right()->Child(1)->Left()->GetName() << endl;
+
+    // node->Print();
+    // cout<<endl;
+    // cout << "node->ChildSize() = " << node->ChildSize() << endl;
+
+    words->clear();
+    delete words; // 析构words数组
+
+    return node; // 返回语法树
+}
 
 
 /**
  * 执行 Def 调用帧
  * @return 表示解释成功或失败
  */
-DefObject* Exec::Run()
+bool Exec::Run()
 {
-    if(!_node || !_gc){
-    	ERR("Err: _node or _gc is NULL !");
+	LOCALIZE_node;
+
+    if(!_node){
+    	return false;
     }
 
     // 组合表达式 NodeType::Group
@@ -81,7 +147,7 @@ DefObject* Exec::Run()
         i++;
     }
 
-    return NULL;
+    return true;
 }
 
 
@@ -91,22 +157,22 @@ DefObject* Exec::Run()
  */
 inline bool Exec::Free(DefObject *obj)
 {
-    return _gc->Free(obj);
+    return _envir._gc->Free(obj);
 }
 
 
 //返回对象
 inline ObjectNone* Exec::NewObjNone()
 {
-    return _gc->prep_none;
+    return _envir._gc->prep_none;
 }
 inline ObjectBool* Exec::NewObjTrue()
 {
-    return _gc->prep_true;
+    return _envir._gc->prep_true;
 }
 inline ObjectBool* Exec::NewObjFalse()
 {
-    return _gc->prep_false;
+    return _envir._gc->prep_false;
 }
 
 /**
@@ -114,6 +180,11 @@ inline ObjectBool* Exec::NewObjFalse()
  */
 DefObject* Exec::Evaluat(Node* n)
 {
+	LOCALIZE_module;
+	LOCALIZE_gc;
+	LOCALIZE_stack;
+	LOCALIZE_node;
+
 
     if(n==NULL) return NULL;
 
@@ -121,7 +192,8 @@ DefObject* Exec::Evaluat(Node* n)
 
     T t = n->type; //当前节点类型
 
-    if(t==T::Group){ // 语句组（if或while的body）
+    if(t==T::Group)
+    { // 语句组（if或while的body）
     	DefObject* last = NULL;
 	    size_t i = 0
 	         , s = _node->ChildSize();
@@ -131,7 +203,9 @@ DefObject* Exec::Evaluat(Node* n)
 	    }
 	    return last; //返回最后一条语句的值
 
-    }else if(t==T::Variable){ // 通过名字取得变量值
+    }
+    else if(t==T::Variable)
+    { // 通过名字取得变量值
         //cout<<"Variable !!!"<<endl;
         string name = n->GetName();
         DefObject* val = _stack->VarGet( name );
@@ -140,7 +214,9 @@ DefObject* Exec::Evaluat(Node* n)
         }
         return val;
 
-    }else if(t==T::Priority){ // 优先级
+    }
+    else if(t==T::Priority)
+    { // 优先级
         // cout<<"priority!!!"<<endl;
         return Evaluat( n->Child() ); //递归求值
 
@@ -183,6 +259,9 @@ DefObject* Exec::Evaluat(Node* n)
  */
 DefObject* Exec::Assign(Node*n)
 {
+	LOCALIZE_gc;
+	LOCALIZE_stack;
+
     DefObject *rv = Evaluat(n->Right());   // 等号右值
     Node* nl = n->Left();
     NT nt = nl->type;
@@ -221,7 +300,7 @@ DefObject* Exec::Assign(Node*n)
             }
             string key = Conversion::String( ik );
             DefObject *exi = dict->Visit(key);
-            if(exi){ //已存在，则解引用
+            if(exi){ //已存在，解引用
                 Free(exi);
             }
             dict->Push(key, rv); // 添加
@@ -243,7 +322,7 @@ DefObject* Exec::Assign(Node*n)
                     return rv; // do nothing
                 }
                 DefObject *exi = list->Visit(i-1); //索引从1开始
-                if(exi){ //已存在，则解引用
+                if(exi){ //已存在，解引用
                     Free(exi);
                 }
                 list->Push(i-1, rv); // 添加到指定位置
@@ -256,7 +335,7 @@ DefObject* Exec::Assign(Node*n)
 
     }
 
-    _gc->Quote(rv); // 引用计数 +1
+    _gc->Quote(rv); // 加引用
     return rv; // 返回右值
 }
 
@@ -280,6 +359,8 @@ DefObject* Exec::AssignUp(Node*n)
  */
 DefObject* Exec::Operate(Node *nl, Node *nr, NT t)
 {
+	LOCALIZE_gc;
+	LOCALIZE_stack;
 
     // 取负运算
     if( !nl && t==NT::Sub){
@@ -475,6 +556,8 @@ DefObject* Exec::If(Node* n)
  */
 DefObject* Exec::List(Node* n)
 {
+	LOCALIZE_gc
+
     NodeList* p = (NodeList*)n;
 
     ObjectList* list = _gc->AllotList();
@@ -495,6 +578,8 @@ DefObject* Exec::List(Node* n)
  */
 DefObject* Exec::Dict(Node* n)
 {
+	LOCALIZE_gc
+
     NodeDict* p = (NodeDict*)n;
 
     ObjectDict* dict = _gc->AllotDict();
@@ -587,6 +672,8 @@ DefObject* Exec::ContainerAccess(Node* n)
  */
 DefObject* Exec::Import(Node* n)
 {
+	LOCALIZE_module
+
     // cout<<"-Exec::Import-"<<endl;
 	DefObject* name = Evaluat( n->Child() );
 
@@ -596,7 +683,7 @@ DefObject* Exec::Import(Node* n)
 
 	// 加载模块
 	string mdname = Conversion::String( name );
-	ObjectModule* md = _mod->Load(
+	ObjectModule* md = _module->Load(
 		mdname, ""
 	);
 
@@ -614,6 +701,10 @@ DefObject* Exec::Import(Node* n)
 
 
 
+#undef LOCALIZE_module
+#undef LOCALIZE_gc
+#undef LOCALIZE_stack
+#undef LOCALIZE_node
 
 
 

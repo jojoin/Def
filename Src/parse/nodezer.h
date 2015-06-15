@@ -1,5 +1,5 @@
-#ifndef DEF_NODEZER_H
-#define DEF_NODEZER_H
+#ifndef DEF_VM_NODEZER_H
+#define DEF_VM_NODEZER_H
 
 #include <string>
 #include <vector>
@@ -23,7 +23,15 @@ class Nodezer {
 
 	public:
 
-	Nodezer(vector<Word>*, string);
+	string filepath; // 分析的文件（用于错误信息）
+
+	public:
+
+	Nodezer(vector<Word> *wds);
+
+	inline void SetFile(string &fp){
+		filepath = fp;
+	}
 
 	/*
 
@@ -107,7 +115,6 @@ class Nodezer {
 	Node* nodebuf; // 缓存待用的节点
 
 	vector<Word>* words; // 单词列表
-	string filepath; //编译文件
 
 }; // --end-- class Nodezer
 
@@ -121,4 +128,4 @@ class Nodezer {
 
 
 #endif
-// --end-- DEF_NODEZER_H
+// --end-- DEF_VM_NODEZER_H

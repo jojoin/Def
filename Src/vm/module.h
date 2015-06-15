@@ -1,5 +1,5 @@
-#ifndef DEF_MODULE_H
-#define DEF_MODULE_H
+#ifndef DEF_VM_MODULE_H
+#define DEF_VM_MODULE_H
 
 /**
  * Def 模块加载

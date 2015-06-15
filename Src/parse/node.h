@@ -1,5 +1,5 @@
-#ifndef DEF_NODE_H
-#define DEF_NODE_H
+#ifndef DEF_VM_NODE_H
+#define DEF_VM_NODE_H
 
 #include <string>
 #include <vector>
@@ -695,5 +695,5 @@ struct NodeString : Node{
 
 
 #endif
-// --end-- DEF_NODE_H
+// --end-- DEF_VM_NODE_H
 

@@ -1,5 +1,5 @@
-#ifndef DEF_STACK_H
-#define DEF_STACK_H
+#ifndef DEF_VM_STACK_H
+#define DEF_VM_STACK_H
 
 /**
  * Def 执行栈
@@ -47,4 +47,4 @@ struct Stack{
 
 
 #endif
-// --end-- DEF_STACK_H
+// --end-- DEF_VM_STACK_H

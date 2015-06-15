@@ -33,7 +33,7 @@ class Vm {
 
 	Module* _mod;     // 模块管理
 	Gc* _gc;     // 对象分配及垃圾回收
-	Exec* _exec; // 执行上下文
+	// Exec* _exec; // 执行上下文
 
 	public:
 

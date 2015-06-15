@@ -26,9 +26,8 @@ namespace parse {
 /**
  * 构造
  */
-Nodezer::Nodezer(vector<Word>*w, string file=""):
-    words(w),
-    filepath(file)
+Nodezer::Nodezer(vector<Word>*w):
+    words(w)
 {
     Clear();
 }

@@ -1,5 +1,5 @@
-#ifndef DEF_OBJECT_H
-#define DEF_OBJECT_H
+#ifndef DEF_OBJECT_OBJECT_H
+#define DEF_OBJECT_OBJECT_H
 
 /** 
  * Def 对象基础
@@ -11,10 +11,12 @@
 #include <map>
 
 #include "../parse/node.h"
+// #include "../vm/stack.h"
 
 using namespace std;
 
 using namespace def::parse;
+// using namespace def::vm;
 
 
 namespace def {
@@ -69,7 +71,6 @@ struct DefObject{
 	// virtual DefObject* Visit(size_t){};
 	// virtual size_t Size(){};
 };
-
 
 
 
@@ -217,9 +218,8 @@ struct ObjectExPkg : DefObject{
 	map<string, DefObject*> value;
 	ObjectExPkg(T t)
 		: DefObject(t)
-	{
-		value = map<string, DefObject*>();
-	}
+	{}
+
 	// 添加元素
 	DefObject* Push(string key,  DefObject* obj){
         // cout<<"dict push"<<endl;
@@ -277,12 +277,11 @@ struct ObjectObject : ObjectExPkg{
 
 // Module 模块对象
 struct ObjectModule : ObjectExPkg{
-	string path; // 文件绝对路径
+	string file; // 模块文件绝对路径
 	ObjectModule()
 		: ObjectExPkg(T::Module)
 	{}
 };
-
 
 
 
@@ -295,7 +294,7 @@ struct ObjectModule : ObjectExPkg{
 
 
 #endif
-// --end-- DEF_OBJECT_H
+// --end-- DEF_OBJECT_OBJECT_H
 
 
 

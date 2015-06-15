@@ -1,5 +1,5 @@
-#ifndef DEF_TOKENIZER_H
-#define DEF_TOKENIZER_H
+#ifndef DEF_VM_TOKENIZER_H
+#define DEF_VM_TOKENIZER_H
 /**
  * 词法分析器 
  * 
@@ -33,11 +33,35 @@ struct Word {
 
 
 // 词法分析类
-class Tokenizer {
+class Tokenizer
+{
+
+	private:
+
+	size_t line;  //当前所在行号
+	size_t line_start;  //记录开始行号，用于跨行命令
+	size_t word_pos;  //上次预读字符位置
+
+	string text;  // 需要分析的文本
+	string pprev_tok; // 上上一个字符
+	string prev_tok; // 上一个字符
+	string tok;      // 当前字符
+	size_t cursor;  // 当前字符读取位置
+	
+	string buf;   // 缓存的字符
+	vector<Word>* words;  // 词法分析后的单词列表
 
 	public:
 
-	Tokenizer(bool, string, vector<Word>*);
+	string filepath; // 分析的文件（用于错误信息）
+
+	public:
+
+	Tokenizer(string &text);
+
+	inline void SetFile(string &fp){
+		filepath = fp;
+	}
 
 	// 读取一个字符 并移动指针
 	inline string Read(){
@@ -105,28 +129,8 @@ class Tokenizer {
 	};
 
 
-	// 扫描文本
-	void Scan();
-
-
-	private:
-
-	size_t line;  //当前所在行号
-	size_t line_start;  //记录开始行号，用于跨行命令
-	size_t word_pos;  //上次预读字符位置
-
-	string filepath;  // 需要分析的文件名
-	string text;  // 需要分析的文本
-	// char pprev_tok; // 上上一个字符
-	// char prev_tok; // 上一个字符
-	// char tok;      // 当前字符
-	string pprev_tok; // 上上一个字符
-	string prev_tok; // 上一个字符
-	string tok;      // 当前字符
-	size_t cursor;  // 当前字符读取位置
-	
-	string buf;   // 缓存的字符
-	vector<Word>* words;  // 词法分析后的单词列表
+	// 扫描文本，得到单词数组
+	vector<Word>* Scan();
 
 }; // --end-- class Token
 
@@ -137,7 +141,7 @@ class Tokenizer {
 
 
 #endif
-// --end-- DEF_TOKENIZER_H
+// --end-- DEF_VM_TOKENIZER_H
 
 
 
