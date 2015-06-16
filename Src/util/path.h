@@ -5,6 +5,7 @@
  * 工具类
  */
 
+#include <iostream>
 #include <cstdlib>
 #include <string>
 
@@ -27,7 +28,6 @@ class Path {
 		return D=='/' ? "/" : "\\";
 	}
 
-
 	// 获取当前目录
 	static string cwd()
 	{
@@ -38,7 +38,7 @@ class Path {
 	}
 
 	// 获取文件名称
-	static string getFileName(string&file)
+	static string getFileName(string &file)
 	{
 		int pos = file.find_last_of(D);
 		string s( file.substr(pos+1) );
@@ -46,7 +46,7 @@ class Path {
 	}
 
 	// 获取文件扩展名
-	static string getFileExt(string&file)
+	static string getFileExt(string &file)
 	{
 		string name = getFileName(file);
 		int pos = name.find_last_of('.');
@@ -57,52 +57,57 @@ class Path {
 	}
 
 	// 获取文件路径
-	static string getDir(string&file)
+	static string getDir(string &file)
 	{
 		int pos = file.find_last_of(D);
-		string s( file.substr(0, file.length()-pos-1) );
-		return s;
+		return file.substr(0, pos);
 	}
 
 
 	// 路径合并
 	static string join(string p1, string p2)
 	{
+		if(p2==""){
+			return p1;
+		}
+
 		int p1l = p1.length();
 		int p2l = p2.length();
-		if( D==p1[p1l-1] ){
-			p1 += p1.substr(0, p1l-2);
+
+		if( (p1l>0&&p2[0]==D) || (p2l>1&&p2[1]==':') ){
+			return p2; // 绝对路径，直接返回
 		}
+
+		if( D==p1[p1l-1] ){
+			p1 = p1.substr(0, p1l-1);
+		}
+
+		// cout<<"p1 = "<<p1<<endl;
+		// cout<<"p2 = "<<p2<<endl;
 
 		string up = "..."; up[2] = D;
-		string cr = ".."; up[1] = D;
-		string hd2 = p2.substr(0, 2);
-		string hd3 = p2.substr(0, 3);
+		string cr = ".."; cr[1] = D;
 
-		while(hd3==up){ // 父级目录 ../
+		while(p2.substr(0, 3)==up){ // 父级目录 ../
+			// cout<<"p2 .."<<endl;
 			p1 = getDir(p1);
 			p2 = p2.substr(3);
-			hd3 = p2.substr(0, 3);
 		}
 
-		while(hd2==cr){ // 忽略 ./
+		while(p2.substr(0, 2)==cr){ // 忽略 ./
+			// cout<<"p2 ."<<endl;
 			p2 = p2.substr(2);
 		}
 
-
+		// cout<<"p1 = "<<p1<<endl;
+		// cout<<"p2 = "<<p2<<endl;
+		
 		return p1 + div() + p2; // 返回组合
 
 	}
 
 }; // --end-- class Sys
 
-
-
-#ifdef WINDOWS
-	char Path::D = '\\';
-#else
-	char Path::D = '\\';
-#endif
 
 
 

@@ -10,6 +10,7 @@
 
 #include "exec.h"
 #include "../util/fs.h"
+#include "../util/path.h"
 
 using namespace std;
 
@@ -71,17 +72,22 @@ Stack* Exec::StackParent(Stack*p)
 /**
  * 从入口文件开始执行
  */
-bool Exec::Main(string file)
+bool Exec::Main(string fl)
 {
+	string file = Path::join(Path::cwd(), fl);
+
 	if(!Fs::Exist(file)){
 		ERR("File \""+file+"\" is not find !");
 	}
 
 	string text = Fs::ReadFile(file);
+	// cout<<file<<endl;
+	_envir.SetFile(file); // 入口文件
 
 	Node *nd = Parse(text, file); // 解析语法
+	// nd->Print();
 
-	_envir.Set(nd); // 设置环境
+	_envir.Set(nd);       // 设置环境
 
     // 解释执行
     bool done = Run();
@@ -663,12 +669,20 @@ DefObject* Exec::Import(Node* n)
 	}
 
 	string mdname = Conversion::String( name );
-	// 加载模块
-	
-	ObjectModule* md = _module->LoadSys( mdname );
-	if(md) return md; // 返回系统模块
 
-	string mdfile = Module::MatchFile(mdname);
+	// 加载模块
+	ObjectModule* md = _module->LoadSys( mdname );
+	if(md) return md; // 系统模块
+
+
+    // 获得模块绝对路径
+    string tarfile = Path::join( 
+        Path::getDir(_envir._file),
+        mdname
+    );
+    // cout<<"module path: "<<tarfile<<endl;
+
+	string mdfile = Module::MatchFile(tarfile);
 	if(mdfile==""){
 		ERR("Can't find module\""+mdname+"\" !");
 	}
@@ -696,8 +710,9 @@ DefObject* Exec::Import(Node* n)
 ObjectModule* Exec::CreateModule(string file)
 {
     // cout<<"-Exec::CreateModule-"<<file<<endl;
-	// 新建环境
+	// 拷贝环境
 	Envir le = Envir(_envir);
+
 
 	le.SetFile( file );
 	le.Set( EnvirType::Module );
@@ -710,13 +725,13 @@ ObjectModule* Exec::CreateModule(string file)
 	Stack *stack = new Stack(); // 新栈帧
 	le.Set( stack );
 
-    // cout<<"Exec exec = Exec(le);"<<endl;
+    // cout<<"Exec nex = Exec(le);"<<endl;
 	// 新建调用
-	Exec exec = Exec(le);
+	Exec nex = Exec(le);
 
-    // cout<<"bool done = exec.Run();"<<endl;
+    // cout<<"bool done = nex.Run();"<<endl;
     // 执行模块调用
-    bool done = exec.Run();
+    bool done = nex.Run();
 
     if(!done){
     	return NULL; // 执行失败

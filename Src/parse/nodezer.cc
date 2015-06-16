@@ -26,8 +26,8 @@ namespace parse {
 /**
  * 构造
  */
-Nodezer::Nodezer(vector<Word>*w):
-    words(w)
+Nodezer::Nodezer(vector<Word> *wds):
+    words(wds)
 {
     Clear();
 }
@@ -79,65 +79,61 @@ NodeType Nodezer::GetNodeType(Word &cwd)
     if(s==S::Variable){
         return T::Variable; // 变量名
 
-#define ST_ELSE_IF(name) }else if(s==S::name){ return T::name;
-     ST_ELSE_IF(Int)  
-     ST_ELSE_IF(Float)
-     ST_ELSE_IF(String)
-     ST_ELSE_IF(FuncCall) // 函数调用
-     ST_ELSE_IF(ProcCall) // 处理器调用
-     ST_ELSE_IF(ContainerAccess) // 容器访问
-#undef ST_ELSE_IF
+#define IF(name) }else if(s==S::name){ return T::name;
+    IF(Int)  
+    IF(Float)
+    IF(String)
+    IF(FuncCall) // 函数调用
+    IF(ProcCall) // 处理器调用
+    IF(ContainerAccess) // 容器访问
+#undef IF
+
+#define IF(str, name) }else if(v==str){ return T::name;
 
     }else if(s==S::Keyword){ // 关键字
 
-        if(v=="none"){
-            return T::None;
-        }else if(v=="true"||v=="false"){
-            return T::Bool;
+        if(v==""){ return T::Normal;
 
-        }else if(v=="def"){
-            return T::ProcDefine;
-        }else if(v=="defun"){
-            return T::FuncDefine;
-        }else if(v=="class"){
-            return T::ClassDefine;
+        IF("none", None)
+        IF("true", Bool)
+        IF("false", Bool)
+        IF("def", ProcDefine)
+        IF("defun", FuncDefine)
+        IF("class", ClassDefine)
+        IF("print", Print)
+        IF("if", If)
+        IF("while", While)
+        IF("import", Import) // 模块加载
 
-        }else if(v=="print"){
-            return T::Print;
-        }else if(v=="if"){
-            return T::If;
-        }else if(v=="while"){
-            return T::While;
-
-        }else if(v=="import"){
-            return T::Import; // 模块加载
         }
 
     }else if(s==S::Sign){ // 符号
 
-        if(v==":"){
-            return T::Assign; //赋值 :
-        }else if(v=="::"){
-            return T::AssignUp; //向上查找赋值 ::
-        }else if(v=="("){
-            return T::List; //列表or优先级 (
-        }else if(v=="["){
-            return T::Dict; //字典 [
-        }else if(v=="{"){
-            return T::Block; //块 {
+        if(v==""){ return T::Normal;
 
-        }else if(v=="+"){
-            return T::Add; // 加 +
-        }else if(v=="-"){
-            return T::Sub; // 减 -
-        }else if(v=="*"){
-            return T::Mul; // 乘 *
-        }else if(v=="/"){
-            return T::Div; // 除 /
+        IF(":", Assign)         // 赋值 :
+        IF("::", AssignUp)      // 向上查找赋值 ::
+        IF(".", MemberAccess)   // 成员访问
 
-        }else if(v=="."){
-            return T::MemberAccess; // 成员访问
+        IF("(", List)      // 列表or优先级 (
+        IF("[", Dict)      // 字典 [
+        IF("{", Block)     // 块 {
+
+        IF("+", Add)    // 加 +
+        IF("-", Sub)    // 减 -
+        IF("*", Mul)    // 乘 *
+        IF("/", Div)    // 除 /
+
+        IF("=", Equal)
+        IF(">", More)
+        IF("<", Less)
+        IF(">=", MoreEqual)
+        IF("<=", LessEqual)
+        IF("~=", NotEqual)
+        IF("~", Not)
+
         }
+
     }else if(s==S::End){
 
         return T::End; // 终止符
@@ -146,6 +142,9 @@ NodeType Nodezer::GetNodeType(Word &cwd)
 
     // 无匹配
     return T::Normal;
+
+#undef IF
+
 
 }
 

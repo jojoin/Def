@@ -61,9 +61,14 @@ class Exec {
 	DefObject* Assign(Node*);   // 赋值操作
 	DefObject* AssignUp(Node*); // 向上搜索赋值
 
-	DefObject* Print(Node*); // 打印操作
-
-	DefObject* Operate(Node*, Node*, NodeType); // 算法操作
+	DefObject* Operate(Node*, Node*, NodeType); // 算法操作 + - * /
+	// DefObject* Equal(Node*, Node*);      // 等于 =
+	// DefObject* More(Node*, Node*);       // 大于 >
+	// DefObject* Less(Node*, Node*);       // 小于 <
+	// DefObject* MoreEqual(Node*, Node*);  // 大于等于 >=
+	// DefObject* LessEqual(Node*, Node*);  // 小于等于 <=
+	// DefObject* NotEqual(Node*, Node*);   // 不等于 ~=
+	// DefObject* Not(Node*, Node*);        // bool取反 ~
 
 	DefObject* If(Node*); // if 结构
 	DefObject* While(Node*); // while 结构
@@ -81,7 +86,7 @@ class Exec {
 	DefObject* Import(Node*);        // 模块加载
 	ObjectModule* CreateModule(string); // 模块创建
 
-
+	DefObject* Print(Node*); // 打印操作
 
 };
 

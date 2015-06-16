@@ -31,24 +31,31 @@ namespace parse {
 	D(Assign, 1)              	\
 	D(AssignUp, 1)             	\
 								\
-	D(Add, 2)					\
-	D(Sub, 2)					\
+	D(Equal, 3)					\
+	D(More, 3)					\
+	D(Less, 3)					\
+	D(MoreEqual, 3)				\
+	D(LessEqual, 3)				\
+	D(NotEqual, 3)				\
+	D(Not, 3)					\
 								\
-	D(Mul, 3)					\
-	D(Div, 3)					\
+	D(Add, 6)					\
+	D(Sub, 6)					\
 								\
+	D(Mul, 7)					\
+	D(Div, 7)					\
 								\
-	D(If, 0)					\
-	D(While, 0)              	\
-								\
-	D(FuncCall, 4)				\
-	D(ProcCall, 4)				\
-	D(ContainerAccess, 4)		\
-	D(MemberAccess, 5)		    \
+	D(FuncCall, 9)				\
+	D(ProcCall, 9)				\
+	D(ContainerAccess, 10)		\
+	D(MemberAccess, 10)		    \
 								\
 	D(List, 0)					\
 	D(Dict, 0)					\
 	D(Block, 0)					\
+								\
+	D(If, 0)					\
+	D(While, 0)              	\
 								\
 	D(FuncDefine, 0)			\
 	D(ProcDefine, 0)			\
@@ -173,8 +180,6 @@ struct NodeOneTree : Node{
 };
 
 
-
-
 // 二叉节点
 struct NodeTwinTree : Node{
 	Node* left;   // 左子节点
@@ -259,52 +264,94 @@ struct NodeTree : Node{
 };
 
 
-// 组合表达式
-struct NodeGroup : NodeTree{
-	NodeGroup(Word &w)
-	: NodeTree(NT::Group, w){}
-	inline void Print(string prefix=""){ // 打印
-		size_t sz = ChildSize();
-		cout<< prefix+"Group: "<<sz<<endl;
-		for(size_t i=0; i<sz; i++)
-		{
-			Node*cd = Child(i);
-			if(cd) cd->Print(prefix+PRT);
-			else cout<<prefix+PRT+"*null*"<<endl; //可能为空 占位符
-		}
-	};
+
+// 单叉节点
+#define NODEONETREE(xxx)                      \
+struct Node##xxx : NodeOneTree{                \
+	Node##xxx(Word &w, Node*ch=NULL)           \
+	: NodeOneTree(NT::xxx, w, ch){}           \
+	inline void Print(string prefix=""){      \
+		cout<<prefix+#xxx+":"<<endl;          \
+		if(child) child->Print(prefix);       \
+	};                                        \
 };
 
 
-// 优先级
-struct NodePriority : NodeOneTree{
-	NodePriority(Word &w, Node*ch=NULL)
-	: NodeOneTree(NT::Priority, w, ch){}
-	inline void Print(string prefix=""){ // 打印
-		cout<<prefix+"Priority:"<<endl;
-		if(child) child->Print(prefix);
-		// Child()->Print(prefix);
-	};
+// 双叉节点
+#define NODETWINTREE(xxx)                    \
+struct Node##xxx : NodeTwinTree{             \
+	Node##xxx(Word &w)                       \
+	: NodeTwinTree(NT::xxx, w){}             \
+	inline void Print(string prefix=""){     \
+		cout<<prefix+#xxx+":"<<endl;         \
+		Left()->Print(prefix+PRT);           \
+		Right()->Print(prefix+PRT);          \
+	};                                       \
 };
 
 
-// 模块加载
-struct NodeImport : NodeOneTree{
-	NodeImport(Word &w, Node*ch=NULL)
-	: NodeOneTree(NT::Import, w, ch){}
-	inline void Print(string prefix=""){ // 打印
-		cout<<prefix+"Import:"<<endl;
-		if(child) child->Print(prefix);
-	};
+// 多叉节点
+#define NODETREE(xxx)                        \
+struct Node##xxx : NodeTree{                 \
+	Node##xxx(Word &w)                       \
+	: NodeTree(NT::xxx, w){}                 \
+	inline void Print(string prefix=""){     \
+		size_t sz = ChildSize();             \
+		cout<<prefix+#xxx+":"<<sz<<endl;      \
+		for(size_t i=0; i<sz; i++){          \
+			Node *cd = Child(i);             \
+			if(cd) cd->Print(prefix+PRT);    \
+			else cout<<prefix+PRT+"*null*"<<endl; /*可能为空 占位符*/ \
+		}                                    \
+	};                                       \
 };
+
+
+
+
+// 单叉子节点
+NODEONETREE(Print)      // print 打印变量至屏幕
+NODEONETREE(Priority)   // Priority 优先级
+NODEONETREE(Import)     // Import 模块加载
+
+
+// 双叉子节点
+NODETWINTREE(ProcCall)           // 处理器调用
+NODETWINTREE(FuncCall)           // 函数调用
+NODETWINTREE(ContainerAccess)    // 列表和字典 容器访问
+NODETWINTREE(MemberAccess)       // 类或模块成员访问
+NODETWINTREE(Assign)             // : 赋值节点
+NODETWINTREE(AssignUp)           // :: 向上查找赋值节点
+NODETWINTREE(Add)        // + 加操作节点
+NODETWINTREE(Sub)        // - 减操作节点
+NODETWINTREE(Mul)        // * 乘操作节点
+NODETWINTREE(Div)        // / 除操作节点
+//条件判断
+NODETWINTREE(Equal)          // = 
+NODETWINTREE(More)           // >
+NODETWINTREE(Less)           // <
+NODETWINTREE(MoreEqual)      // >=
+NODETWINTREE(LessEqual)      // <=
+NODETWINTREE(NotEqual)       // ~=
+NODETWINTREE(Not)            // ~
+
+
+// 多叉子节点
+NODETREE(Group)    // Group 组合表达式
+NODETREE(If)       // If 条件判断
+NODETREE(While)    // While 循环控制
+NODETREE(List)     // () 列表数据结构
+NODETREE(Dict)     // [] 字典数据结构
+NODETREE(Block)    // {} 块结构
+
 
 
 
 // def defun 处理器和函数公用定义结构
 struct NodeExDefine : Node{
-	string name; //处理器名称，可匿名
-	Node* argv; //处理器参数列表
-	Node* body; //处理器体
+	string name; // 名称，可匿名
+	Node* argv;  // 参数列表
+	Node* body;  // 体
 	NodeExDefine(NT t, Word &w, string n="")
 	: Node(t, w)
 	, name(n)
@@ -336,248 +383,27 @@ struct NodeExDefine : Node{
 		cout<<prefix+"body: "<<endl;
 		if(body) body->Print(prefix);
 	};
-
-
-};
-
-// def 处理器定义结构
-struct NodeProcDefine : NodeExDefine{
-	NodeProcDefine(Word &w)
-	: NodeExDefine(NT::ProcDefine, w)
-	{}
-};
-
-// defun 函数定义结构
-struct NodeFuncDefine : NodeExDefine{
-	NodeFuncDefine(Word &w)
-	: NodeExDefine(NT::FuncDefine, w)
-	{}
-};
-
-// class 类定义结构
-struct NodeClassDefine : NodeExDefine{
-	NodeClassDefine(Word &w)
-	: NodeExDefine(NT::ClassDefine, w)
-	{}
 };
 
 
-
-
-
-
-// def 函数调用结构
-struct NodeProcCall : NodeTwinTree{
-	NodeProcCall(Word &w)
-	: NodeTwinTree(NT::ProcCall, w)
-	{}
-	inline void Print(string prefix=""){ // 打印
-		cout<<prefix+"ProcCall:"<<endl;
-		Left()->Print(prefix+PRT);
-		Right()->Print(prefix+PRT);
-	};
-
+// 公用定义结构
+#define NODEEXDEFINE(xxx)                    \
+struct Node##xxx : NodeExDefine{             \
+	Node##xxx(Word &w)                       \
+	: NodeExDefine(NT::xxx, w){}             \
 };
 
+NODEEXDEFINE(ProcDefine)        // 处理器定义
+NODEEXDEFINE(FuncDefine)        // 函数定义
+NODEEXDEFINE(ClassDefine)       // 类定义
 
-// def 函数调用结构
-struct NodeFuncCall : NodeTwinTree{
-	NodeFuncCall(Word &w)
-	: NodeTwinTree(NT::FuncCall, w)
-	{}
-	inline void Print(string prefix=""){ // 打印
-		cout<<prefix+"FuncCall:"<<endl;
-		Left()->Print(prefix+PRT);
-		Right()->Print(prefix+PRT);
-	};
-};
-
-
-// 列表和字典 容器访问结构
-struct NodeContainerAccess : NodeTwinTree{
-	NodeContainerAccess(Word &w)
-	: NodeTwinTree(NT::ContainerAccess, w){}
-	inline void Print(string prefix=""){ // 打印
-		cout<<prefix+"ContainerAccess:"<<endl;
-		Left()->Print(prefix+PRT);
-		Right()->Print(prefix+PRT);
-	};
-};
-
-
-// 类或模块成员访问
-struct NodeMemberAccess : NodeTwinTree{
-	NodeMemberAccess(Word &w)
-	: NodeTwinTree(NT::MemberAccess, w){}
-	inline void Print(string prefix=""){ // 打印
-		cout<<prefix+"MemberAccess:"<<endl;
-		Left()->Print(prefix+PRT);
-		Right()->Print(prefix+PRT);
-	};
-};
+#undef NODEEXDEFINE
 
 
 
 
+//*************  数据节点（叶节点）  **************//
 
-// while 循环控制
-struct NodeWhile : NodeTree{
-	NodeWhile(Word &w)
-	: NodeTree(NT::While, w){}
-	inline void Print(string prefix=""){ // 打印
-		size_t sz = ChildSize();
-		cout<< prefix+"While: size="<<sz<<endl;
-		for(size_t i=0; i<sz; i++)
-		{
-			Child(i)->Print(prefix+PRT);
-		}
-	};
-};
-
-
-// If 控制流程
-struct NodeIf : NodeTree{
-	NodeIf(Word &w)
-	: NodeTree(NT::If, w){}
-	inline void Print(string prefix=""){ // 打印
-		size_t sz = ChildSize();
-		cout<< prefix+"If: branch="<<sz<<endl;
-		for(size_t i=0; i<sz; i++)
-		{
-			Child(i)->Print(prefix+PRT);
-		}
-	};
-};
-
-
-
-// () 列表数据结构
-struct NodeList : NodeTree{
-	NodeList(Word &w)
-	: NodeTree(NT::List, w){}
-	inline void Print(string prefix=""){ // 打印
-		size_t sz = ChildSize();
-		cout<< prefix+"List: size="<<sz<<endl;
-		for(size_t i=0; i<sz; i++)
-		{
-			Child(i)->Print(prefix+PRT);
-		}
-	};
-};
-
-// [] 字典数据结构
-struct NodeDict : NodeTree{
-	NodeDict(Word &w)
-	: NodeTree(NT::Dict, w){}
-	inline void Print(string prefix=""){ // 打印
-		size_t sz = ChildSize();
-		cout<< prefix+"Dict: size="<<sz<<endl;
-		for(size_t i=0; i<sz; i++)
-		{
-			Child(i)->Print(prefix+PRT);
-		}
-	};
-};
-
-// {} 块结构
-struct NodeBlock : NodeTree{
-	NodeBlock(Word &w)
-	: NodeTree(NT::Block, w){}
-	inline void Print(string prefix=""){ // 打印
-		size_t sz = ChildSize();
-		cout<< prefix+"Block: size="<<sz<<endl;
-		for(size_t i=0; i<sz; i++)
-		{
-			Child(i)->Print(prefix+PRT);
-		}
-	};
-};
-
-
-
-
-
-
-
-// : 赋值节点
-struct NodeAssign: NodeTwinTree{
-	NodeAssign(Word &w)
-	: NodeTwinTree(NT::Assign, w){}
-	inline void Print(string prefix=""){ // 打印
-		cout<<prefix+"Assign(:)"<<endl;
-		Left()->Print(prefix+PRT);
-		Right()->Print(prefix+PRT);
-	};
-};
-
-// :: 向上查找赋值节点
-struct NodeAssignUp: NodeTwinTree{
-	NodeAssignUp(Word &w)
-	: NodeTwinTree(NT::AssignUp, w){}
-	inline void Print(string prefix=""){ // 打印
-		cout<<prefix+"AssignUp(::)"<<endl;
-		Left()->Print(prefix+PRT);
-		Right()->Print(prefix+PRT);
-	};
-};
-
-
-// + 加操作节点
-struct NodeAdd: NodeTwinTree{
-	NodeAdd(Word &w)
-	: NodeTwinTree(NT::Add, w){}
-	inline void Print(string prefix=""){ // 打印
-		cout<<prefix+"Add(+)"<<endl;
-		Left()->Print(prefix+PRT);
-		Right()->Print(prefix+PRT);
-	};
-};
-
-
-// - 减操作节点
-struct NodeSub: NodeTwinTree{
-	NodeSub(Word &w)
-	: NodeTwinTree(NT::Sub, w){}
-	inline void Print(string prefix=""){ // 打印
-		cout<<prefix+"Sub(-)"<<endl;
-		// 没有左叶则为取负操作
-		if(Left()) Left()->Print(prefix+PRT);
-		Right()->Print(prefix+PRT);
-	};
-};
-
-// * 乘操作节点
-struct NodeMul: NodeTwinTree{
-	NodeMul(Word &w)
-	: NodeTwinTree(NT::Mul, w){}
-	inline void Print(string prefix=""){ // 打印
-		cout<<prefix+"Mul(*)"<<endl;
-		Left()->Print(prefix+PRT);
-		Right()->Print(prefix+PRT);
-	};
-};
-
-// / 除操作节点
-struct NodeDiv: NodeTwinTree{
-	NodeDiv(Word &w)
-	: NodeTwinTree(NT::Div, w){}
-	inline void Print(string prefix=""){ // 打印
-		cout<<prefix+"Div(/)"<<endl;
-		Left()->Print(prefix+PRT);
-		Right()->Print(prefix+PRT);
-	};
-};
-
-
-// print 打印变量至屏幕
-struct NodePrint : NodeOneTree{
-	NodePrint(Word &w)
-	: NodeOneTree(NT::Print, w){}
-	inline void Print(string prefix=""){ // 打印
-		cout<<prefix+"Print: "<<endl;
-		if(child) child->Print(prefix+PRT);
-	};
-};
 
 
 // variable 节点

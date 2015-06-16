@@ -4,28 +4,15 @@
 
 
 
+# 模块导入测试
 
-math : import "math"
+# 导入系统模块
+# import "fs" 
 
-print math.num 
+con : import "container.d" # 容器
+math : import "modules/math" # 运算
+
 print math.PI
-
-math.num : 123456789
-
-print math.num
-
-
-
-
-
-
-
-# print math.name
-# print math.dt
-# print math.dt['k2']
-
-
-
 
 
 # obj : ['k1' 123 '1' 456]
@@ -41,11 +28,6 @@ print math.num
 # li[] : 'new'
 
 # print li[4]
-
-
-
-
-
 
 
 
@@ -143,25 +125,6 @@ defun myfunc()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #--
 
 v : 1         # 变量赋值
@@ -227,11 +190,13 @@ while num
 ;
 
 
+
+
+
+
+
+
 --#
-
-
-
-
 
 
 
