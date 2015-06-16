@@ -3,16 +3,19 @@
 --#
 
 
-
 # 模块导入测试
 
 # 导入系统模块
 # import "fs" 
 
-con : import "container.d" # 容器
-math : import "modules/math" # 运算
+import "container.d" # 容器
+
+import "modules/math.d" # 运算
+
+print container.li
 
 print math.PI
+
 
 
 # obj : ['k1' 123 '1' 456]

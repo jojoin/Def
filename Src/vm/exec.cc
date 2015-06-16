@@ -2,13 +2,15 @@
  * Def 执行上下文
  */
 
-
 #include <iostream>
 #include <cstdlib>
 #include <string>
 #include <map>
 
+#include "../global.h"
+
 #include "exec.h"
+#include "../util/str.h"
 #include "../util/fs.h"
 #include "../util/path.h"
 
@@ -86,6 +88,7 @@ bool Exec::Main(string fl)
 
 	Node *nd = Parse(text, file); // 解析语法
 	// nd->Print();
+    // return false; 
 
 	_envir.Set(nd);       // 设置环境
 
@@ -227,19 +230,19 @@ DefObject* Exec::Evaluat(Node* n)
         // cout<<"priority!!!"<<endl;
         return Evaluat( n->Child() ); //递归求值
 
-#define ELSE_IF(kind)  }else if(t==T::kind){ return kind(n);
-        ELSE_IF(Assign)
-        ELSE_IF(AssignUp)
-        ELSE_IF(ProcDefine)
-        ELSE_IF(List)
-        ELSE_IF(Dict)
-        ELSE_IF(Print)
-        ELSE_IF(If)
-        ELSE_IF(While)
-        ELSE_IF(ContainerAccess)
-        ELSE_IF(MemberAccess)
-        ELSE_IF(Import)
-#undef ELSE_IF
+#define IF(kind)  }else if(t==T::kind){ return kind(n);
+        IF(Assign)
+        IF(AssignUp)
+        IF(ProcDefine)
+        IF(List)
+        IF(Dict)
+        IF(Print)
+        IF(If)
+        IF(While)
+        IF(ContainerAccess)
+        IF(MemberAccess)
+        IF(Import)
+#undef IF
 
     }else if(t==T::Add||t==T::Sub||t==T::Mul||t==T::Div){ // + - * / 算法操作
         //cout<<"add sub mul div !!!"<<endl;
@@ -270,7 +273,7 @@ DefObject* Exec::Assign(Node*n)
 	LOCALIZE_gc;
 	LOCALIZE_stack;
 
-    DefObject *rv = Evaluat(n->Right());   // 等号右值
+    DefObject *rv = Evaluat( n->Right() );   // 等号右值
     Node* nl = n->Left();
     NT nt = nl->type;
 
@@ -281,11 +284,10 @@ DefObject* Exec::Assign(Node*n)
         DefObject *exi = _stack->VarGet(name);   // 查找变量是否存在
         if(exi){
             // cout<<"_gc->Free()"<<endl;
-            Free(exi);       // 变量重新赋值则释放之前的变量
+            Free(exi);       // 解引用
         }
         // cout<<"_stack->VarPut()"<<name<<endl;
-        _stack->VarPut(name, rv);   // 变量入栈
-        _gc->Quote(rv); // 引用计数 +1
+        _stack->VarPut(name, rv);   // 入栈
 
     // 成员访问赋值
     }else if(nt==NT::MemberAccess){
@@ -295,38 +297,42 @@ DefObject* Exec::Assign(Node*n)
         DefObject *exi = mod->Visit(member);
         if(exi){ //已存在，解引用
             Free(exi);
-            mod->Replace(member, rv);
+            mod->Set(member, rv);
         }else{
        		mod->Insert(member, rv); // 设置成员
         }
 
     // 容器访问赋值
     }else if(nt==NT::ContainerAccess){
-
+        // cout<<"ContainerAccess Assign name="<<nl->Right()->GetName()<<endl;
         DefObject *con = Evaluat( nl->Left() ); // 得到容器
         OT ct = con->type; // 容器类型
         Node *idx = nl->Right(); // 索引
         size_t idx_sz = idx ? idx->ChildSize() : 0;
-
+        // cout<<"idx_sz = "<<idx_sz<<endl;
         // 字典
-        if(ct==OT::Dict){ 
+        if(ct==OT::Dict){
+            // cout<<"ct==OT::Dict"<<endl;
             ObjectDict *dict = (ObjectDict*)con;
             if(!idx_sz){
                 ERR("Dict Need <string> type key on Assign !");
-                return rv; // do nothing
             }
+            // cout<<"*ik = Evaluat("<<endl;
             DefObject *ik = Evaluat( idx->Child(0) );
             if(ik->type!=OT::String){ // 验证 key 类型
                 ERR("Dict key only <string> type on Assign !");
             }
+            // cout<<"Conversion::String("<<endl;
             string key = Conversion::String( ik );
             DefObject *exi = dict->Visit(key);
+            // cout<<"exi = "<<exi<<endl;
             if(exi){ //已存在，解引用
                 Free(exi);
-            dict->Replace(key, rv);
-        }else{
-       		dict->Insert(key, rv); // 设置成员
-        }
+                dict->Set(key, rv);
+            }else{
+           		dict->Insert(key, rv); // 设置成员
+            }
+            // cout<<"dict Assign"<<endl;
 
         // 列表
         }else if(ct==OT::List){
@@ -351,11 +357,7 @@ DefObject* Exec::Assign(Node*n)
                 list->Push(i-1, rv); // 添加到指定位置
 
             }
-
-
-
         }
-
     }
 
     _gc->Quote(rv); // 加引用
@@ -547,7 +549,7 @@ DefObject* Exec::Dict(Node* n)
         // 添加数组项目
         string key = Conversion::String( Evaluat( p->Child(i) ) );
         if(key!=""){
-            dict->Insert( 
+            dict->Set( 
                 key, 
                 Evaluat( p->Child(i+1) )
             );
@@ -659,21 +661,46 @@ DefObject* Exec::MemberAccess(Node* n)
  */
 DefObject* Exec::Import(Node* n)
 {
-	LOCALIZE_module;
+    LOCALIZE_module
+    LOCALIZE_stack
+    LOCALIZE_gc
 
     // cout<<"-Exec::Import-"<<endl;
-	DefObject* name = Evaluat( n->Child() );
+    DefObject* str = Evaluat( n->Child() );
+    string name = Conversion::String( str );
 
-	if(name->type!=OT::String){
-		ERR("Module import only <string> name or file path !");
-	}
+#ifdef WINDOWS
+    // 替换字符
+    // cout<<"ifdef WINDOWS : "<<name<<endl;
+    Str::replace_all(name,"/","\\");
+    // cout<<"endif WINDOWS : "<<name<<endl;
+#endif
 
-	string mdname = Conversion::String( name );
+    DefObject* mod = Import( name );
+
+    if(mod){ //自动入栈
+        string vn = Path::getName(name);
+        if(Token::IsVariable(vn)){
+            _stack->VarPut(vn, mod);
+            _gc->Quote(mod);
+        }
+    }
+
+    return mod;
+}
+
+
+
+/**
+ * Import 模块加载
+ */
+DefObject* Exec::Import(string mdname)
+{
+	LOCALIZE_module
 
 	// 加载模块
 	ObjectModule* md = _module->LoadSys( mdname );
 	if(md) return md; // 系统模块
-
 
     // 获得模块绝对路径
     string tarfile = Path::join( 
@@ -703,7 +730,6 @@ DefObject* Exec::Import(Node* n)
 	return md;
 }
 
-
 /**
  * 模块创建
  */
@@ -713,13 +739,13 @@ ObjectModule* Exec::CreateModule(string file)
 	// 拷贝环境
 	Envir le = Envir(_envir);
 
-
 	le.SetFile( file );
 	le.Set( EnvirType::Module );
 
 	string text = Fs::ReadFile(file);
 	Node *nd = Parse(text, file);
 	// nd->Print();
+    // return NULL; 
 	le.Set( nd ); // 解析语法
 
 	Stack *stack = new Stack(); // 新栈帧

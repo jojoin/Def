@@ -177,6 +177,22 @@ class Token {
 		return false;
 	}
 
+	// 判断字符是否为合法的变量名
+	static bool IsVariable(string str)
+	{
+		size_t len = str.length();
+		for(int i=0; i<len; i++){
+			char t = str[i];
+			if(i>0&&t>='0'&&t<='9') continue;
+			if(t>='a'&&t<='z') continue;
+			if(t>='A'&&t<='Z') continue;
+			if(t=='_') continue;
+			return false;
+		}
+		return true;
+
+	}
+
 	//判断是否为浮点数
 	static bool IsFloat(string str)
 	{

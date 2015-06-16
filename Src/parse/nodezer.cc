@@ -216,7 +216,7 @@ Node* Nodezer::CreatNode()
 /**
  * 解析延展部分节点
  */
-Node* Nodezer::ParseNode(Node*p1=NULL, Node*p=NULL)
+Node* Nodezer::ParseNode(Node*p1, Node*p)
 {
     if(p==NULL){ 
         return NULL; //表达式完成
@@ -242,6 +242,7 @@ Node* Nodezer::ParseNode(Node*p1=NULL, Node*p=NULL)
             delete p;
             if(!GetPriority(e)){
                 // 不影响优先级计算
+                cout<<"!GetPriority(e)"<<endl;
                 delete pp;
                 Move(1); // jump )
                 return e;
@@ -265,7 +266,7 @@ Node* Nodezer::ParseNode(Node*p1=NULL, Node*p=NULL)
             }
             p->AddChild(e);
         }
-        delete pp;
+        //delete pp;
         return p; // 列表结束
 
     // 字典 or 容器访问
@@ -275,9 +276,9 @@ Node* Nodezer::ParseNode(Node*p1=NULL, Node*p=NULL)
         if(p1 && p1->type==T::ContainerAccess){
             // cout << "Parse []" << endl;
             delete p;
-            Node* g = Group(); 
+            Node *g = p = Group();
             Move(1); //jump ]
-            return g; // 返回容器调用右节点
+            return g; // 返回容器访问右节点
         }
         // 字典
         while(1){
@@ -286,25 +287,29 @@ Node* Nodezer::ParseNode(Node*p1=NULL, Node*p=NULL)
             }
             Node *e = Express();
             if(!e){
-                ERR("Err: dict parse , IS_SIGN no }");
+                ERR("Err: dict parse , IS_SIGN no ]");
             }
             p->AddChild(e);
         }
-        Move(1); //jump }
+        Move(1); //jump ]
         return p;
+        
+    /* 容器访问  函数调用  处理器调用
+    }else if( t==T::ContainerAccess || t==T::FuncCall || t==T::ProcCall){
+        cout << "-ContainerAccess FuncCall ProcCall-" << endl;
+    */
 
     // 块 or 处理器调用
     }else if( t==T::Block ){
         //cout << "-Block or ProcCall-" << endl;
+        Move(1); //jump {
         if(p1 && p1->type==T::ProcCall){
             delete p;
-            Move(1); //jump (
             Node* g = Group(); 
-            Move(1); //jump )
+            Move(1); //jump }
             return g; // 返回处理器调用右节点
         }
         // 块
-        Move(1); //jump {
         while(1){
             if(IS_SIGN("}")){
                 break; // 块结束
@@ -373,7 +378,6 @@ Node* Nodezer::ParseNode(Node*p1=NULL, Node*p=NULL)
             gr->AddChild( Express() );
 
         }//end while
-
         return p;
 
     // 循环
@@ -402,7 +406,6 @@ Node* Nodezer::ParseNode(Node*p1=NULL, Node*p=NULL)
 
     }
 
-    // cout << "-ParseNode  p->type  nothing-" << endl;
     // 当前节点不需要扩展 跳到下一个
     Move(1); //下一个
     return p;
@@ -501,7 +504,10 @@ Node* Nodezer::Express(Node *p1, bool down)
         Node* pn = AssembleNode(p1, p2, down);
         //cout << "  Node* pn =  " <<pn<< endl;
         if(pn){ // 可以组合
-            p2 = ParseNode(p1, p2); // 延展完善节点
+            p2 = ParseNode(p1, p2); // 延展完善
+            if( pn->Right() ){
+                pn->Right( p2 ); // 重置右叶（修复BUG！）
+            }
             p1 = pn;
             continue; //优先级组合成功，下一步组合
         }

@@ -75,10 +75,7 @@ void DefObject::Print(DefObject *obj){
 }
 
 
-
-
 #undef T   // ObjectType
-
 
 
 

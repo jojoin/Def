@@ -7,12 +7,13 @@
 --#
 
 
-print "---------  test container  ----------"
+
+# print "---------  test container  ----------"
 
 
 # 列表（索引从1开始）
 
-li : (1 2 3 "yang" "jie"  ('a' 'b') ) 
+li : ( 1 2 3 "yang" "jie"  ('a' 'b') )
 
 # print li[4]      # 访问
 # print li[6][1]   # 多层访问
@@ -20,20 +21,25 @@ li : (1 2 3 "yang" "jie"  ('a' 'b') )
 li[1] : 111           # 替换
 li[]  : "the last"    # 末尾追加
 
-print li
+# print li
 
 # 字典
 
-key : "vk"
-val : "variable value"
+key : "vk",
+val : "variable value",
 dt : [
 	'k1'   123
 	key    "variable key"
 	'val'  val
 ]
 
+
 # print dt['k1']    # 访问
+dt['123'] : 123
+
 dt[key] : "the new variable key"  # 重新赋值
+
+dt['vbb'] : 'variable1adsfagff'
 
 # print dt
 
@@ -53,14 +59,11 @@ obj : [
 	]
 ]
 
-dt['user']['other'] : 99  # 多层访问赋值
+obj['user']['other'] : 99  # 多层访问赋值
 
-print obj
-
-
-print "---------  test end  ----------"
+# print obj
 
 
-
+# print "---------  test end  ----------"
 
 

@@ -84,6 +84,7 @@ class Exec {
 	DefObject* MemberAccess(Node*);    // 成员访问
 	
 	DefObject* Import(Node*);        // 模块加载
+	DefObject* Import(string name);        // 模块加载
 	ObjectModule* CreateModule(string); // 模块创建
 
 	DefObject* Print(Node*); // 打印操作

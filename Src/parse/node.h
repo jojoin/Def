@@ -211,8 +211,8 @@ struct NodeTwinTree : Node{
 	}
 	inline void Print(string prefix=""){ // 打印
 		cout<<prefix+"NodeTwinTree: "<<endl;
-		Left()->Print(prefix+PRT);
-		Right()->Print(prefix+PRT);
+		if(left) left->Print(prefix+PRT);
+		if(right) right->Print(prefix+PRT);
 	};
 };
 
@@ -267,12 +267,12 @@ struct NodeTree : Node{
 
 // 单叉节点
 #define NODEONETREE(xxx)                      \
-struct Node##xxx : NodeOneTree{                \
-	Node##xxx(Word &w, Node*ch=NULL)           \
+struct Node##xxx : NodeOneTree{               \
+	Node##xxx(Word &w, Node*ch=NULL)          \
 	: NodeOneTree(NT::xxx, w, ch){}           \
 	inline void Print(string prefix=""){      \
 		cout<<prefix+#xxx+":"<<endl;          \
-		if(child) child->Print(prefix);       \
+		if(child) child->Print(prefix+PRT);   \
 	};                                        \
 };
 
@@ -284,8 +284,8 @@ struct Node##xxx : NodeTwinTree{             \
 	: NodeTwinTree(NT::xxx, w){}             \
 	inline void Print(string prefix=""){     \
 		cout<<prefix+#xxx+":"<<endl;         \
-		Left()->Print(prefix+PRT);           \
-		Right()->Print(prefix+PRT);          \
+		if(left) left->Print(prefix+PRT);    \
+		if(right) right->Print(prefix+PRT);  \
 	};                                       \
 };
 
@@ -297,7 +297,7 @@ struct Node##xxx : NodeTree{                 \
 	: NodeTree(NT::xxx, w){}                 \
 	inline void Print(string prefix=""){     \
 		size_t sz = ChildSize();             \
-		cout<<prefix+#xxx+":"<<sz<<endl;      \
+		cout<<prefix+#xxx+":"<<sz<<endl;     \
 		for(size_t i=0; i<sz; i++){          \
 			Node *cd = Child(i);             \
 			if(cd) cd->Print(prefix+PRT);    \
@@ -316,12 +316,12 @@ NODEONETREE(Import)     // Import 模块加载
 
 
 // 双叉子节点
+NODETWINTREE(Assign)             // : 赋值节点
+NODETWINTREE(AssignUp)           // :: 向上查找赋值节点
 NODETWINTREE(ProcCall)           // 处理器调用
 NODETWINTREE(FuncCall)           // 函数调用
 NODETWINTREE(ContainerAccess)    // 列表和字典 容器访问
 NODETWINTREE(MemberAccess)       // 类或模块成员访问
-NODETWINTREE(Assign)             // : 赋值节点
-NODETWINTREE(AssignUp)           // :: 向上查找赋值节点
 NODETWINTREE(Add)        // + 加操作节点
 NODETWINTREE(Sub)        // - 减操作节点
 NODETWINTREE(Mul)        // * 乘操作节点

@@ -44,15 +44,16 @@ class Path {
 	}
 
 	// 获取文件名称
-	static string getFileName(string &file)
+	static string getFileName(string file)
 	{
 		int pos = file.find_last_of(D);
 		string s( file.substr(pos+1) );
 		return s;
 	}
 
+
 	// 获取文件扩展名
-	static string getFileExt(string &file)
+	static string getFileExt(string file)
 	{
 		string name = getFileName(file);
 		int pos = name.find_last_of('.');
@@ -63,10 +64,27 @@ class Path {
 	}
 
 	// 获取文件路径
-	static string getDir(string &file)
+	static string getDir(string file)
 	{
 		int pos = file.find_last_of(D);
 		return file.substr(0, pos);
+	}
+
+	// 获取文件名称（不带后缀）
+	static string getName(string file)
+	{
+		int len = file.length();
+		if( D==file[len-1] ){
+			file = file.substr(0, len-1);
+		}
+
+		int pos = file.find_last_of(D);
+		int px = file.find_last_of('.');
+		if(px==-1){
+			return file.substr(pos+1);
+		}else{
+			return file.substr(pos+1, px-pos-1);
+		}
 	}
 
 

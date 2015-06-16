@@ -219,7 +219,7 @@ struct ObjectExPkg : DefObject{
 	{}
 
 	// 替换设置元素
-	DefObject* Replace(string key,  DefObject* obj){
+	DefObject* Set(string key,  DefObject* obj){
         // cout<<"dict push"<<endl;
         // value.insert(map<string, DefObject*>::value_type(key, obj));
         value[key] = obj;
