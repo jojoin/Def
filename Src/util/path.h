@@ -9,7 +9,13 @@
 #include <cstdlib>
 #include <string>
 
+
+#ifdef WINDOWS
 #include <direct.h>
+#else
+#include <unistd.h>
+#endif
+
 
 using namespace std;
 
