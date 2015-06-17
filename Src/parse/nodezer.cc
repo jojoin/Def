@@ -484,15 +484,12 @@ Node* Nodezer::Express(Node *p1, bool down)
         }else{
             p2 = CreatNode(); //新建
         }
-
         if(cur.type==S::End){ // 全部结束
             return p2 ? p2 : p1;
         }
-
         if(!p2){ //表达式完成
             return p1;
         }
-
         if(!p1){
             p1 = ParseNode(p1, p2); //延展完善
             continue; // 获取下一个
@@ -506,7 +503,7 @@ Node* Nodezer::Express(Node *p1, bool down)
         if(pn){ // 可以组合
             p2 = ParseNode(p1, p2); // 延展完善
             if( pn->Right() ){
-                pn->Right( p2 ); // 重置右叶（修复BUG！）
+                pn->Right( p2 ); // 重置完善后的右叶（修复BUG！）
             }
             p1 = pn;
             continue; //优先级组合成功，下一步组合

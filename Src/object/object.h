@@ -72,34 +72,17 @@ struct DefObject{
 
 
 
-// None def 处理器对象
-struct ObjectProc : DefObject{
-	Node* value; //指向对应语法节点
-	ObjectProc()
-		: DefObject(T::Proc)
-	{}
-};
+#define NODEOBJ(xxx)                            \
+	struct Object##xxx : DefObject{                 \
+		Node* value; /*指向对应语法节点*/           \
+		Object##xxx()                               \
+			: DefObject(T::xxx){}                   \
+	};
+	NODEOBJ(Proc)        // None def 处理器对象
+	NODEOBJ(Func)         // None defun 函数对象
+	NODEOBJ(Node)        // None node 语句节点对象
+#undef NODEOBJ
 
-// None defun 函数对象
-struct ObjectFunc : DefObject{
-	Node* value; //指向对应语法节点
-	ObjectFunc()
-		: DefObject(T::Func)
-	{}
-};
-
-// None node 语句节点对象
-struct ObjectNode : DefObject{
-	Node* value; //指向对应语法节点
-	ObjectNode()
-		: DefObject(T::Node)
-	{}
-};
-
-
-
-
-// *************************** //
 
 
 
@@ -111,45 +94,20 @@ struct ObjectNone : DefObject{
 	{}
 };
 
+#define VALUE(t,X)                                \
+	struct Object##X : DefObject{                 \
+		t value;                                  \
+		Object##X(t v)                            \
+			: DefObject(T::X)                     \
+			, value(v)                            \
+		{}                                        \
+	};
+	VALUE(bool, Bool)        // Bool true 对象
+	VALUE(long, Int)         // Int 整型对象
+	VALUE(double, Float)     // Float 浮点数对象
+	VALUE(string, String)    // String 字符串对象
+#undef VALUE
 
-// Bool true 对象
-struct ObjectBool : DefObject{
-	bool value;
-	ObjectBool(bool v)
-		: DefObject(T::Bool)
-		, value(v)
-	{}
-};
-
-
-// Int 整型对象
-struct ObjectInt : DefObject{
-	long value;
-	ObjectInt(long v)
-		: DefObject(T::Int)
-		, value(v)
-	{}
-};
-
-
-// Float 浮点对象
-struct ObjectFloat : DefObject{
-	double value;
-	ObjectFloat(double v)
-		: DefObject(T::Float)
-		, value(v)
-	{}
-};
-
-
-// String 字符串对象
-struct ObjectString : DefObject{
-	string value;
-	ObjectString(string v)
-		: DefObject(T::String)
-		, value(v)
-	{}
-};
 
 
 
@@ -190,25 +148,14 @@ struct ObjectExArr : DefObject{
 };
 
 
-// List 列表对象
-struct ObjectList : ObjectExArr{
-	ObjectList()
-	: ObjectExArr(T::List)
-	{}
-
-};
-
-
-
-// Block 块对象
-struct ObjectBlock : ObjectExArr{
-	ObjectBlock()
-		: ObjectExArr(T::Block)
-	{}
-};
-
-
-
+#define EXARR(xxx)                              \
+	struct Object##xxx : ObjectExArr{           \
+		Object##xxx()                           \
+			: ObjectExArr(T::xxx){}             \
+	};
+	EXARR(List)      // List 列表对象
+	EXARR(Block)     // Block 块对象
+#undef EXARR
 
 
 // 字典型对象父类
@@ -254,40 +201,16 @@ struct ObjectExPkg : DefObject{
 
 };
 
-
-
-// Dict 字典对象
-struct ObjectDict : ObjectExPkg{
-	ObjectDict()
-		: ObjectExPkg(T::Dict)
-	{}
-};
-
-
-// Class 类对象
-struct ObjectClass : ObjectExPkg{
-	ObjectClass()
-		: ObjectExPkg(T::Class)
-	{}
-};
-
-
-// Object 对象实例
-struct ObjectObject : ObjectExPkg{
-	ObjectObject()
-		: ObjectExPkg(T::Object)
-	{}
-};
-
-
-// Module 模块对象
-struct ObjectModule : ObjectExPkg{
-	string file; // 模块文件绝对路径
-	ObjectModule()
-		: ObjectExPkg(T::Module)
-	{}
-};
-
+#define EXPKG(xxx)                             \
+	struct Object##xxx : ObjectExPkg{          \
+		Object##xxx()                          \
+			: ObjectExPkg(T::xxx){}            \
+	};
+	EXPKG(Dict)    // Dict 字典对象
+	EXPKG(Class)   // Class 类对象
+	EXPKG(Object)  // Object 对象实例
+	EXPKG(Module)  // Module 模块对象
+#undef EXPKG
 
 
 

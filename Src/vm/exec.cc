@@ -87,7 +87,7 @@ bool Exec::Main(string fl)
 	_envir.SetFile(file); // 入口文件
 
 	Node *nd = Parse(text, file); // 解析语法
-	// nd->Print();
+	nd->Print();
     // return false; 
 
 	_envir.Set(nd);       // 设置环境
