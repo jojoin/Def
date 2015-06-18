@@ -895,9 +895,10 @@ void Exec::BuildFuncArgv(Node*form, Node*real, Stack*stack)
                 stack->VarPut(name, ObjNone());
             }
             // 正常匹配项
-            if(!iskp && v && !dft){
+            if(!iskp && v){
                 _gc->Quote(v); // 加引用
                 stack->VarPut(name, v);
+                if(dft) Free(dft);
             }
         }
     }
