@@ -703,6 +703,7 @@ DefObject* Exec::FuncCall(Node* n)
     if(!fbody || !fbody->ChildSize()){
         return ObjNone(); //函数体为空
     }
+    // fbody->Print();
     // 拷贝环境
     Envir env = Envir(_envir);
     // 新栈帧
@@ -728,8 +729,6 @@ DefObject* Exec::FuncCall(Node* n)
     env.Set(EnvirType::Func);
     env.Set(stack);
     env.Set(fbody);
-    // func->GetBody()->Print();
-
 
     // 环境准备完毕，开始函数调用执行
     Exec exec = Exec(env);
@@ -741,7 +740,6 @@ DefObject* Exec::FuncCall(Node* n)
     }
     catch( Throw* tr) // 函数返回
     {
-        // cout<<"catch( Throw* tr) : "<<tr->GetMsg()<<endl;
         if(tr->GetType()!=ThrowType::Return){
             ERR("Function run excepction not <Return> !");
         }
@@ -772,12 +770,17 @@ DefObject* Exec::Return(Node*n)
     // cout<<"Return !!!"<<endl;
     NodeReturn *p = (NodeReturn*)n;
     // 求返回值
-    DefObject* obj = Evaluat( p->Child() );
-    // 返回（抛出异常）
-    _gc->Quote( obj );
-
+    DefObject* obj;
+    Node* chd = p->Child();
+    if(chd){
+        obj = Evaluat( chd );
+        _gc->Quote( obj ); // 加引用
+    }else{
+        obj = ObjNone(); // 默认返回 none
+    }
+    
+    // 抛出返回
     throw new Throw(ThrowType::Return, "", obj);
-    // throw &ret; // 抛出
 }  
 
 

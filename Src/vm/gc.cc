@@ -229,6 +229,9 @@ bool Gc::Free(DefObject* obj)
 {
 	//cout<<"Gc::Free"<<endl;
 	T t = obj->type;
+	if(t==T::None||t==T::Bool){
+		return true; // 静态对象不需要 Free
+	}
 	size_t r = obj->refcnt;
 	// 递归释放容器对象
 	if(IS_CONTAINER_OBJ){
@@ -252,9 +255,6 @@ bool Gc::Recycle(DefObject* obj)
 {
 	// cout<<"Gc::Recycle"<<endl;
 	T t = obj->type;
-	if(t==T::None||t==T::Bool){
-		return true; // 小对象不需要 del
-	}
 	if(t==T::Int){
 		IF_MINI_INT_OBJ{ // 小整数 不需要 del
 			//cout<<"IF_MINI_INT_OBJ"<<endl;

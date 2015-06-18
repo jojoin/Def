@@ -26,6 +26,7 @@ print func.test(
 	d:"yangjie"
 )
 
+# 空函数调用
 func.ept(1 2 3)
 
 
