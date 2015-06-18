@@ -1,8 +1,8 @@
 #!/bin/sh
 
-echo -e "- - - - - - - - - - - - - - - - - - - - - - -"
-echo -e "- Compile def vm c++ source code to def ..."
-echo -e "- - - - - - - - - - - - - - - - - - - - - - -"
+echo "- - - - - - - - - - - - - - - - - - - - - - -"
+echo "- Compile def vm c++ source code to def ..."
+echo "- - - - - - - - - - - - - - - - - - - - - - -"
 
 cd ../src
 
