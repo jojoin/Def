@@ -18,16 +18,25 @@ import "item/func.d" # 运算
 
 n : 2
 
-
 # 函数调用
 print func.test(
 	n-1
 	999
-	d:"yangjie"
+	"yangjie"
 )
 
-# 空函数调用
-func.ept(1 2 3)
+
+
+# # 空函数调用
+# func.ept(1 2 3)
+
+# 回调函数测试
+print func.callback(
+	func.test
+	n-2
+	999
+	"yangjie"
+)
 
 
 

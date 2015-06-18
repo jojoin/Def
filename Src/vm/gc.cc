@@ -82,7 +82,7 @@ ObjectString* Gc::AllotString(string val)
 {
 	//cout<<"string = "<<val<<endl;
 
-	if(0==free_string.size()){
+	if(1||0==free_string.size()){
 		// cout<<"new ObjectInt"<<endl;
 		return new ObjectString(val);
 	}

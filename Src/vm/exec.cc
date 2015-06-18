@@ -89,16 +89,15 @@ bool Exec::Main(string fl)
 	Node *nd = Parse(text, file); // 解析语法
 	// nd->Print();
     // return false; 
-
 	_envir.Set(nd);       // 设置环境
 
     // 解释执行
-    bool done = Run();
+    Run();
 
     // 清除环境数据
     _envir.Clear();
 
-    return done;
+    return true;
 
 }
 
@@ -630,10 +629,12 @@ DefObject* Exec::FuncDefine(Node* n)
         if(li->type==NT::Assign){
             Node *nl = li->Left();
             if(nl->type==NT::Variable){
+                DefObject* pv = Evaluat( li->Right() );
                 para->Set( // 添加默认参数
                     nl->GetName(),
-                    Evaluat( li->Right() )
+                    pv
                 );
+                _gc->Quote(pv); // 加引用
                 // cout<<"default func parameter : "<<nl->GetName()<<endl;
                 continue;
             } 
@@ -738,7 +739,7 @@ DefObject* Exec::FuncCall(Node* n)
     {
         retval = exec.Run();
     }
-    catch( Throw* tr) // 函数返回
+    catch(Throw* tr) // 函数返回
     {
         if(tr->GetType()!=ThrowType::Return){
             ERR("Function run excepction not <Return> !");
@@ -845,42 +846,34 @@ void Exec::BuildFuncArgv(Node*form, Node*real, Stack*stack)
     // cout<<"num max="<<num_max<<", f="<<num_f<<", r="<<num_r<<endl;
     // 参数列表
     ObjectList *argv = _gc->AllotList();
+    map<string, DefObject*> keypara; // 关键字参数
     //循环匹配参数
-    for(int i=0; i<num_max; i++){
-        // cout<<"para li : "<<i<<endl;
-        DefObject* v = NULL;
-        // 取值得到实参
+    for(int i=0; i<num_max; i++)
+    {
+        string name = ""; // 形式参数名
+        DefObject* v = NULL; // 参数值
+        bool iskp = false; // 是否为关键字参数
+        // 取实参
         if(i<num_r){
             Node * li = real->Child(i);
-            bool kp = false;
-            if(li->type==NT::Assign){ //关键字参数
-                // cout<<"li->type==NT::Assign"<<endl;
+            // 判断是否关键字参数
+            if(li->type==NT::Assign){ 
                 Node *n = li->Left();
                 if(n->type==NT::Variable){
-                    v = Evaluat( li->Right() ); //计算得到参数
-                    DefObject* old = stack->VarPut(n->GetName(), v);
-                    if(old){
-                        Free(old);
-                    }
-                    kp = true;
-                    // cout<<"key para ! "<<n->GetName()<<endl;
+                    v = Evaluat( li->Right() );
+                    keypara[n->GetName()] = v; //缓存关键字参数
+                    iskp = true;
                 }
             }
             if(!v){
                 v = Evaluat( li );
             }
-            _gc->Quote( v ); // 加引用
-            argv->Push( v ); // 参数列表
-            if(kp){ continue; } // 关键字参数不于形参匹配
+            argv->Push( v ); // 实参列表
+            _gc->Quote(v);
         }
-        if(!v){
-            v = ObjNone(); // 无匹配 none
-        }
-        // cout<<"para v : "<<(int)v<<endl;
-        // 匹配形参并入栈
-        if(i<num_f){
+        // 取得形式参数名称
+        if(i<num_f){ 
             Node *f = form->Child(i);
-            string name = "";
             if(f->type==NT::Assign){ //默认参数
                 Node *nl = f->Left();
                 if(nl->type==NT::Variable){
@@ -893,12 +886,27 @@ void Exec::BuildFuncArgv(Node*form, Node*real, Stack*stack)
                 }
                 name = f->GetName();
             }
-            if(stack->VarGet(name)){ // 默认或关键字参数已经赋值
-                continue;
+        }
+        // 形式参数匹配
+        if(name!=""){
+            DefObject *dft = stack->VarGet(name);
+            if( iskp && !dft){ 
+                //关键字参数项 没有默认值
+                stack->VarPut(name, ObjNone());
             }
-            stack->VarPut(name, v);
-            _gc->Quote( v ); // 加引用
-            // cout<<"para name :"<<name<<endl;
+            // 正常匹配项
+            if(!iskp && v && !dft){
+                _gc->Quote(v); // 加引用
+                stack->VarPut(name, v);
+            }
+        }
+    }
+    // 关键字参数覆盖
+    map<string, DefObject*>::iterator itr = keypara.begin();
+    for(; itr != keypara.end(); ++itr){
+        DefObject*old = stack->VarPut(itr->first, itr->second);
+        if(old){
+            Free(old); // 存在值则覆盖
         }
     }
     // 所有实参列表！

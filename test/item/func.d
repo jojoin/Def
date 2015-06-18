@@ -21,3 +21,12 @@ defun test(a b c:p d:"ddd")
 defun ept()
 ;
 
+
+# 回调函数
+defun callback(func p1 p2 p3)
+	func(p1 p2 p3)
+;
+
+
+
+
