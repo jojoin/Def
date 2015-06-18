@@ -103,8 +103,6 @@ ObjectList* Gc::AllotList()
 {
 	return new ObjectList();
 }
-
-
 /**
  * 创建 dict 对象
  */
@@ -112,8 +110,6 @@ ObjectDict* Gc::AllotDict()
 {
 	return new ObjectDict();
 }
-
-
 /**
  * 创建 block 对象
  */
@@ -124,6 +120,27 @@ ObjectBlock* Gc::AllotBlock()
 
 
 
+/**
+ * 分配 proc 对象
+ */
+ObjectProc* Gc::AllotProc(Node*n)
+{
+	return new ObjectProc( n );
+}
+/**
+ * 分配 func 对象
+ */
+ObjectFunc* Gc::AllotFunc(Node*n)
+{
+	return new ObjectFunc( n );
+}
+/**
+ * 分配 node 对象
+ */
+ObjectNode* Gc::AllotNode(Node*n)
+{
+	return new ObjectNode( n );
+}
 
 
 
@@ -139,7 +156,6 @@ DefObject* Gc::Allot(Node* n)
 	T t = n->type;
 
 	if(t==T::None){ // none
-
 		return prep_none;
 
 	}else if(t==T::Bool){ // bool
@@ -154,15 +170,14 @@ DefObject* Gc::Allot(Node* n)
 	}else if(t==T::String){ // string
 		return AllotString(n->GetString());
 
-
-	}else if(t==T::List){ // list
-		return AllotList();
-	}else if(t==T::Dict){ // dict
-		return AllotDict();
-	}else if(t==T::Block){ // block
-		return AllotBlock();
-
-
+	}else if(t==T::List){ return AllotList(); // list
+	}else if(t==T::Dict){ return AllotDict(); // dict
+	}else if(t==T::Block){ return AllotBlock(); // block
+		
+	}else if(t==T::ProcDefine){ return AllotProc( n ); // proc
+	}else if(t==T::FuncDefine){ return AllotFunc( n ); // func
+	// }else if(t==T::Node){ return AllotNode( n );// node
+		
 
 	}
 
@@ -185,7 +200,7 @@ DefObject* Gc::Allot(Node* n)
  * 引用现有的对象
  * 引用计数 +1
  */
-DefObject* Gc::Quote(DefObject* obj)
+bool Gc::Quote(DefObject* obj)
 {
 	//cout<<"Gc::Quote"<<endl;
 	T t = obj->type;

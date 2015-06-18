@@ -87,7 +87,7 @@ bool Exec::Main(string fl)
 	_envir.SetFile(file); // 入口文件
 
 	Node *nd = Parse(text, file); // 解析语法
-	nd->Print();
+	// nd->Print();
     // return false; 
 
 	_envir.Set(nd);       // 设置环境
@@ -95,7 +95,7 @@ bool Exec::Main(string fl)
     // 解释执行
     bool done = Run();
 
-    // 清除数据
+    // 清除环境数据
     _envir.Clear();
 
     return done;
@@ -139,25 +139,29 @@ Node* Exec::Parse(string &text, string file)
 
 /**
  * 执行 Def 调用帧
- * @return 表示解释成功或失败
+ * @return 调用的返回对象
  */
-bool Exec::Run()
+DefObject* Exec::Run()
 {
-	LOCALIZE_node;
+    LOCALIZE_node;
+    LOCALIZE_gc;
 
     if(!_node){
-    	return false;
+    	return NULL;
     }
+
+    DefObject *ret = NULL;
 
     // 组合表达式 NodeType::Group
     size_t i = 0
          , s = _node->ChildSize();
     while(i<s){
-        Evaluat( _node->Child(i) );
+        ret = Evaluat( _node->Child(i) );
         i++;
     }
 
-    return true;
+    _gc->Quote(ret); //返回值加引用
+    return ret;
 }
 
 
@@ -165,22 +169,41 @@ bool Exec::Run()
  * 执行当前栈帧的垃圾回收
  * 通常在一句表达式执行完毕后调用
  */
-inline bool Exec::Free(DefObject *obj)
+inline void Exec::Free(DefObject *obj)
 {
-    return _envir._gc->Free(obj);
+    _envir._gc->Free(obj);
+}
+
+/**
+ * 执行当前栈帧的垃圾回收
+ * 通常在一句表达式执行完毕后调用
+ */
+inline void Exec::VarPut(string name, DefObject*obj)
+{
+    LOCALIZE_gc;
+    LOCALIZE_stack;
+
+    // 入栈
+    DefObject *exi = _stack->VarPut(name, obj); // 查找变量是否存在
+    if(exi){
+        // cout<<"_gc->Free()"<<endl;
+        Free(exi);       // 解引用
+    }
+    // cout<<"_gc->Quote()"<<name<<endl;
+    _gc->Quote(obj); // 加引用
 }
 
 
 //返回对象
-inline ObjectNone* Exec::NewObjNone()
+inline ObjectNone* Exec::ObjNone()
 {
     return _envir._gc->prep_none;
 }
-inline ObjectBool* Exec::NewObjTrue()
+inline ObjectBool* Exec::ObjTrue()
 {
     return _envir._gc->prep_true;
 }
-inline ObjectBool* Exec::NewObjFalse()
+inline ObjectBool* Exec::ObjFalse()
 {
     return _envir._gc->prep_false;
 }
@@ -234,6 +257,10 @@ DefObject* Exec::Evaluat(Node* n)
         IF(Assign)
         IF(AssignUp)
         IF(ProcDefine)
+        IF(FuncDefine)
+        IF(ProcCall)
+        IF(FuncCall)
+        IF(Return)
         IF(List)
         IF(Dict)
         IF(Print)
@@ -490,23 +517,24 @@ DefObject* Exec::While(Node* n)
 DefObject* Exec::If(Node* n)
 {
     NodeIf* p = (NodeIf*)n;
+    DefObject* ret = ObjNone();
     size_t i = 0
          , s = p->ChildSize();
-    while(1){
-        if(i+1==s){  //执行 else 块
-            Evaluat( p->Child(i) );
-            break;
+    while(i<s){
+        NodeGroup *li = (NodeGroup*)p->Child(i);
+        size_t n = li->ChildSize();
+        if(!n) continue;
+        Node *cnd = li->Child(0); //条件（值NULL则为else块）
+        if(!cnd || Conversion::Bool( Evaluat( cnd ) )){
+            for(int j=1; j<n; j++)
+            {
+                ret = Evaluat( li->Child(i+1) ); //执行 if 或 else 块
+            }
+            break; // if 完成
         }
-        if(i>=s){
-            break; // 结束
-        }
-        if(Conversion::Bool( Evaluat( p->Child(i) ) )){
-            Evaluat( p->Child(i+1) ); //执行 if 块
-            break;
-        }
-        i += 2;
+        i++;
     }
-    return NULL;
+    return ret;
 }
 
 
@@ -568,11 +596,319 @@ DefObject* Exec::Dict(Node* n)
  */
 DefObject* Exec::ProcDefine(Node* n)
 {
+    // cout<<"ProcDefine !!!"<<endl;
     NodeProcDefine* p = (NodeProcDefine*)n;
+
+    ObjectProc* proc = new ObjectProc(p); //新建对象
+
+    string name = p->GetName();
+    if(name!=""){ // 变量入栈
+        // cout<<"VarPut(name, proc);"<<endl;
+        VarPut(name, proc);
+    }
+    return proc;
+}
+
+
+
+/**
+ * def 函数定义
+ */
+DefObject* Exec::FuncDefine(Node* n)
+{
+    LOCALIZE_gc
+    // cout<<"FuncDefine !!!"<<endl;
+    NodeFuncDefine* p = (NodeFuncDefine*)n;
+    // 新建函数对象
+    ObjectFunc* func = _gc->AllotFunc(p); 
+    // 处理默认参数
+    ObjectDict* para = _gc->AllotDict(); 
+    NodeGroup* pg =  (NodeGroup*)p->GetArgv();
+    size_t len = pg->ChildSize();
+    for(int i=0; i<len; i++){
+        Node* li = pg->Child(i);
+        if(li->type==NT::Assign){
+            Node *nl = li->Left();
+            if(nl->type==NT::Variable){
+                para->Set( // 添加默认参数
+                    nl->GetName(),
+                    Evaluat( li->Right() )
+                );
+                // cout<<"default func parameter : "<<nl->GetName()<<endl;
+                continue;
+            } 
+        }
+        if(li->type!=NT::Variable){ // 参数格式错误
+            ERR("Function parameter list format error !")
+        }
+        // cout<<"func parameter"<<endl;
+    }
+    func->argv = para; //默认参数赋值
+
+    // 变量入栈
+    // cout<<"string name = p->GetName();"<<endl;
+    string name = p->GetName();
+    if(name!=""){
+        VarPut(name, func);
+    }
+    return func;
+}
+
+
+
+/**
+ * def 处理器调用
+ */
+DefObject* Exec::ProcCall(Node* n)
+{
+    LOCALIZE_gc
+    // cout<<"ProcCall !!!"<<endl;
+    NodeProcCall *p = (NodeProcCall*)n;
+    // 获得处理器对象
+    ObjectProc *op = (ObjectProc*)Evaluat( n->Left() );
+    if(!op){
+        ERR("Can't get the proc obj !")
+    }
+    NodeProcDefine *proc = (NodeProcDefine*)op->GetNode();
+    // 拷贝环境
+    Envir env = Envir(_envir);
+    // 新栈帧
+    Stack *stack = new Stack();
+    // 混合生成处理器参数
+    BuildProcArgv(proc->GetArgv(), p->Right(), stack);
+    stack->Print();
 
 
     return NULL;
 }
+
+
+
+/**
+ * def 函数调用
+ */
+DefObject* Exec::FuncCall(Node* n)
+{
+    LOCALIZE_gc
+    // cout<<"FuncCall !!!"<<endl;
+    NodeFuncCall *p = (NodeFuncCall*)n;
+    // 获得函数对象
+    ObjectFunc *of = (ObjectFunc*)Evaluat( n->Left() );
+    // cout<<"*of="<<(int)of<<endl;
+    if(!of){
+        ERR("Can't get the func obj !")
+    }
+    NodeFuncDefine *func = (NodeFuncDefine*)of->GetNode();
+    NodeGroup *fbody = (NodeGroup*)func->GetBody();
+    if(!fbody || !fbody->ChildSize()){
+        return ObjNone(); //函数体为空
+    }
+    // 拷贝环境
+    Envir env = Envir(_envir);
+    // 新栈帧
+    Stack *stack = new Stack();
+    // 处理默认参数
+    ObjectDict* para = of->argv;
+    // cout<<"*para="<<(int)para<<endl;
+    map<string, DefObject*>::iterator itr_p = para->value.begin();
+    for(; itr_p != para->value.end(); ++itr_p){
+        stack->VarPut( itr_p->first, itr_p->second );
+        _gc->Quote(itr_p->second); // 加引用
+    }
+    // cout<<"default parameter stack"<<endl;
+    // stack->Print();
+    // 混合生成处理器参数
+    // cout<<"func->GetArgv();"<<endl;
+    Node* ppp = func->GetArgv();
+    // cout<<"Node* ppp="<<(int)ppp<<endl;
+    BuildFuncArgv(func->GetArgv(), p->Right(), stack);
+    // cout<<"BuildFuncArgv stack"<<endl;
+    // stack->Print();
+    // 环境更新
+    env.Set(EnvirType::Func);
+    env.Set(stack);
+    env.Set(fbody);
+    // func->GetBody()->Print();
+
+
+    // 环境准备完毕，开始函数调用执行
+    Exec exec = Exec(env);
+    // 执行调用
+    DefObject * retval = NULL;
+    try
+    {
+        retval = exec.Run();
+    }
+    catch( Throw* tr) // 函数返回
+    {
+        // cout<<"catch( Throw* tr) : "<<tr->GetMsg()<<endl;
+        if(tr->GetType()!=ThrowType::Return){
+            ERR("Function run excepction not <Return> !");
+        }
+        retval = tr->GetObject(); // 返回值
+        delete tr;
+    }
+    // cout<<"bool done = exec.Run();"<<endl;
+    // stack->Print();
+    // 函数调用完成，清理执行栈
+    map<string, DefObject*>::iterator itr_s = stack->v_local.begin();
+    for(; itr_s != stack->v_local.end(); ++itr_s){
+        Free( itr_s->second );
+    }
+    delete stack; //清除栈
+    
+    // 返回函数执行结果
+    return retval;
+}
+
+
+
+/**
+ * 函数返回
+ */
+DefObject* Exec::Return(Node*n)
+{
+    LOCALIZE_gc
+    // cout<<"Return !!!"<<endl;
+    NodeReturn *p = (NodeReturn*)n;
+    // 求返回值
+    DefObject* obj = Evaluat( p->Child() );
+    // 返回（抛出异常）
+    _gc->Quote( obj );
+
+    throw new Throw(ThrowType::Return, "", obj);
+    // throw &ret; // 抛出
+}  
+
+
+
+
+
+/**
+ * 匹配处理器参数列表
+ */
+void Exec::BuildProcArgv(Node*form, Node*real, Stack*stack)
+{
+    LOCALIZE_gc
+
+    size_t num_f = form ? form->ChildSize() : 0;
+    size_t num_r = real ? real->ChildSize() : 0;
+    size_t num_max = num_f > num_r ? num_f : num_r;
+    // 参数列表
+    ObjectList *argv = new ObjectList();
+    //循环匹配参数
+    for(int i=0; i<num_max; i++){
+        DefObject* v = NULL;
+        // 取值得到实参
+        if(i<num_r){
+            v = new ObjectNode( real->Child(i) );
+            _gc->Quote( v ); // 加引用
+            argv->Push( v );
+        }
+        if(!v){
+            v = ObjNone(); // 无匹配 none
+        }
+        // 匹配形参并入栈
+        if(i<num_f){
+            Node *f = form->Child(i);
+            if(f->type!=NT::Variable){
+                ERR("Proc form parameter must be <Variable> type !")
+            }
+            string name = f->GetName();
+            stack->VarPut(name, v);
+            _gc->Quote( v ); // 加引用
+        }
+    }
+    // 所有实参列表！
+    if(!stack->VarGet("argv")){
+        stack->VarPut("argv", argv);
+    }else{
+        Free(argv); // 释放
+    }
+
+}
+
+/**
+ * 匹配函数参数列表
+ */
+void Exec::BuildFuncArgv(Node*form, Node*real, Stack*stack)
+{
+    LOCALIZE_gc
+
+    // cout<<"BuildFuncArgv !!!"<<endl;
+    size_t num_f = form ? form->ChildSize() : 0;
+    size_t num_r = real ? real->ChildSize() : 0;
+    size_t num_max = num_f > num_r ? num_f : num_r;
+    // cout<<"num max="<<num_max<<", f="<<num_f<<", r="<<num_r<<endl;
+    // 参数列表
+    ObjectList *argv = _gc->AllotList();
+    //循环匹配参数
+    for(int i=0; i<num_max; i++){
+        // cout<<"para li : "<<i<<endl;
+        DefObject* v = NULL;
+        // 取值得到实参
+        if(i<num_r){
+            Node * li = real->Child(i);
+            bool kp = false;
+            if(li->type==NT::Assign){ //关键字参数
+                // cout<<"li->type==NT::Assign"<<endl;
+                Node *n = li->Left();
+                if(n->type==NT::Variable){
+                    v = Evaluat( li->Right() ); //计算得到参数
+                    DefObject* old = stack->VarPut(n->GetName(), v);
+                    if(old){
+                        Free(old);
+                    }
+                    kp = true;
+                    // cout<<"key para ! "<<n->GetName()<<endl;
+                }
+            }
+            if(!v){
+                v = Evaluat( li );
+            }
+            _gc->Quote( v ); // 加引用
+            argv->Push( v ); // 参数列表
+            if(kp){ continue; } // 关键字参数不于形参匹配
+        }
+        if(!v){
+            v = ObjNone(); // 无匹配 none
+        }
+        // cout<<"para v : "<<(int)v<<endl;
+        // 匹配形参并入栈
+        if(i<num_f){
+            Node *f = form->Child(i);
+            string name = "";
+            if(f->type==NT::Assign){ //默认参数
+                Node *nl = f->Left();
+                if(nl->type==NT::Variable){
+                    name = nl->GetName();
+                } 
+            }
+            if(name==""){
+                if(f->type!=NT::Variable){
+                    ERR("Func form argv must be <Variable> type !")
+                }
+                name = f->GetName();
+            }
+            if(stack->VarGet(name)){ // 默认或关键字参数已经赋值
+                continue;
+            }
+            stack->VarPut(name, v);
+            _gc->Quote( v ); // 加引用
+            // cout<<"para name :"<<name<<endl;
+        }
+    }
+    // 所有实参列表！
+    if(!stack->VarGet("argv")){
+        stack->VarPut("argv", argv);
+    }else{
+        Free(argv); // 释放
+    }
+
+}
+
+
+
 
 
 
@@ -621,7 +957,7 @@ DefObject* Exec::ContainerAccess(Node* n)
     }
 
     // cout<<"return result="<<(int)result<<endl;
-    return result ? result : NewObjNone(); // 无效访问 返回 none
+    return result ? result : ObjNone(); // 无效访问 返回 none
 }
 
 
@@ -648,11 +984,17 @@ DefObject* Exec::MemberAccess(Node* n)
     if(bt==OT::Module){ // 模块访问
         // cout<<"Module::key = "<<right->GetName()<<endl;
         result = ((ObjectModule*)base)->Visit( right->GetName() ); 
+    }
 
+    if(!result){
+        string bn = left->GetName();
+        string mn = right->GetName();
+        ERR("Can't find member '"+mn+"' in '"+bn+"' !")
     }
 
     // cout<<"return result="<<(int)result<<endl;
-    return result ? result : NewObjNone(); // 无效访问 返回 none
+    // return result ? result : ObjNone(); // 无效访问 返回 none
+    return result;
 }
 
 

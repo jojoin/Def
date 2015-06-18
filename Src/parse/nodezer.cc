@@ -104,6 +104,7 @@ NodeType Nodezer::GetNodeType(Word &cwd)
         IF("if", If)
         IF("while", While)
         IF("import", Import) // 模块加载
+        IF("return", Return) // 模块加载
 
         }
 
@@ -396,11 +397,11 @@ Node* Nodezer::ParseNode(Node*p1, Node*p)
         Move(1); // jump ;
         return p;
 
-    // 打印 模块加载
-    }else if( t==T::Print || t==T::Import ){
+    // 模块加载 打印 函数返回
+    }else if( t==T::Import || t==T::Print || t==T::Return ){
 
-        //cout << "-Print-" << endl;
-        Move(1); // jump print
+        // cout << "-Import Print Return-" << endl;
+        Move(1); // jump import print return
         p->AddChild( Express() );
         return p;
 

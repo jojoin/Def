@@ -36,8 +36,6 @@ enum class EnvirType{
 };
 
 
-
-
 // 执行环境统一包装
 class Envir {
 

@@ -61,11 +61,10 @@ namespace parse {
 	D(ProcDefine, 0)			\
 	D(ClassDefine, 0)			\
 								\
-	D(Priority, 0)				\
-								\
-	D(Print, 0)              	\
-								\
 	D(Import, 0)              	\
+	D(Priority, 0)				\
+	D(Print, 0)              	\
+	D(Return, 0)              	\
 								\
 	N(End, 0)            
 
@@ -313,6 +312,7 @@ struct Node##xxx : NodeTree{                 \
 NODEONETREE(Print)      // print 打印变量至屏幕
 NODEONETREE(Priority)   // Priority 优先级
 NODEONETREE(Import)     // Import 模块加载
+NODEONETREE(Return)     // Return 函数返回
 
 
 // 双叉子节点

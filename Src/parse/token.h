@@ -57,6 +57,8 @@ namespace parse {
 	K(Defun, "defun", 0)            \
 	K(Class, "class", 0)            \
 									\
+	K(Return, "return", 0)          \
+									\
 	K(None, "none", 0)              \
 	K(True, "true", 0)              \
 	K(False, "false", 0)            \

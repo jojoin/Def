@@ -61,14 +61,21 @@ void DefObject::Print(DefObject *obj){
         }
         cout << "]";
 
+    // 代码节点对象
+    }else if(t==T::Proc){ cout << "<process>";
+    }else if(t==T::Func){ cout << "<function>";
+    }else if(t==T::Node){ cout << "<node>";
+
     }else if(t==T::None){
         cout << "none";
+
     }else if(t==T::Bool){
         if( Conversion::Bool(obj) ){
             cout << "true";
         }else{
             cout << "false";
         }
+
     }else{
 
     }

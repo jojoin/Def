@@ -17,6 +17,7 @@
 #include "stack.h"
 #include "module.h"
 #include "envir.h"
+#include "throw.h"
 
 using namespace std;
 
@@ -25,6 +26,8 @@ using namespace def::parse;
 
 namespace def {
 namespace vm {
+
+
 
 // 调用
 class Exec {
@@ -44,15 +47,16 @@ class Exec {
 	inline Stack* StackParent(Stack*p=NULL);           // 指定&获取父栈
 
 	// 支持
-	inline bool Free(DefObject*);      // 变量的解引用
-	inline ObjectNone* NewObjNone();   // 返回 none 对象
-	inline ObjectBool* NewObjTrue();   // 返回 true 对象
-	inline ObjectBool* NewObjFalse();  // 返回 false 对象
+	inline void Free(DefObject*);      // 变量的解引用
+	inline void VarPut(string,DefObject*);      // 变量的入栈（带垃圾回收）
+	inline ObjectNone* ObjNone();   // 返回 none 对象
+	inline ObjectBool* ObjTrue();   // 返回 true 对象
+	inline ObjectBool* ObjFalse();  // 返回 false 对象
 
 	// 执行
 	bool Main(string); // 从入口文件开始执行
 	static Node* Parse(string &text, string file=""); // 解析文本得到抽象语法树
-	bool Run(); // 执行调用帧
+	DefObject* Run(); // 执行调用帧
 
 	// 求值
 	DefObject* Evaluat(Node*);  // 对节点求值操作
@@ -79,6 +83,11 @@ class Exec {
 	
 	DefObject* ProcDefine(Node*); // 处理器定义
 	DefObject* FuncDefine(Node*); // 函数定义
+	DefObject* ProcCall(Node*);   // 处理器调用
+	DefObject* FuncCall(Node*);   // 函数调用
+	DefObject* Return(Node*);     // 函数返回
+	void BuildProcArgv(Node*,Node*,Stack*); // 处理参数列表
+	void BuildFuncArgv(Node*,Node*,Stack*); // 处理参数列表
 
 	DefObject* ContainerAccess(Node*); // 容器访问
 	DefObject* MemberAccess(Node*);    // 成员访问
@@ -90,6 +99,15 @@ class Exec {
 	DefObject* Print(Node*); // 打印操作
 
 };
+
+
+
+
+
+
+
+
+
 
 
 

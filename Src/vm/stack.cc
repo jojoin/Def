@@ -112,7 +112,7 @@ void Stack::Print()
     	DefObject::Print( itr->second );
     	cout<<endl;
     }
-    cout<<"========= end ========="<<endl;
+    cout<<"======== end =========="<<endl;
 }
 
 

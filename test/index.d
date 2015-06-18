@@ -8,13 +8,51 @@
 # 导入系统模块
 # import "fs" 
 
-import "container.d" # 容器
+# import "container.d" # 容器
+# print container.li
 
-import "modules/math.d" # 运算
+# import "modules/math.d" # 运算
+# print math.PI
 
-print container.li
+import "func.d" # 运算
 
-print math.PI
+n : 2
+
+
+# 函数调用
+print func.test(
+	n-1
+	999
+	d:"yangjie"
+)
+
+func.ept(1 2 3)
+
+
+
+
+
+
+
+
+
+# ##################
+# def mydeal{a b c}
+# ;
+
+# n : 2
+# mydeal{
+# 	n-1
+# 	"yangjie"
+# 	999
+# }
+# #################
+
+
+
+
+
+
 
 
 

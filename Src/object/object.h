@@ -72,20 +72,6 @@ struct DefObject{
 
 
 
-#define NODEOBJ(xxx)                            \
-	struct Object##xxx : DefObject{                 \
-		Node* value; /*指向对应语法节点*/           \
-		Object##xxx()                               \
-			: DefObject(T::xxx){}                   \
-	};
-	NODEOBJ(Proc)        // None def 处理器对象
-	NODEOBJ(Func)         // None defun 函数对象
-	NODEOBJ(Node)        // None node 语句节点对象
-#undef NODEOBJ
-
-
-
-
 
 // None none 对象
 struct ObjectNone : DefObject{
@@ -164,7 +150,6 @@ struct ObjectExPkg : DefObject{
 	ObjectExPkg(T t)
 		: DefObject(t)
 	{}
-
 	// 替换设置元素
 	DefObject* Set(string key,  DefObject* obj){
         // cout<<"dict push"<<endl;
@@ -211,6 +196,58 @@ struct ObjectExPkg : DefObject{
 	EXPKG(Object)  // Object 对象实例
 	EXPKG(Module)  // Module 模块对象
 #undef EXPKG
+
+
+
+
+/**
+ * 处理器 函数 语句 节点对象
+ */
+#define NODEOBJ(xxx)                            \
+	struct Object##xxx : DefObject{             \
+		Node* value; /*指向对应语法节点*/       \
+		Object##xxx(Node*v=NULL)                \
+		: DefObject(T::xxx)                     \
+		, value(v)                              \
+		{}                                      \
+		inline Node* GetNode(){ return value; } \
+	};
+	NODEOBJ(Proc)        // None def 处理器对象
+	NODEOBJ(Node)        // None node 语句节点对象
+#undef NODEOBJ
+
+// 函数对象
+struct ObjectFunc : DefObject{ 
+	Node* value; // 指向对应语法节点
+	ObjectDict* argv; // 默认参数
+	ObjectDict* closure; // 闭包
+	ObjectFunc(Node*v=NULL,ObjectDict*a=NULL,ObjectDict*c=NULL)
+	: DefObject(T::Func)
+	, value(v)
+	, argv(a)
+	, closure(c)
+	{}
+	~ObjectFunc(){
+		delete argv;
+		delete closure;
+	} 
+	inline Node* GetNode(){ 
+		return value; 
+	}  
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
