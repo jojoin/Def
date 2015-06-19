@@ -81,8 +81,10 @@ ObjectFloat* Gc::AllotFloat(double val)
 ObjectString* Gc::AllotString(string val)
 {
 	//cout<<"string = "<<val<<endl;
+	return new ObjectString(val);
+	/*
 
-	if(1||0==free_string.size()){
+	if(0==free_string.size()){
 		// cout<<"new ObjectInt"<<endl;
 		return new ObjectString(val);
 	}
@@ -92,6 +94,7 @@ ObjectString* Gc::AllotString(string val)
 	free_string.pop_back();
 	str->value = val; // 改值
 	return str; 
+	*/
 }
 
 
@@ -266,6 +269,7 @@ bool Gc::Recycle(DefObject* obj)
 			// cout<<"free_int.push  size="<<free_int.size()<<endl;
 			return true;
 		}
+	/*
 	}else if(t==T::String){
 		if(free_string.size()<1024){ // 限制空闲列表大小
 			obj->refcnt = 0; //引用归零
@@ -274,6 +278,7 @@ bool Gc::Recycle(DefObject* obj)
 			// cout<<"free_string.push  size="<<free_int.size()<<endl;
 			return true;
 		}
+	*/
 
 	}else if(t==T::List){
 		ObjectList* o = (ObjectList*)obj;

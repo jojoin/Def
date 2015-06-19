@@ -66,13 +66,15 @@ class Exec {
 	DefObject* AssignUp(Node*); // 向上搜索赋值
 
 	DefObject* Operate(Node*, Node*, NodeType); // 算法操作 + - * /
+	DefObject* Compare(Node*, Node*, NodeType); // 比较 = > < >= <= ~= ~
 	// DefObject* Equal(Node*, Node*);      // 等于 =
 	// DefObject* More(Node*, Node*);       // 大于 >
 	// DefObject* Less(Node*, Node*);       // 小于 <
 	// DefObject* MoreEqual(Node*, Node*);  // 大于等于 >=
 	// DefObject* LessEqual(Node*, Node*);  // 小于等于 <=
 	// DefObject* NotEqual(Node*, Node*);   // 不等于 ~=
-	// DefObject* Not(Node*, Node*);        // bool取反 ~
+	
+	DefObject* Not(Node*, Node*);        // bool取反 ~
 
 	DefObject* If(Node*); // if 结构
 	DefObject* While(Node*); // while 结构

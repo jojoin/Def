@@ -271,8 +271,12 @@ DefObject* Exec::Evaluat(Node* n)
 #undef IF
 
     }else if(t==T::Add||t==T::Sub||t==T::Mul||t==T::Div){ // + - * / 算法操作
-        //cout<<"add sub mul div !!!"<<endl;
+        //cout<<"operate !!!"<<endl;
         return Operate( n->Left(), n->Right(), t);
+
+    }else if(t==T::Equal||t==T::More||t==T::Less||t==T::MoreEqual||t==T::LessEqual||t==T::NotEqual){ // 比较操作
+        //cout<<"compare !!!"<<endl;
+        return Compare( n->Left(), n->Right(), t);
 
     }else if(t==T::None||t==T::Bool||t==T::Int||t==T::Float||t==T::String){ // none bool int 字面量求值
         // cout<<"Allot !!!"<<endl;
@@ -406,7 +410,7 @@ DefObject* Exec::AssignUp(Node*n)
 
 /**
  * 算法操作
- * @param opt 算法种类 + - * /
+ * @param t 算法种类 + - * /
  */
 DefObject* Exec::Operate(Node *nl, Node *nr, NT t)
 {
@@ -472,6 +476,60 @@ DefObject* Exec::Operate(Node *nl, Node *nr, NT t)
 
     return result;
 }
+
+
+/**
+ * 算法操作
+ * @param t 比较种类 = > < >= <= ~= ~
+ */
+DefObject* Exec::Compare(Node *nl, Node *nr, NT t)
+{
+    // 正式运算
+    DefObject *l = Evaluat(nl),
+              *r = Evaluat(nr);
+
+    OT lt = l->type,
+       rt = r->type;
+
+    DefObject *_t = ObjTrue(),
+              *_f = ObjFalse();
+
+// 数值比较
+#define COMPARE(T1,O1,T2,O2)                             \
+    if( lt==OT::T1 && rt==OT::T2 ){                      \
+    O1 vl = ((Object##T1*)l)->value;                     \
+    O2 vr = ((Object##T2*)r)->value;                     \
+    switch(t){                                           \
+    case NT::Equal:     return vl==vr?_t:_f;             \
+    case NT::More:      return vl> vr?_t:_f;             \
+    case NT::Less:      return vl< vr?_t:_f;             \
+    case NT::MoreEqual: return vl>=vr?_t:_f;             \
+    case NT::LessEqual: return vl<=vr?_t:_f;             \
+    case NT::NotEqual:  return vl!=vr?_t:_f;             \
+    }}
+
+    COMPARE(Int,long,Int,long)
+    COMPARE(Int,long,Float,double)
+    COMPARE(Float,double,Int,long)
+    COMPARE(Float,double,Float,double)
+
+#undef COMPARE
+
+    // 字符串等于、不等于比较
+    if( lt==OT::String && rt==OT::String )
+    {
+        string vl = ((ObjectString*)l)->value;
+        string vr = ((ObjectString*)r)->value;
+        bool ret = false;
+        if(t==NT::Equal) return vl==vr?_t:_f;
+        if(t==NT::NotEqual) return vl!=vr?_t:_f;
+    }
+
+    // 没有匹配的比较算法
+    ERR("Can't compare !");
+}
+
+
 
 
 /**
