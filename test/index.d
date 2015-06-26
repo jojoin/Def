@@ -20,7 +20,12 @@ import "item/proc.d" # 处理器
 
 arr : (100 3.69 "yangjie")
 
-print type(arr)
+print( type(arr) )
+
+sss : "yang器"
+
+print( size(sss) )
+
 
 # 遍历容器
 # proc.foreach{ arr k v

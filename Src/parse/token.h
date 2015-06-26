@@ -70,7 +70,7 @@ namespace parse {
 									\
 	K(Import, "import", 0)          \
 									\
-	K(Print, "print", 0)
+	/*K(Print, "print", 0)屏蔽*/
 	
 
 

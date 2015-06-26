@@ -29,7 +29,7 @@ class Str {
 	}
 
 	// string 转 wstring
-	static wstring ws2s(const string& str){
+	static wstring s2ws(const string& str){
 		std::wstring wstr(str.length(),L' ');
         std::copy(str.begin(), str.end(), wstr.begin());
         return wstr; 

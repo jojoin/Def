@@ -1250,8 +1250,19 @@ DefObject* Exec::Sysfunc(string name, Node* para)
     NodeGroup* argv = (NodeGroup*) para;
     size_t len = argv->ChildSize();
 
+
+    // 打印
+    if(name=="print"){
+
+        if(!len>0) return ObjNone();
+        DefObject *obj = Evaluat( argv->Child(0) );
+        DefObject::Print( obj );
+        cout<<endl;
+        return obj;
+
     // 求类型
-    if(name=="type"){
+    }else if(name=="type"){
+
         if(!len>0){
             ERR("System function \"call\" parameter size must 1 !")
         }

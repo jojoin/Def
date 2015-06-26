@@ -8,7 +8,7 @@
 
 
 
-# print "---------  test container  ----------"
+# print( "---------  test container  ----------" )
 
 
 # 列表（索引从1开始）
@@ -21,7 +21,7 @@ li : ( 1 2 3 "yang" "jie"  ('a' 'b') )
 li[1] : 111           # 替换
 li[]  : "the last"    # 末尾追加
 
-# print li
+# print( li )
 
 # 字典
 
@@ -34,14 +34,14 @@ dt : [
 ]
 
 
-# print dt['k1']    # 访问
+# print( dt['k1'] )    # 访问
 dt['123'] : 123
 
 dt[key] : "the new variable key"  # 重新赋值
 
 dt['vbb'] : 'variable1adsfagff'
 
-# print dt
+# print( dt )
 
 
 
@@ -61,9 +61,9 @@ obj : [
 
 obj['user']['other'] : 99  # 多层访问赋值
 
-# print obj
+# print( obj )
 
 
-# print "---------  test end  ----------"
+# print( "---------  test end  ----------" )
 
 
