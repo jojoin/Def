@@ -47,7 +47,6 @@ class Exec {
 	inline Stack* StackParent(Stack*p=NULL);           // 指定&获取父栈
 
 	// 支持
-	inline void Free(DefObject*);      // 变量的解引用
 	inline void VarPut(string,DefObject*);      // 变量的入栈（带垃圾回收）
 	inline ObjectNone* ObjNone();   // 返回 none 对象
 	inline ObjectBool* ObjTrue();   // 返回 true 对象

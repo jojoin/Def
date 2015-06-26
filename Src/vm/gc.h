@@ -10,6 +10,7 @@
 
 #include "../object/object.h"
 #include "../parse/node.h"
+#include "./stack.h"
 
 using namespace std;
 

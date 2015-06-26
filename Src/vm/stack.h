@@ -30,6 +30,8 @@ struct Stack{
 	public:
 
 	Stack(Stack*p=NULL);
+	inline void SetParent(Stack*p){ parent = p; };
+	inline Stack* GetParent(){ return parent; };
 
 	// 变量操作
 	DefObject* VarPut(string, DefObject*);   // 将变量入当前栈（返回旧变量，不存在返回NULL）

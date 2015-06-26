@@ -11,13 +11,10 @@
 #include <map>
 
 #include "../parse/node.h"
-// #include "../vm/stack.h"
 
 using namespace std;
 
 using namespace def::parse;
-// using namespace def::vm;
-
 
 namespace def {
 namespace object {
@@ -220,20 +217,22 @@ struct ObjectExPkg : DefObject{
 struct ObjectFunc : DefObject{ 
 	Node* value; // 指向对应语法节点
 	ObjectDict* argv; // 默认参数
-	ObjectDict* closure; // 闭包
-	ObjectFunc(Node*v=NULL,ObjectDict*a=NULL,ObjectDict*c=NULL)
+	void* stack; // 定义所在栈帧环境
+	ObjectFunc(Node*v=NULL,ObjectDict*a=NULL,void*s=NULL)
 	: DefObject(T::Func)
 	, value(v)
 	, argv(a)
-	, closure(c)
+	, stack(s)
 	{}
 	~ObjectFunc(){
 		delete argv;
-		delete closure;
 	} 
 	inline Node* GetNode(){ 
 		return value; 
-	}  
+	}
+	inline void* GetStack(){ 
+		return stack; 
+	}
 };
 
 

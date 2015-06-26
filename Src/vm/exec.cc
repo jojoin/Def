@@ -164,14 +164,6 @@ DefObject* Exec::Run()
 }
 
 
-/**
- * 执行当前栈帧的垃圾回收
- * 通常在一句表达式执行完毕后调用
- */
-inline void Exec::Free(DefObject *obj)
-{
-    _envir._gc->Free(obj);
-}
 
 /**
  * 执行当前栈帧的垃圾回收
@@ -186,7 +178,7 @@ inline void Exec::VarPut(string name, DefObject*obj)
     DefObject *exi = _stack->VarPut(name, obj); // 查找变量是否存在
     if(exi){
         // cout<<"_gc->Free()"<<endl;
-        Free(exi);       // 解引用
+        _gc->Free(exi);       // 解引用
     }
     // cout<<"_gc->Quote()"<<name<<endl;
     _gc->Quote(obj); // 加引用
@@ -237,10 +229,10 @@ DefObject* Exec::Evaluat(Node* n)
 
     }
     else if(t==T::Variable)
-    { // 通过名字取得变量值
+    { // 通过名字取得变量值（支持沿作用域向上查找）
         //cout<<"Variable !!!"<<endl;
         string name = n->GetName();
-        DefObject* val = _stack->VarGet( name );
+        DefObject* val = _stack->VarGetUp( name );
         if(!val){ // 变量不存在
         	ERR("Can't find variable : "+name+" !");
         }
@@ -314,7 +306,7 @@ DefObject* Exec::Assign(Node*n)
         DefObject *exi = _stack->VarGet(name);   // 查找变量是否存在
         if(exi){
             // cout<<"_gc->Free()"<<endl;
-            Free(exi);       // 解引用
+            _gc->Free(exi);       // 解引用
         }
         // cout<<"_stack->VarPut()"<<name<<endl;
         _stack->VarPut(name, rv);   // 入栈
@@ -326,7 +318,7 @@ DefObject* Exec::Assign(Node*n)
         string member = nl->Right()->GetName();
         DefObject *exi = mod->Visit(member);
         if(exi){ //已存在，解引用
-            Free(exi);
+            _gc->Free(exi);
             mod->Set(member, rv);
         }else{
        		mod->Insert(member, rv); // 设置成员
@@ -357,7 +349,7 @@ DefObject* Exec::Assign(Node*n)
             DefObject *exi = dict->Visit(key);
             // cout<<"exi = "<<exi<<endl;
             if(exi){ //已存在，解引用
-                Free(exi);
+                _gc->Free(exi);
                 dict->Set(key, rv);
             }else{
            		dict->Insert(key, rv); // 设置成员
@@ -382,7 +374,7 @@ DefObject* Exec::Assign(Node*n)
                 }
                 DefObject *exi = list->Visit(i-1); //索引从1开始
                 if(exi){ //已存在，解引用
-                    Free(exi);
+                    _gc->Free(exi);
                 }
                 list->Push(i-1, rv); // 添加到指定位置
 
@@ -401,8 +393,31 @@ DefObject* Exec::Assign(Node*n)
  */
 DefObject* Exec::AssignUp(Node*n)
 {
+    // cout<<"AssignUp "<<endl;
+    LOCALIZE_gc;
+    LOCALIZE_stack;
 
-	return NULL;
+    DefObject *rv = Evaluat( n->Right() );   // 等号右值
+    Node* nl = n->Left();
+    NT nt = nl->type;
+
+    // 普通变量赋值
+    if(nt!=NT::Variable){
+        ERR("AssignUp only to <Variable> !")
+    }
+
+    string name = nl->GetName();     // 名字
+
+    // false 向上查找 忽略当前栈帧 
+    DefObject* old = _stack->VarPutUp(name, rv, false);
+    if(!old){
+        ERR("AssignUp can't find variable : \""+name+"\" !")
+    }
+
+    // 释放旧变量
+    _gc->Free(old);
+
+	return rv;
 }
 
 
@@ -466,11 +481,11 @@ DefObject* Exec::Operate(Node *nl, Node *nr, NT t)
     // 参与计算的临时变量的释放
     if( nl->IsValue() || nl->IsOperate() ){
         //cout<<"nl->type==NT::Int"<<endl;
-        Free(l);
+        _gc->Free(l);
     }
     if( nr->IsValue() || nr->IsOperate() ){
         //cout<<"nr->type==NT::Int"<<endl;
-        Free(r);
+        _gc->Free(r);
     }
 
 
@@ -537,6 +552,8 @@ DefObject* Exec::Compare(Node *nl, Node *nr, NT t)
  */
 DefObject* Exec::Print(Node *n)
 {
+    LOCALIZE_gc;
+
     DefObject* obj = Evaluat( n->Child() );
     DefObject::Print( obj ); // 求值并打印
     cout << endl;
@@ -544,7 +561,7 @@ DefObject* Exec::Print(Node *n)
     // 临时变量释放
     if( n->IsValue() || n->IsOperate() ){
         //cout<<"Free Literals or Algorithm Value"<<endl;
-        Free(obj);
+        _gc->Free(obj);
     }
 
     return obj;
@@ -677,7 +694,7 @@ DefObject* Exec::FuncDefine(Node* n)
     // cout<<"FuncDefine !!!"<<endl;
     NodeFuncDefine* p = (NodeFuncDefine*)n;
     // 新建函数对象
-    ObjectFunc* func = _gc->AllotFunc(p); 
+    ObjectFunc* func = _gc->AllotFunc( p ); 
     // 处理默认参数
     ObjectDict* para = _gc->AllotDict(); 
     NodeGroup* pg =  (NodeGroup*)p->GetArgv();
@@ -702,7 +719,9 @@ DefObject* Exec::FuncDefine(Node* n)
         }
         // cout<<"func parameter"<<endl;
     }
-    func->argv = para; //默认参数赋值
+    func->argv = para; // 默认参数赋值
+    func->stack = (void*)_envir._stack; // 定义所在栈帧环境
+
 
     // 变量入栈
     // cout<<"string name = p->GetName();"<<endl;
@@ -765,8 +784,9 @@ DefObject* Exec::FuncCall(Node* n)
     // fbody->Print();
     // 拷贝环境
     Envir env = Envir(_envir);
-    // 新栈帧
+    // 新栈帧（父级栈帧）
     Stack *stack = new Stack();
+    stack->SetParent( (Stack*)of->GetStack() );
     // 处理默认参数
     ObjectDict* para = of->argv;
     // cout<<"*para="<<(int)para<<endl;
@@ -810,7 +830,7 @@ DefObject* Exec::FuncCall(Node* n)
     // 函数调用完成，清理执行栈
     map<string, DefObject*>::iterator itr_s = stack->v_local.begin();
     for(; itr_s != stack->v_local.end(); ++itr_s){
-        Free( itr_s->second );
+        _gc->Free( itr_s->second );
     }
     delete stack; //清除栈
     
@@ -885,7 +905,7 @@ void Exec::BuildProcArgv(Node*form, Node*real, Stack*stack)
     if(!stack->VarGet("argv")){
         stack->VarPut("argv", argv);
     }else{
-        Free(argv); // 释放
+        _gc->Free(argv); // 释放
     }
 
 }
@@ -956,7 +976,7 @@ void Exec::BuildFuncArgv(Node*form, Node*real, Stack*stack)
             if(!iskp && v){
                 _gc->Quote(v); // 加引用
                 stack->VarPut(name, v);
-                if(dft) Free(dft);
+                if(dft) _gc->Free(dft);
             }
         }
     }
@@ -965,14 +985,14 @@ void Exec::BuildFuncArgv(Node*form, Node*real, Stack*stack)
     for(; itr != keypara.end(); ++itr){
         DefObject*old = stack->VarPut(itr->first, itr->second);
         if(old){
-            Free(old); // 存在值则覆盖
+            _gc->Free(old); // 存在值则覆盖
         }
     }
     // 所有实参列表！
     if(!stack->VarGet("argv")){
         stack->VarPut("argv", argv);
     }else{
-        Free(argv); // 释放
+        _gc->Free(argv); // 释放
     }
 
 }
