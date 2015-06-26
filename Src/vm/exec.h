@@ -61,6 +61,7 @@ class Exec {
 	DefObject* Evaluat(Node*);  // 对节点求值操作
 
 	// 节点求值
+	DefObject* Variable(string);   // 取变量值
 	DefObject* Assign(Node*);   // 赋值操作
 	DefObject* AssignUp(Node*); // 向上搜索赋值
 
@@ -98,6 +99,9 @@ class Exec {
 	ObjectModule* CreateModule(string); // 模块创建
 
 	DefObject* Print(Node*); // 打印操作
+
+	// 系统服务
+	DefObject* Sysfunc(string, Node*); // 调用系统函数（调用失败返回 NULL ）
 
 };
 

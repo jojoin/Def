@@ -229,10 +229,10 @@ DefObject* Exec::Evaluat(Node* n)
 
     }
     else if(t==T::Variable)
-    { // 通过名字取得变量值（支持沿作用域向上查找）
+    {
         //cout<<"Variable !!!"<<endl;
         string name = n->GetName();
-        DefObject* val = _stack->VarGetUp( name );
+        DefObject* val = Variable(name);
         if(!val){ // 变量不存在
         	ERR("Can't find variable : "+name+" !");
         }
@@ -284,6 +284,19 @@ DefObject* Exec::Evaluat(Node* n)
 #undef T   // NodeType
 
 }
+
+
+/**
+ * 取变量值
+ */
+DefObject* Exec::Variable(string name)
+{
+    // 通过名字取得变量值（支持沿作用域向上查找）
+    //cout<<"Variable !!!"<<endl;
+    DefObject* val = _envir._stack->VarGetUp( name );
+    return val; // 变量不存在返回 NULL
+}
+
 
 
 
@@ -674,6 +687,7 @@ DefObject* Exec::ProcDefine(Node* n)
     NodeProcDefine* p = (NodeProcDefine*)n;
 
     ObjectProc* proc = new ObjectProc(p); //新建对象
+    proc->stack = (void*)_envir._stack; // 定义所在栈帧环境
 
     string name = p->GetName();
     if(name!=""){ // 变量入栈
@@ -745,13 +759,14 @@ DefObject* Exec::ProcCall(Node* n)
     // 获得处理器对象
     ObjectProc *op = (ObjectProc*)Evaluat( n->Left() );
     if(!op){
-        ERR("Can't get the proc obj !")
+        ERR("Can't get the proc object !")
     }
     NodeProcDefine *proc = (NodeProcDefine*)op->GetNode();
     // 拷贝环境
     Envir env = Envir(_envir);
     // 新栈帧
     Stack *stack = new Stack();
+    stack->SetParent( (Stack*)op->GetStack() ); // 定义所在环境
     // 混合生成处理器参数
     BuildProcArgv(proc->GetArgv(), p->Right(), stack);
     stack->Print();
@@ -770,12 +785,23 @@ DefObject* Exec::FuncCall(Node* n)
     LOCALIZE_gc
     // cout<<"FuncCall !!!"<<endl;
     NodeFuncCall *p = (NodeFuncCall*)n;
-    // 获得函数对象
-    ObjectFunc *of = (ObjectFunc*)Evaluat( n->Left() );
-    // cout<<"*of="<<(int)of<<endl;
-    if(!of){
-        ERR("Can't get the func obj !")
+    Node *lf = n->Left();
+    ObjectFunc *of;
+    if(NT::Variable==lf->type){
+        string name = lf->GetName();
+        DefObject *obj = Variable(name);
+        if(!obj){ // 未找到自定义变量，尝试调用系统函数
+            DefObject *res = Sysfunc( name, p->Right() );
+            if(res){
+                return res; //系统函数调用成功
+            }
+            ERR("Can't find the function \""+name+"\" !")
+        }
+        of = (ObjectFunc*)obj;
+    }else{
+        of = (ObjectFunc*)Evaluat( lf );
     }
+    // 获得函数对象
     NodeFuncDefine *func = (NodeFuncDefine*)of->GetNode();
     NodeGroup *fbody = (NodeGroup*)func->GetBody();
     if(!fbody || !fbody->ChildSize()){
@@ -1211,6 +1237,51 @@ ObjectModule* Exec::CreateModule(string file)
 }
 
 
+/**
+ * 调用系统函数
+ * @name 函数名
+ * @argv 参数列表
+ */
+DefObject* Exec::Sysfunc(string name, Node* para)
+{
+    // cout<<"-Exec::Sysfunc-"<<endl;
+    LOCALIZE_gc
+
+    NodeGroup* argv = (NodeGroup*) para;
+    size_t len = argv->ChildSize();
+
+    // 求类型
+    if(name=="type"){
+        if(!len>0){
+            ERR("System function \"call\" parameter size must 1 !")
+        }
+        DefObject *obj = Evaluat( argv->Child(0) );
+        return _gc->AllotString( DefObject::GetTypeName(obj) );
+
+    }else if(name=="int"){
+
+
+    // 求容器大小
+    }else if(name=="size"){
+        size_t res_sz = 0;
+        if(len>0){
+            DefObject *obj = Evaluat( argv->Child(0) );
+            OT t = obj->type;
+            if(t==OT::String){ // 字符串长度
+                res_sz = ((ObjectString*)obj)->value.size();
+            }else if(t==OT::List){ // 列表大小
+                 res_sz = ((ObjectList*)obj)->Size();
+            }else if(t==OT::Dict){
+
+            }
+        }
+
+        return _gc->AllotInt(res_sz);
+    }
+
+    // 系统函数查询失败
+    return NULL;
+}
 
 
 

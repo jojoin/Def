@@ -82,6 +82,33 @@ void DefObject::Print(DefObject *obj){
 }
 
 
+/**
+ * 获取变量类型名称
+ */
+string DefObject::GetTypeName(DefObject *obj)
+{
+    T t = obj->type;
+#define ELSEIF(N,S) else if(t==T::N){ return #S; }
+    if(t==T::Error){ return "error"; }
+    ELSEIF(None,none)
+    ELSEIF(Bool,bool)
+    ELSEIF(Int,int)
+    ELSEIF(Float,float)
+    ELSEIF(String,string)
+    ELSEIF(List,list)
+    ELSEIF(Dict,dict)
+    ELSEIF(Block,block)
+    ELSEIF(Func,function)
+    ELSEIF(Proc,process)
+    ELSEIF(Node,node)
+    ELSEIF(Class,class)
+    ELSEIF(Object,object)
+    ELSEIF(Module,module)
+#undef ELSEIF
+    return ""; // 未匹配
+}
+
+
 #undef T   // ObjectType
 
 

@@ -65,6 +65,7 @@ struct DefObject{
 		, refcnt(r)
 	{}
 	static void Print(DefObject*); // 打印
+	static string GetTypeName(DefObject*); // 获取变量类型名称
 };
 
 
@@ -199,19 +200,36 @@ struct ObjectExPkg : DefObject{
 
 /**
  * 处理器 函数 语句 节点对象
- */
-#define NODEOBJ(xxx)                            \
-	struct Object##xxx : DefObject{             \
-		Node* value; /*指向对应语法节点*/       \
-		Object##xxx(Node*v=NULL)                \
-		: DefObject(T::xxx)                     \
-		, value(v)                              \
-		{}                                      \
-		inline Node* GetNode(){ return value; } \
-	};
-	NODEOBJ(Proc)        // None def 处理器对象
-	NODEOBJ(Node)        // None node 语句节点对象
-#undef NODEOBJ
+ */      
+
+// None node 语句节点对象
+struct ObjectNode : DefObject{
+	Node* value; /*指向对应语法节点*/
+	ObjectNode(Node*v=NULL)
+	: DefObject(T::Node)
+	, value(v)
+	{}
+	inline Node* GetNode(){ return value; }
+};
+
+
+// 处理器对象
+struct ObjectProc : DefObject{ 
+	Node* value; // 指向对应语法节点
+	vector<string> argv; // 默认参数名字列表
+	void* stack; // 定义所在栈帧环境
+	ObjectProc(Node*v=NULL,void*s=NULL)
+	: DefObject(T::Proc)
+	, value(v)
+	, stack(s)
+	{}
+	inline Node* GetNode(){ 
+		return value; 
+	}
+	inline void* GetStack(){ 
+		return stack; 
+	}
+};
 
 // 函数对象
 struct ObjectFunc : DefObject{ 

@@ -14,14 +14,16 @@
 # import "modules/math.d" # 运算
 # print math.PI
 
-import "item/func.d" # 函数
+# import "item/func.d" # 函数
 
+import "item/proc.d" # 处理器
 
-func.setP(1 "yangjie")
+arr : (100 3.69 "yangjie")
 
-func.addP(4)
-func.addP(5)
-func.addP(6)
+print type(arr)
 
-print func.getP()
+# 遍历容器
+# proc.foreach{ arr k v
+# 	print v
+# }
 
