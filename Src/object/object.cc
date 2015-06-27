@@ -65,6 +65,7 @@ void DefObject::Print(DefObject *obj){
     }else if(t==T::Proc){ cout << "<process>";
     }else if(t==T::Func){ cout << "<function>";
     }else if(t==T::Node){ cout << "<node>";
+    }else if(t==T::Exec){ cout << "<exec>";
 
     }else if(t==T::None){
         cout << "none";
@@ -104,6 +105,7 @@ string DefObject::GetTypeName(DefObject *obj)
     ELSEIF(Class,class)
     ELSEIF(Object,object)
     ELSEIF(Module,module)
+    ELSEIF(Exec,exec)
 #undef ELSEIF
     return ""; // 未匹配
 }

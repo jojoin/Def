@@ -47,7 +47,8 @@ enum class ObjectType
 	Class,   // 类
 	Object,  // 对象实例
 
-	Module   // 模块
+	Module,   // 模块
+	Exec,     // 执行环境
 
 };
 
@@ -254,8 +255,17 @@ struct ObjectFunc : DefObject{
 };
 
 
-
-
+// 执行对象
+struct ObjectExec : DefObject{
+	void* exec; // 执行环境
+	ObjectExec(void*e=NULL)
+	: DefObject(T::Exec)
+	, exec(e)
+	{}
+	inline void* GetExec(){ 
+		return exec; 
+	}
+};
 
 
 

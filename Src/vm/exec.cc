@@ -28,6 +28,7 @@ namespace vm {
 #define ERR(str) cerr<<str<<endl;exit(1);
 
 
+#define DO DefObject
 #define OT ObjectType
 #define NT NodeType
 
@@ -55,7 +56,7 @@ Exec::Exec(Envir e){
 
 
 // 执行栈变量初始化
-void Exec::StackPush(string name, DefObject* obj)
+void Exec::StackPush(string name, DO* obj)
 {
 	_envir._stack->VarPut(name, obj);
 }
@@ -140,7 +141,7 @@ Node* Exec::Parse(string &text, string file)
  * 执行 Def 调用帧
  * @return 调用的返回对象
  */
-DefObject* Exec::Run()
+DO* Exec::Run()
 {
     LOCALIZE_node;
     LOCALIZE_gc;
@@ -149,7 +150,7 @@ DefObject* Exec::Run()
     	return NULL;
     }
 
-    DefObject *ret = NULL;
+    DO *ret = NULL;
 
     // 组合表达式 NodeType::Group
     size_t i = 0
@@ -169,13 +170,13 @@ DefObject* Exec::Run()
  * 执行当前栈帧的垃圾回收
  * 通常在一句表达式执行完毕后调用
  */
-inline void Exec::VarPut(string name, DefObject*obj)
+inline void Exec::VarPut(string name, DO*obj)
 {
     LOCALIZE_gc;
     LOCALIZE_stack;
 
     // 入栈
-    DefObject *exi = _stack->VarPut(name, obj); // 查找变量是否存在
+    DO *exi = _stack->VarPut(name, obj); // 查找变量是否存在
     if(exi){
         // cout<<"_gc->Free()"<<endl;
         _gc->Free(exi);       // 解引用
@@ -202,7 +203,7 @@ inline ObjectBool* Exec::ObjFalse()
 /**
  * 对语法节点进行求值操作
  */
-DefObject* Exec::Evaluat(Node* n)
+DO* Exec::Evaluat(Node* n)
 {
 	LOCALIZE_module;
 	LOCALIZE_gc;
@@ -218,7 +219,7 @@ DefObject* Exec::Evaluat(Node* n)
 
     if(t==T::Group)
     { // 语句组（if或while的body）
-    	DefObject* last = NULL;
+    	DO* last = NULL;
 	    size_t i = 0
 	         , s = _node->ChildSize();
 	    while(i<s){
@@ -232,7 +233,7 @@ DefObject* Exec::Evaluat(Node* n)
     {
         //cout<<"Variable !!!"<<endl;
         string name = n->GetName();
-        DefObject* val = Variable(name);
+        DO* val = Variable(name);
         if(!val){ // 变量不存在
         	ERR("Can't find variable : "+name+" !");
         }
@@ -289,11 +290,11 @@ DefObject* Exec::Evaluat(Node* n)
 /**
  * 取变量值
  */
-DefObject* Exec::Variable(string name)
+DO* Exec::Variable(string name)
 {
     // 通过名字取得变量值（支持沿作用域向上查找）
     //cout<<"Variable !!!"<<endl;
-    DefObject* val = _envir._stack->VarGetUp( name );
+    DO* val = _envir._stack->VarGetUp( name );
     return val; // 变量不存在返回 NULL
 }
 
@@ -303,20 +304,26 @@ DefObject* Exec::Variable(string name)
 /**
  * 赋值操作
  */
-DefObject* Exec::Assign(Node*n)
+DO* Exec::Assign(Node*n)
 {
-	LOCALIZE_gc;
-	LOCALIZE_stack;
 
-    DefObject *rv = Evaluat( n->Right() );   // 等号右值
     Node* nl = n->Left();
-    NT nt = nl->type;
+    DO* rv = Evaluat( n->Right() );   // 等号右值
 
+    return Assign(nl, rv);
+}
+// 赋值
+DO* Exec::Assign(Node*nl, DO*rv)
+{
+    LOCALIZE_gc;
+    LOCALIZE_stack;
+
+    NT nt = nl->type;
     // 普通变量赋值
     if(nt==NT::Variable){
         // cout<<"Assign name="<<name<<endl;
         string name = nl->GetName();     // 名字
-        DefObject *exi = _stack->VarGet(name);   // 查找变量是否存在
+        DO *exi = _stack->VarGet(name);   // 查找变量是否存在
         if(exi){
             // cout<<"_gc->Free()"<<endl;
             _gc->Free(exi);       // 解引用
@@ -329,18 +336,18 @@ DefObject* Exec::Assign(Node*n)
         // cout<<"MemberAccess Assign name="<<nl->Right()->GetName()<<endl;
         ObjectModule *mod = (ObjectModule*)Evaluat( nl->Left() );
         string member = nl->Right()->GetName();
-        DefObject *exi = mod->Visit(member);
+        DO *exi = mod->Visit(member);
         if(exi){ //已存在，解引用
             _gc->Free(exi);
             mod->Set(member, rv);
         }else{
-       		mod->Insert(member, rv); // 设置成员
+            mod->Insert(member, rv); // 设置成员
         }
 
     // 容器访问赋值
     }else if(nt==NT::ContainerAccess){
         // cout<<"ContainerAccess Assign name="<<nl->Right()->GetName()<<endl;
-        DefObject *con = Evaluat( nl->Left() ); // 得到容器
+        DO *con = Evaluat( nl->Left() ); // 得到容器
         OT ct = con->type; // 容器类型
         Node *idx = nl->Right(); // 索引
         size_t idx_sz = idx ? idx->ChildSize() : 0;
@@ -353,19 +360,19 @@ DefObject* Exec::Assign(Node*n)
                 ERR("Dict Need <string> type key on Assign !");
             }
             // cout<<"*ik = Evaluat("<<endl;
-            DefObject *ik = Evaluat( idx->Child(0) );
+            DO *ik = Evaluat( idx->Child(0) );
             if(ik->type!=OT::String){ // 验证 key 类型
                 ERR("Dict key only <string> type on Assign !");
             }
             // cout<<"Conversion::String("<<endl;
             string key = Conversion::String( ik );
-            DefObject *exi = dict->Visit(key);
+            DO *exi = dict->Visit(key);
             // cout<<"exi = "<<exi<<endl;
             if(exi){ //已存在，解引用
                 _gc->Free(exi);
                 dict->Set(key, rv);
             }else{
-           		dict->Insert(key, rv); // 设置成员
+                dict->Insert(key, rv); // 设置成员
             }
             // cout<<"dict Assign"<<endl;
 
@@ -375,7 +382,7 @@ DefObject* Exec::Assign(Node*n)
             if(!idx_sz){ // 添加到末尾
                 list->Push(rv);
             }else{ // 替换制定位置
-                DefObject *oi = Evaluat( idx->Child(0) );
+                DO *oi = Evaluat( idx->Child(0) );
                 if(oi->type!=OT::Int){
                     ERR("List index only <int> type on Assign !");
                     return rv; // do nothing
@@ -385,7 +392,7 @@ DefObject* Exec::Assign(Node*n)
                     ERR("List index begin from <int> 1 !");
                     return rv; // do nothing
                 }
-                DefObject *exi = list->Visit(i-1); //索引从1开始
+                DO *exi = list->Visit(i-1); //索引从1开始
                 if(exi){ //已存在，解引用
                     _gc->Free(exi);
                 }
@@ -397,20 +404,19 @@ DefObject* Exec::Assign(Node*n)
 
     _gc->Quote(rv); // 加引用
     return rv; // 返回右值
+
 }
-
-
 
 /**
  * 赋值操作
  */
-DefObject* Exec::AssignUp(Node*n)
+DO* Exec::AssignUp(Node*n)
 {
     // cout<<"AssignUp "<<endl;
     LOCALIZE_gc;
     LOCALIZE_stack;
 
-    DefObject *rv = Evaluat( n->Right() );   // 等号右值
+    DO *rv = Evaluat( n->Right() );   // 等号右值
     Node* nl = n->Left();
     NT nt = nl->type;
 
@@ -422,7 +428,7 @@ DefObject* Exec::AssignUp(Node*n)
     string name = nl->GetName();     // 名字
 
     // false 向上查找 忽略当前栈帧 
-    DefObject* old = _stack->VarPutUp(name, rv, false);
+    DO* old = _stack->VarPutUp(name, rv, false);
     if(!old){
         ERR("AssignUp can't find variable : \""+name+"\" !")
     }
@@ -440,14 +446,14 @@ DefObject* Exec::AssignUp(Node*n)
  * 算法操作
  * @param t 算法种类 + - * /
  */
-DefObject* Exec::Operate(Node *nl, Node *nr, NT t)
+DO* Exec::Operate(Node *nl, Node *nr, NT t)
 {
 	LOCALIZE_gc;
 	LOCALIZE_stack;
 
     // 取负运算
     if( !nl && t==NT::Sub){
-        DefObject *r = Evaluat(nr);
+        DO *r = Evaluat(nr);
         if(r->type==OT::Int){
             return _gc->AllotInt( 0 - ((ObjectInt*)r)->value );
         }else if(r->type==OT::Float){
@@ -457,9 +463,9 @@ DefObject* Exec::Operate(Node *nl, Node *nr, NT t)
     }
 
     // 正式运算
-    DefObject *l = Evaluat(nl);
-    DefObject *r = Evaluat(nr);
-    DefObject *result = NULL;
+    DO *l = Evaluat(nl);
+    DO *r = Evaluat(nr);
+    DO *result = NULL;
 
     OT lt = l->type;
     OT rt = r->type;
@@ -510,16 +516,16 @@ DefObject* Exec::Operate(Node *nl, Node *nr, NT t)
  * 算法操作
  * @param t 比较种类 = > < >= <= ~= ~
  */
-DefObject* Exec::Compare(Node *nl, Node *nr, NT t)
+DO* Exec::Compare(Node *nl, Node *nr, NT t)
 {
     // 正式运算
-    DefObject *l = Evaluat(nl),
+    DO *l = Evaluat(nl),
               *r = Evaluat(nr);
 
     OT lt = l->type,
        rt = r->type;
 
-    DefObject *_t = ObjTrue(),
+    DO *_t = ObjTrue(),
               *_f = ObjFalse();
 
 // 数值比较
@@ -563,12 +569,12 @@ DefObject* Exec::Compare(Node *nl, Node *nr, NT t)
 /**
  * 打印对象
  */
-DefObject* Exec::Print(Node *n)
+DO* Exec::Print(Node *n)
 {
     LOCALIZE_gc;
 
-    DefObject* obj = Evaluat( n->Child() );
-    DefObject::Print( obj ); // 求值并打印
+    DO* obj = Evaluat( n->Child() );
+    DO::Print( obj ); // 求值并打印
     cout << endl;
 
     // 临时变量释放
@@ -584,27 +590,33 @@ DefObject* Exec::Print(Node *n)
 /**
  * If 控制结构
  */
-DefObject* Exec::While(Node* n)
+DO* Exec::While(Node* n)
 {
     NodeWhile* p = (NodeWhile*)n;
+    DO* res = ObjNone(); // 结果
+    size_t len = p->ChildSize();
+    if(!len){
+        return res;
+    }
+    Node* cond = p->Child(0);
     while(1){
-        if(Conversion::Bool( Evaluat( p->Left() ) )){
-            Evaluat( p->Right() ); //执行 while 块
-            // cout<<"\n"<<endl;
-        }else{
-            break; 
+        if(!Conversion::Bool( Evaluat( cond ) )){
+            break; // 条件假，跳出循环
+        }
+        for(int i=1; i<len; i++){
+            res = Evaluat( p->Child(i) ); //执行 while 块
         }
     }
-    return NULL; 
+    return res; 
 }
 
 /**
  * If 控制结构
  */
-DefObject* Exec::If(Node* n)
+DO* Exec::If(Node* n)
 {
     NodeIf* p = (NodeIf*)n;
-    DefObject* ret = ObjNone();
+    DO* ret = ObjNone();
     size_t i = 0
          , s = p->ChildSize();
     while(i<s){
@@ -629,7 +641,7 @@ DefObject* Exec::If(Node* n)
 /**
  * list 列表结构建立
  */
-DefObject* Exec::List(Node* n)
+DO* Exec::List(Node* n)
 {
 	LOCALIZE_gc
 
@@ -651,7 +663,7 @@ DefObject* Exec::List(Node* n)
 /**
  * dict 数据结构建立
  */
-DefObject* Exec::Dict(Node* n)
+DO* Exec::Dict(Node* n)
 {
 	LOCALIZE_gc
 
@@ -681,7 +693,7 @@ DefObject* Exec::Dict(Node* n)
 /**
  * def 处理器定义
  */
-DefObject* Exec::ProcDefine(Node* n)
+DO* Exec::ProcDefine(Node* n)
 {
     // cout<<"ProcDefine !!!"<<endl;
     NodeProcDefine* p = (NodeProcDefine*)n;
@@ -702,7 +714,7 @@ DefObject* Exec::ProcDefine(Node* n)
 /**
  * def 函数定义
  */
-DefObject* Exec::FuncDefine(Node* n)
+DO* Exec::FuncDefine(Node* n)
 {
     LOCALIZE_gc
     // cout<<"FuncDefine !!!"<<endl;
@@ -718,7 +730,7 @@ DefObject* Exec::FuncDefine(Node* n)
         if(li->type==NT::Assign){
             Node *nl = li->Left();
             if(nl->type==NT::Variable){
-                DefObject* pv = Evaluat( li->Right() );
+                DO* pv = Evaluat( li->Right() );
                 para->Set( // 添加默认参数
                     nl->GetName(),
                     pv
@@ -735,8 +747,6 @@ DefObject* Exec::FuncDefine(Node* n)
     }
     func->argv = para; // 默认参数赋值
     func->stack = (void*)_envir._stack; // 定义所在栈帧环境
-
-
     // 变量入栈
     // cout<<"string name = p->GetName();"<<endl;
     string name = p->GetName();
@@ -751,7 +761,7 @@ DefObject* Exec::FuncDefine(Node* n)
 /**
  * def 处理器调用
  */
-DefObject* Exec::ProcCall(Node* n)
+DO* Exec::ProcCall(Node* n)
 {
     LOCALIZE_gc
     // cout<<"ProcCall !!!"<<endl;
@@ -762,6 +772,11 @@ DefObject* Exec::ProcCall(Node* n)
         ERR("Can't get the proc object !")
     }
     NodeProcDefine *proc = (NodeProcDefine*)op->GetNode();
+    NodeGroup *pbody = (NodeGroup*)proc->GetBody();
+    if(!pbody || !pbody->ChildSize()){
+        return ObjNone(); //处理器体为空
+    }
+    // fbody->Print();
     // 拷贝环境
     Envir env = Envir(_envir);
     // 新栈帧
@@ -769,10 +784,33 @@ DefObject* Exec::ProcCall(Node* n)
     stack->SetParent( (Stack*)op->GetStack() ); // 定义所在环境
     // 混合生成处理器参数
     BuildProcArgv(proc->GetArgv(), p->Right(), stack);
-    stack->Print();
+    // 调用执行环境对象入栈
+    ObjectExec *oe = new ObjectExec(this);
+    stack->VarPut("_call_", oe);
+    // 环境更新
+    env.Set(EnvirType::Proc);
+    env.Set(stack);
+    env.Set(pbody);
+    // stack->Print();
 
+    // 环境准备完毕，开始函数调用执行
+    Exec exec = Exec(env);
+    // 执行调用
+    DO * retval = NULL;
+    try
+    {
+        retval = exec.Run();
+    }
+    catch(Throw* tr) // 处理器返回
+    {
+        if(tr->GetType()!=ThrowType::Return){
+            ERR("Function run excepction not <Return> !");
+        }
+        retval = tr->GetObject(); // 返回值
+        delete tr;
+    }
 
-    return NULL;
+    return retval;
 }
 
 
@@ -780,7 +818,7 @@ DefObject* Exec::ProcCall(Node* n)
 /**
  * def 函数调用
  */
-DefObject* Exec::FuncCall(Node* n)
+DO* Exec::FuncCall(Node* n)
 {
     LOCALIZE_gc
     // cout<<"FuncCall !!!"<<endl;
@@ -791,7 +829,7 @@ DefObject* Exec::FuncCall(Node* n)
     ObjectFunc *of;
 
     //调用变量自带函数
-    DefObject *ofres = Objfunc(lf, rt);
+    DO *ofres = Objfunc(lf, rt);
     if(ofres){
         return ofres; // 调用成功
     }
@@ -799,9 +837,9 @@ DefObject* Exec::FuncCall(Node* n)
     if(NT::Variable==lf->type){
 
         string name = lf->GetName();
-        DefObject *obj = Variable(name);
+        DO *obj = Variable(name);
         if(!obj){ // 未找到自定义变量，尝试调用系统函数
-            DefObject *res = Sysfunc( name, rt );
+            DO *res = Sysfunc( name, rt );
             if(res){
                 return res; //系统函数调用成功
             }
@@ -827,13 +865,11 @@ DefObject* Exec::FuncCall(Node* n)
     // 处理默认参数
     ObjectDict* para = of->argv;
     // cout<<"*para="<<(int)para<<endl;
-    map<string, DefObject*>::iterator itr_p = para->value.begin();
+    map<string, DO*>::iterator itr_p = para->value.begin();
     for(; itr_p != para->value.end(); ++itr_p){
         stack->VarPut( itr_p->first, itr_p->second );
         _gc->Quote(itr_p->second); // 加引用
     }
-    // cout<<"default parameter stack"<<endl;
-    // stack->Print();
     // 混合生成处理器参数
     // cout<<"func->GetArgv();"<<endl;
     Node* ppp = func->GetArgv();
@@ -845,11 +881,12 @@ DefObject* Exec::FuncCall(Node* n)
     env.Set(EnvirType::Func);
     env.Set(stack);
     env.Set(fbody);
+    // stack->Print();
 
     // 环境准备完毕，开始函数调用执行
     Exec exec = Exec(env);
     // 执行调用
-    DefObject * retval = NULL;
+    DO * retval = NULL;
     try
     {
         retval = exec.Run();
@@ -865,7 +902,7 @@ DefObject* Exec::FuncCall(Node* n)
     // cout<<"bool done = exec.Run();"<<endl;
     // stack->Print();
     // 函数调用完成，清理执行栈
-    map<string, DefObject*>::iterator itr_s = stack->v_local.begin();
+    map<string, DO*>::iterator itr_s = stack->v_local.begin();
     for(; itr_s != stack->v_local.end(); ++itr_s){
         _gc->Free( itr_s->second );
     }
@@ -880,13 +917,13 @@ DefObject* Exec::FuncCall(Node* n)
 /**
  * 函数返回
  */
-DefObject* Exec::Return(Node*n)
+DO* Exec::Return(Node*n)
 {
     LOCALIZE_gc
     // cout<<"Return !!!"<<endl;
     NodeReturn *p = (NodeReturn*)n;
     // 求返回值
-    DefObject* obj;
+    DO* obj;
     Node* chd = p->Child();
     if(chd){
         obj = Evaluat( chd );
@@ -917,7 +954,7 @@ void Exec::BuildProcArgv(Node*form, Node*real, Stack*stack)
     ObjectList *argv = new ObjectList();
     //循环匹配参数
     for(int i=0; i<num_max; i++){
-        DefObject* v = NULL;
+        DO* v = NULL;
         // 取值得到实参
         if(i<num_r){
             v = new ObjectNode( real->Child(i) );
@@ -939,11 +976,7 @@ void Exec::BuildProcArgv(Node*form, Node*real, Stack*stack)
         }
     }
     // 所有实参列表！
-    if(!stack->VarGet("argv")){
-        stack->VarPut("argv", argv);
-    }else{
-        _gc->Free(argv); // 释放
-    }
+    stack->VarPut("_argv_", argv);
 
 }
 
@@ -961,12 +994,12 @@ void Exec::BuildFuncArgv(Node*form, Node*real, Stack*stack)
     // cout<<"num max="<<num_max<<", f="<<num_f<<", r="<<num_r<<endl;
     // 参数列表
     ObjectList *argv = _gc->AllotList();
-    map<string, DefObject*> keypara; // 关键字参数
+    map<string, DO*> keypara; // 关键字参数
     //循环匹配参数
     for(int i=0; i<num_max; i++)
     {
         string name = ""; // 形式参数名
-        DefObject* v = NULL; // 参数值
+        DO* v = NULL; // 参数值
         bool iskp = false; // 是否为关键字参数
         // 取实参
         if(i<num_r){
@@ -1004,7 +1037,7 @@ void Exec::BuildFuncArgv(Node*form, Node*real, Stack*stack)
         }
         // 形式参数匹配
         if(name!=""){
-            DefObject *dft = stack->VarGet(name);
+            DO *dft = stack->VarGet(name);
             if( iskp && !dft){ 
                 //关键字参数项 没有默认值
                 stack->VarPut(name, ObjNone());
@@ -1018,19 +1051,15 @@ void Exec::BuildFuncArgv(Node*form, Node*real, Stack*stack)
         }
     }
     // 关键字参数覆盖
-    map<string, DefObject*>::iterator itr = keypara.begin();
+    map<string, DO*>::iterator itr = keypara.begin();
     for(; itr != keypara.end(); ++itr){
-        DefObject*old = stack->VarPut(itr->first, itr->second);
+        DO*old = stack->VarPut(itr->first, itr->second);
         if(old){
             _gc->Free(old); // 存在值则覆盖
         }
     }
     // 所有实参列表！
-    if(!stack->VarGet("argv")){
-        stack->VarPut("argv", argv);
-    }else{
-        _gc->Free(argv); // 释放
-    }
+    stack->VarPut("_argv_", argv);
 
 }
 
@@ -1042,7 +1071,7 @@ void Exec::BuildFuncArgv(Node*form, Node*real, Stack*stack)
 /**
  * ContainerAccess 容器访问
  */
-DefObject* Exec::ContainerAccess(Node* n)
+DO* Exec::ContainerAccess(Node* n)
 {
     // cout<<"-Exec::ContainerAccess-"<<endl;
     NodeContainerAccess* p = (NodeContainerAccess*)n;
@@ -1051,14 +1080,14 @@ DefObject* Exec::ContainerAccess(Node* n)
     Node* idx = p->Right();
     size_t idxlen = idx->ChildSize();
 
-    DefObject* result = NULL; //容器访问结果
+    DO* result = NULL; //容器访问结果
 
     // cout<<"idxlen="<<idxlen<<endl;
     if(idxlen){ //索引个数
 
-        DefObject* obj = Evaluat( con );
+        DO* obj = Evaluat( con );
         OT ot = obj->type;
-        DefObject* i1 = Evaluat( idx->Child(0) );
+        DO* i1 = Evaluat( idx->Child(0) );
         OT i1t = i1->type;
 
         if(ot==OT::Dict){ // 字典访问
@@ -1092,13 +1121,13 @@ DefObject* Exec::ContainerAccess(Node* n)
 /**
  * MumberAccess 成员访问
  */
-DefObject* Exec::MemberAccess(Node* n)
+DO* Exec::MemberAccess(Node* n)
 {
     // cout<<"-Exec::MemberAccess-"<<endl;
     NodeMemberAccess *p = (NodeMemberAccess*) n;
 
     Node* left = p->Left();
-    DefObject* base = Evaluat( left );
+    DO* base = Evaluat( left );
     Node* right = p->Right();
     if(right->type!=NT::Variable){
         ERR("Mumber name must be a Variable !");
@@ -1114,9 +1143,9 @@ DefObject* Exec::MemberAccess(Node* n)
 /**
  * MumberAccess 成员访问
  */
-DefObject* Exec::MemberAccess(DefObject* base, string name)
+DO* Exec::MemberAccess(DO* base, string name)
 {
-    DefObject* result = NULL; //成员访问结果
+    DO* result = NULL; //成员访问结果
     OT bt = base->type;
     // 模块访问
     if( bt==OT::Module ){
@@ -1138,14 +1167,14 @@ DefObject* Exec::MemberAccess(DefObject* base, string name)
 /**
  * Import 模块加载
  */
-DefObject* Exec::Import(Node* n)
+DO* Exec::Import(Node* n)
 {
     LOCALIZE_module
     LOCALIZE_stack
     LOCALIZE_gc
 
     // cout<<"-Exec::Import-"<<endl;
-    DefObject* str = Evaluat( n->Child() );
+    DO* str = Evaluat( n->Child() );
     string name = Conversion::String( str );
 
 #ifdef WINDOWS
@@ -1155,7 +1184,7 @@ DefObject* Exec::Import(Node* n)
     // cout<<"endif WINDOWS : "<<name<<endl;
 #endif
 
-    DefObject* mod = Import( name );
+    DO* mod = Import( name );
 
     if(mod){ //自动入栈
         string vn = Path::getName(name);
@@ -1173,7 +1202,7 @@ DefObject* Exec::Import(Node* n)
 /**
  * Import 模块加载
  */
-DefObject* Exec::Import(string mdname)
+DO* Exec::Import(string mdname)
 {
 	LOCALIZE_module
 
@@ -1248,7 +1277,7 @@ ObjectModule* Exec::CreateModule(string file)
     // cout<<"ObjectModule *om = new ObjectModule();"<<endl;
     // 生成模块对象
     ObjectModule *om = new ObjectModule();
-    map<string, DefObject*>::iterator itr = stack->v_local.begin();
+    map<string, DO*>::iterator itr = stack->v_local.begin();
     for(; itr != stack->v_local.end(); ++itr){
         om->Insert( itr->first, itr->second );
     }
@@ -1263,10 +1292,11 @@ ObjectModule* Exec::CreateModule(string file)
  * @name 函数名
  * @argv 参数列表
  */
-DefObject* Exec::Sysfunc(string name, Node* para)
+DO* Exec::Sysfunc(string name, Node* para)
 {
     // cout<<"-Exec::Sysfunc-"<<endl;
     LOCALIZE_gc
+    LOCALIZE_stack
 
     NodeGroup* argv = (NodeGroup*) para;
     size_t len = argv->ChildSize();
@@ -1276,8 +1306,8 @@ DefObject* Exec::Sysfunc(string name, Node* para)
     if(name=="print"){
 
         if(!len>0) return ObjNone();
-        DefObject *obj = Evaluat( argv->Child(0) );
-        DefObject::Print( obj );
+        DO *obj = Evaluat( argv->Child(0) );
+        DO::Print( obj );
         cout<<endl;
         return obj;
 
@@ -1287,8 +1317,8 @@ DefObject* Exec::Sysfunc(string name, Node* para)
         if(!len>0){
             ERR("System function \"call\" parameter size must 1 !")
         }
-        DefObject *obj = Evaluat( argv->Child(0) );
-        return _gc->AllotString( DefObject::GetTypeName(obj) );
+        DO *obj = Evaluat( argv->Child(0) );
+        return _gc->AllotString( DO::GetTypeName(obj) );
 
     }else if(name=="int"){
 
@@ -1297,7 +1327,7 @@ DefObject* Exec::Sysfunc(string name, Node* para)
     }else if(name=="size"){
         size_t res_sz = 0;
         if(len>0){
-            DefObject *obj = Evaluat( argv->Child(0) );
+            DO *obj = Evaluat( argv->Child(0) );
             OT t = obj->type;
             if(t==OT::String){ // 字符串长度
                 res_sz = ((ObjectString*)obj)->value.size();
@@ -1309,6 +1339,42 @@ DefObject* Exec::Sysfunc(string name, Node* para)
         }
 
         return _gc->AllotInt(res_sz);
+
+    // 节点赋值 or 节点执行取值
+    }else if(name=="assign" || name=="evaluat"){
+
+        if(len>0){
+            // 获得调用环境
+            ObjectExec *oe = (ObjectExec*)_stack->VarGet("_call_");
+            Exec *exec = (Exec*)oe->GetExec();
+            // 节点对象
+            ObjectNode *obj = (ObjectNode*)Evaluat( argv->Child(0) );
+            OT t = obj->type;
+            if(t!=OT::Node){ //错误
+                ERR("System function evaluat parameter only type <Node> !")
+            }
+            Node *target = obj->GetNode();
+            if(name=="evaluat"){
+                // 在调用环境中执行节点对象
+                DO* res = exec->Evaluat( target );
+                if(!res){ //错误
+                    ERR("System function evaluat call error !")
+                }
+                return res;
+            }
+            if(name=="assign"){
+                if(!len>1){
+                    ERR("System function assign parameter number must 2 !")
+                }
+
+                // 赋值
+                DO* res = exec->Assign( target, Evaluat( argv->Child(1) ) );
+                if(!res){ //错误
+                    ERR("System function evaluat call error !")
+                }
+                return res;
+            }
+        }
     }
 
     // 系统函数查询失败
@@ -1322,19 +1388,19 @@ DefObject* Exec::Sysfunc(string name, Node* para)
  * @name 函数名
  * @argv 参数列表
  */
-DefObject* Exec::Objfunc(Node* left, Node* para)
+DO* Exec::Objfunc(Node* left, Node* para)
 {
     // 检测是否为变量自带函数调用
     if(NT::MemberAccess==left->type){
 
-        DefObject *base = Evaluat( left->Left() );
+        DO *base = Evaluat( left->Left() );
         string name = left->Right()->GetName();
         return Objfunc(base, name, para);
     }
 
     return NULL;
 }
-DefObject* Exec::Objfunc(DefObject* base, string name, Node* para)
+DO* Exec::Objfunc(DO* base, string name, Node* para)
 {
     // cout<<"-Exec::Objfunc-"<<endl;
     LOCALIZE_gc
@@ -1345,7 +1411,7 @@ DefObject* Exec::Objfunc(DefObject* base, string name, Node* para)
     // 打印
     if(name=="print"){
 
-        DefObject::Print( base );
+        DO::Print( base );
         cout<<endl;
         return base;
 
@@ -1367,6 +1433,7 @@ DefObject* Exec::Objfunc(DefObject* base, string name, Node* para)
 
 
 
+#undef DO   // DO
 #undef OT   // ObjectType
 #undef NT   // NodeType
 

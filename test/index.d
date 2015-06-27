@@ -19,21 +19,16 @@
 import "item/proc.d" # 处理器
 
 arr : (100 3.69 "yangjie")
+# arr.print()
 
+# 测试处理器
+# proc.test{ arr }
 
-arr.print()
-
-
-# print( type(arr) )
-
-# sss : "yang器"
-
-# print( sss )
-# print( size(sss) )
 
 
 # 遍历容器
-# proc.foreach{ arr k v
-# 	print v
-# }
+proc.foreach{ arr k v
+	print( k )
+	print( v )
+}
 
