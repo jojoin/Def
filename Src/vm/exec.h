@@ -93,6 +93,7 @@ class Exec {
 
 	DefObject* ContainerAccess(Node*); // 容器访问
 	DefObject* MemberAccess(Node*);    // 成员访问
+	DefObject* MemberAccess(DefObject*, string);    // 成员访问
 	
 	DefObject* Import(Node*);        // 模块加载
 	DefObject* Import(string name);        // 模块加载
@@ -102,6 +103,9 @@ class Exec {
 
 	// 系统服务
 	DefObject* Sysfunc(string, Node*); // 调用系统函数（调用失败返回 NULL ）
+	DefObject* Objfunc(Node*, Node*);
+	DefObject* Objfunc(DefObject*, string, Node*); // 调用变量自带函数（调用失败返回 NULL ）
+
 
 };
 

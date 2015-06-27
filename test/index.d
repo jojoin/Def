@@ -20,11 +20,16 @@ import "item/proc.d" # 处理器
 
 arr : (100 3.69 "yangjie")
 
-print( type(arr) )
 
-sss : "yang器"
+arr.print()
 
-print( size(sss) )
+
+# print( type(arr) )
+
+# sss : "yang器"
+
+# print( sss )
+# print( size(sss) )
 
 
 # 遍历容器

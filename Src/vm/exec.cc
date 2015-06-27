@@ -786,18 +786,29 @@ DefObject* Exec::FuncCall(Node* n)
     // cout<<"FuncCall !!!"<<endl;
     NodeFuncCall *p = (NodeFuncCall*)n;
     Node *lf = n->Left();
+    Node *rt = p->Right();
+
     ObjectFunc *of;
+
+    //调用变量自带函数
+    DefObject *ofres = Objfunc(lf, rt);
+    if(ofres){
+        return ofres; // 调用成功
+    }
+
     if(NT::Variable==lf->type){
+
         string name = lf->GetName();
         DefObject *obj = Variable(name);
         if(!obj){ // 未找到自定义变量，尝试调用系统函数
-            DefObject *res = Sysfunc( name, p->Right() );
+            DefObject *res = Sysfunc( name, rt );
             if(res){
                 return res; //系统函数调用成功
             }
             ERR("Can't find the function \""+name+"\" !")
         }
         of = (ObjectFunc*)obj;
+
     }else{
         of = (ObjectFunc*)Evaluat( lf );
     }
@@ -1086,31 +1097,41 @@ DefObject* Exec::MemberAccess(Node* n)
     // cout<<"-Exec::MemberAccess-"<<endl;
     NodeMemberAccess *p = (NodeMemberAccess*) n;
 
-    DefObject* result = NULL; //成员访问结果
-
     Node* left = p->Left();
     DefObject* base = Evaluat( left );
-	OT bt = base->type;
     Node* right = p->Right();
-
     if(right->type!=NT::Variable){
-    	ERR("Mumber name must be a Variable !");
+        ERR("Mumber name must be a Variable !");
     }
+    // 访问名字
+    string rname = right->GetName();
 
-    if(bt==OT::Module){ // 模块访问
+    return MemberAccess(base, rname);
+}
+
+
+
+/**
+ * MumberAccess 成员访问
+ */
+DefObject* Exec::MemberAccess(DefObject* base, string name)
+{
+    DefObject* result = NULL; //成员访问结果
+    OT bt = base->type;
+    // 模块访问
+    if( bt==OT::Module ){
         // cout<<"Module::key = "<<right->GetName()<<endl;
-        result = ((ObjectModule*)base)->Visit( right->GetName() ); 
+        result = ((ObjectModule*)base)->Visit( name ); 
     }
 
     if(!result){
-        string bn = left->GetName();
-        string mn = right->GetName();
-        ERR("Can't find member '"+mn+"' in '"+bn+"' !")
+        ERR("Can't find member '"+name+" !")
     }
 
     // cout<<"return result="<<(int)result<<endl;
     // return result ? result : ObjNone(); // 无效访问 返回 none
     return result;
+
 }
 
 
@@ -1295,6 +1316,47 @@ DefObject* Exec::Sysfunc(string name, Node* para)
 }
 
 
+
+/**
+ * 调用变量自带函数
+ * @name 函数名
+ * @argv 参数列表
+ */
+DefObject* Exec::Objfunc(Node* left, Node* para)
+{
+    // 检测是否为变量自带函数调用
+    if(NT::MemberAccess==left->type){
+
+        DefObject *base = Evaluat( left->Left() );
+        string name = left->Right()->GetName();
+        return Objfunc(base, name, para);
+    }
+
+    return NULL;
+}
+DefObject* Exec::Objfunc(DefObject* base, string name, Node* para)
+{
+    // cout<<"-Exec::Objfunc-"<<endl;
+    LOCALIZE_gc
+
+    NodeGroup* argv = (NodeGroup*) para;
+    size_t len = argv->ChildSize();
+
+    // 打印
+    if(name=="print"){
+
+        DefObject::Print( base );
+        cout<<endl;
+        return base;
+
+    // 求类型
+    }else if(name=="type"){
+
+
+    }
+
+    return NULL;
+}
 
 
 
