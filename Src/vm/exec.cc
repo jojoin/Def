@@ -809,7 +809,14 @@ DO* Exec::ProcCall(Node* n)
         retval = tr->GetObject(); // 返回值
         delete tr;
     }
+    // 处理器调用完成，清理执行栈
+    map<string, DO*>::iterator itr_s = stack->v_local.begin();
+    for(; itr_s != stack->v_local.end(); ++itr_s){
+        _gc->Free( itr_s->second );
+    }
+    delete stack; //清除栈
 
+    // 返回结果
     return retval;
 }
 
