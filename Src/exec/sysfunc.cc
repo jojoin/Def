@@ -48,7 +48,7 @@ DO* Exec::Sysfunc(string name, Node* para)
 
 
 
-        
+
     // 转换为int
     }else if(name=="int"){
 
@@ -77,9 +77,36 @@ DO* Exec::Sysfunc(string name, Node* para)
 
 
 
+    // 在当前环境中执行节点
+    }else if(name=="exec"){
+        DO* res = ObjNone();
+        if(len>0){
+            // 节点对象
+            DefObject *obj = Evaluat( argv->Child(0) );
+            OT t = obj->type;
+            if(t==OT::Node){ // 执行
+                res = Evaluat( ((ObjectNode*)obj)->GetNode() );
+            }else if(t==OT::Block){ // 遍历执行
+                ObjectBlock *blc = (ObjectBlock*)obj;
+                size_t len = blc->Size();
+                for (int i=0; i<len; ++i)
+                {
+                    res = Evaluat( 
+                        ( (ObjectNode*) blc->Visit(i) )->GetNode()
+                    );
+                }
+            }
+        }
+        return res;
+
+
+
+
+
     // 节点赋值 or 节点执行取值
     }else if(name=="assign" || name=="evaluat"){
 
+        DO* res = ObjNone();
         if(len>0){
             // 获得调用环境
             ObjectExec *oe = (ObjectExec*)_stack->VarGet("_call_");
@@ -93,11 +120,10 @@ DO* Exec::Sysfunc(string name, Node* para)
             Node *target = obj->GetNode();
             if(name=="evaluat"){
                 // 在调用环境中执行节点对象
-                DO* res = exec->Evaluat( target );
+                res = exec->Evaluat( target );
                 if(!res){ //错误
                     ERR("System function evaluat call error !")
                 }
-                return res;
             }
             if(name=="assign"){
                 if(!len>1){
@@ -109,9 +135,9 @@ DO* Exec::Sysfunc(string name, Node* para)
                 if(!res){ //错误
                     ERR("System function evaluat call error !")
                 }
-                return res;
             }
         }
+        return res;
     }
 
     // 系统函数查询失败

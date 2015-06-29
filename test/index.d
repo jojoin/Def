@@ -12,11 +12,21 @@
 # txt : fs.read("item/math.d")
 # print(txt)
 
-# 块结构
-# node : {
-# 	1+2
-# 	n+m
+# # 块结构
+# node: {
+# 	num : n+m
+# 	count : 999
 # }
+
+# n : 10
+# m : 90
+# num : 0
+
+# exec(node)
+
+# printl(num)
+# # printl(count)
+
 
 # print(node[1])
 
@@ -32,15 +42,13 @@
 # import "modules/math.d" # 运算
 # print math.PI
 
-import "item/func.d" # 函数
+# import "item/func.d" # 函数
 
-import "item/proc.d" # 处理器
+# import "item/proc.d" # 处理器
 
-
-fff : func.test
-
-printlr(fff)
-printlr(proc.foreach)
+# fff : func.test
+# printlr(fff)
+# printlr(proc.foreach)
 
 # arr : (100 3.69 "yangjie")
 # dt : [
