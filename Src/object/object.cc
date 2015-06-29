@@ -49,7 +49,7 @@ void DefObject::Print(DefObject *obj, bool r){
         size_t sz = list->Size();
         for(size_t i=0; i<sz; i++){
             if(i) cout<<" ";
-            Print( list->Visit(i) );
+            Print( list->Visit(i), r );
         }
         cout << ")";
 
@@ -66,16 +66,56 @@ void DefObject::Print(DefObject *obj, bool r){
         for(;it!=dict->value.end();++it){
             if(dv) cout<<", "; else dv=true;
             cout<<"'"<<it->first<<"'";
-            Print( it->second );   
+            Print( it->second, r );   
         }
         cout << "]";
 
     // 代码节点对象
-    }else if(t==T::Proc){ cout << "<process>";
-    }else if(t==T::Func){ cout << "<function>";
-    }else if(t==T::Node){ cout << "<node>";
-    }else if(t==T::Exec){ cout << "<exec>";
-    }else if(t==T::Sysmod){ cout << "<sysmod>";
+    
+    }else if(t==T::Proc){
+        //cout<<"-Print Proc-"<<endl;
+        if(!r){
+            cout<<"<process>";
+            return;
+        }
+        Node* proc = ((ObjectProc*)obj)->GetNode();
+        cout << "<process "+proc->GetName()+"{";
+        NodeGroup* argv = (NodeGroup*)proc->GetArgv();
+        size_t len = argv->ChildSize();
+        for(int i=0; i<len; ++i)
+        {   // 打印参数
+            if(i!=0) cout<<" ";
+            cout<<argv->Child(i)->GetName();
+        }
+        cout << "}>";
+
+
+    }else if(t==T::Func){
+        //cout<<"-Print Func-"<<endl;
+        if(!r){
+            cout<<"<function>";
+            return;
+        }
+        Node* func = ((ObjectFunc*)obj)->GetNode();
+        cout << "<function "+func->GetName()+"(";
+        NodeGroup* argv = (NodeGroup*)func->GetArgv();
+        size_t len = argv->ChildSize();
+        for(int i=0; i<len; ++i)
+        {   // 打印参数
+            if(i!=0) cout<<" ";
+            Node* pm = argv->Child(i);
+            if(pm->type==NodeType::Assign){ // 关键字参数
+                pm = pm->Left();
+            }
+            cout<<pm->GetName();
+        }
+        cout << ")>";
+    }else if(t==T::Node){
+        cout << "<node>";
+    }else if(t==T::Exec){
+        cout << "<exec>";
+    }else if(t==T::Sysmod){
+        cout << "<sysmod>";
 
     }else if(t==T::None){
         cout << "none";

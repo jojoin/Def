@@ -231,7 +231,6 @@ struct ObjectNode : DefObject{
 // 处理器对象
 struct ObjectProc : DefObject{ 
 	Node* value; // 指向对应语法节点
-	vector<string> argv; // 默认参数名字列表
 	void* stack; // 定义所在栈帧环境
 	ObjectProc(Node*v=NULL,void*s=NULL)
 	: DefObject(T::Proc)

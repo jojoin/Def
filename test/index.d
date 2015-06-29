@@ -20,13 +20,6 @@
 
 # print(node[1])
 
-v : ("yangjie" 25)
-
-printl(v)
-printlr(v)
-print(v)
-printr(v)
-
 # num : 1
 # bl : num~=1
 
@@ -39,9 +32,15 @@ printr(v)
 # import "modules/math.d" # 运算
 # print math.PI
 
-# import "item/func.d" # 函数
+import "item/func.d" # 函数
 
-# import "item/proc.d" # 处理器
+import "item/proc.d" # 处理器
+
+
+fff : func.test
+
+printlr(fff)
+printlr(proc.foreach)
 
 # arr : (100 3.69 "yangjie")
 # dt : [

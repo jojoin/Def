@@ -134,11 +134,12 @@ DO* Exec::Run()
     LOCALIZE_node;
     LOCALIZE_gc;
 
+    DO *ret = ObjNone();
+
     if(!_node){
-    	return NULL;
+    	return ret;
     }
 
-    DO *ret = NULL;
 
     // 组合表达式 NodeType::Group
     size_t i = 0
