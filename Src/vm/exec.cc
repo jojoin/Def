@@ -137,6 +137,33 @@ Node* Exec::Parse(string &text, string file)
 }
 
 
+
+/**
+ * 执行代码
+ */
+DO* Exec::Eval(string code)
+{
+    code += "      ";
+    string file = "file.d";
+    // 词法+语法分析
+    Node* nd = Parse(code, file);
+    // nd->Print();
+    // return NULL;
+    // 执行语句
+    _envir.SetFile(file); // 入口文件
+    _envir.Set(nd);       // 设置环境
+    // 解释执行
+    // Run();
+    NodeGroup *gr = (NodeGroup*)nd;
+    DO* res = Evaluat( gr->Child(0) );
+    // 清除环境数据
+    // _envir.Clear();
+
+    // 返回
+    return res;
+}
+
+
 /**
  * 执行 Def 调用帧
  * @return 调用的返回对象
@@ -163,6 +190,8 @@ DO* Exec::Run()
     _gc->Quote(ret); //返回值加引用
     return ret;
 }
+
+
 
 
 
@@ -208,7 +237,6 @@ DO* Exec::Evaluat(Node* n)
 	LOCALIZE_module;
 	LOCALIZE_gc;
 	LOCALIZE_stack;
-	LOCALIZE_node;
 
 
     if(n==NULL) return NULL;
@@ -219,11 +247,12 @@ DO* Exec::Evaluat(Node* n)
 
     if(t==T::Group)
     { // 语句组（if或while的body）
+        NodeGroup *gr = (NodeGroup*)n;
     	DO* last = NULL;
 	    size_t i = 0
-	         , s = _node->ChildSize();
+	         , s = gr->ChildSize();
 	    while(i<s){
-	        last = Evaluat( _node->Child(i) );
+	        last = Evaluat( gr->Child(i) );
 	        i++;
 	    }
 	    return last; //返回最后一条语句的值
@@ -622,14 +651,15 @@ DO* Exec::If(Node* n)
     while(i<s){
         NodeGroup *li = (NodeGroup*)p->Child(i);
         size_t n = li->ChildSize();
-        if(!n) continue;
-        Node *cnd = li->Child(0); //条件（值NULL则为else块）
-        if(!cnd || Conversion::Bool( Evaluat( cnd ) )){
-            for(int j=1; j<n; j++)
-            {
-                ret = Evaluat( li->Child(i+1) ); //执行 if 或 else 块
+        if(n){
+            Node *cnd = li->Child(0); //条件（值NULL则为else块）
+            if(!cnd || Conversion::Bool( Evaluat( cnd ) )){
+                for(int j=1; j<n; j++)
+                {
+                    ret = Evaluat( li->Child(j) ); //执行 if 或 else 块
+                }
+                break; // if 完成
             }
-            break; // if 完成
         }
         i++;
     }

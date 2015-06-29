@@ -15,7 +15,7 @@ set "cc2=.\object\object.cc .\object\operat.cc"
 set "cc3=.\vm\exec.cc .\vm\gc.cc .\vm\stack.cc .\vm\module.cc"
 
 
-g++ .\def.cc %cc0% %cc1% %cc2% %cc3% -std=c++11 -o ..\build\def.exe
+g++ .\def.cc %cc0% %cc1% %cc2% %cc3% -std=c++11 -static -o ..\build\def.exe
 
 cd ..\build
 

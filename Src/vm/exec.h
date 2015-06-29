@@ -58,6 +58,7 @@ class Exec {
 	bool Main(string); // 从入口文件开始执行
 	static Node* Parse(string &text, string file=""); // 解析文本得到抽象语法树
 	DO* Run(); // 执行调用帧
+	DO* Eval(string); // 执行代码
 
 	// 求值
 	DO* Evaluat(Node*);  // 对节点求值操作
