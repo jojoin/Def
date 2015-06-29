@@ -67,6 +67,7 @@ namespace parse {
 	K(Elif, "elif", 0)              \
 	K(Else, "else", 0)              \
 	K(While, "while", 0)            \
+	K(For, "for", 0)              \
 									\
 	K(Import, "import", 0)          \
 									\

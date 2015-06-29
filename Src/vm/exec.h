@@ -75,6 +75,7 @@ class Exec {
 
 	DO* If(Node*); // if 结构
 	DO* While(Node*); // while 结构
+	DO* For(Node*); // while 结构
 
 	DO* List(Node*);  // list 列表
 	DO* Dict(Node*);  // dict 字典

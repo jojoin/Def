@@ -103,6 +103,7 @@ NodeType Nodezer::GetNodeType(Word &cwd)
         IF("print", Print)
         IF("if", If)
         IF("while", While)
+        IF("for", For)
         IF("import", Import) // 模块加载
         IF("return", Return) // 模块加载
 
@@ -385,7 +386,6 @@ Node* Nodezer::ParseNode(Node*p1, Node*p)
     }else if( t==T::While ){
 
         //cout << "-While-" << endl;
-        //Node *wh = new NodeWhile(cur);
         Move(1); // jump while
         while(1){
             if(IS_SIGN(";")){
@@ -394,6 +394,21 @@ Node* Nodezer::ParseNode(Node*p1, Node*p)
             //添加表达式
             p->AddChild( Express() );
         }//end while
+        Move(1); // jump ;
+        return p;
+
+    // 遍历
+    }else if( t==T::For ){
+
+        //cout << "-For-" << endl;
+        Move(1); // jump for
+        while(1){
+            if(IS_SIGN(";")){
+                break; //If结构结束
+            }
+            //添加表达式
+            p->AddChild( Express() );
+        }//end for
         Move(1); // jump ;
         return p;
 

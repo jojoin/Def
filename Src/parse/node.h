@@ -57,6 +57,7 @@ namespace parse {
 								\
 	D(If, 0)					\
 	D(While, 0)              	\
+	D(For, 0)              		\
 								\
 	D(FuncDefine, 0)			\
 	D(ProcDefine, 0)			\
@@ -341,6 +342,7 @@ NODETWINTREE(NotEqual)       // ~=
 NODETREE(Group)    // Group 组合表达式
 NODETREE(If)       // If 条件判断
 NODETREE(While)    // While 循环控制
+NODETREE(For)      // For 遍历
 NODETREE(List)     // () 列表数据结构
 NODETREE(Dict)     // [] 字典数据结构
 NODETREE(Block)    // {} 块结构

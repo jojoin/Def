@@ -42,7 +42,7 @@ DO* Exec::Evaluat(Node* n)
         // cout<<"priority!!!"<<endl;
         return Evaluat( n->Child() ); //递归求值
 
-#define IF(kind)  }else if(t==T::kind){ return kind(n);
+#define IF(kind) }else if(t==T::kind){ return kind(n);
         IF(Assign)
         IF(AssignUp)
         IF(ProcDefine)
@@ -56,6 +56,7 @@ DO* Exec::Evaluat(Node* n)
         IF(Print)
         IF(If)
         IF(While)
+        IF(For)
         IF(Not)
         IF(ContainerAccess)
         IF(MemberAccess)
