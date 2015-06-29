@@ -6,14 +6,22 @@
 # 模块导入测试
 
 # 导入系统模块
-import "fs" 
+# import "fs" 
+# print(fs)
+# # 调用系统函数
+# txt : fs.read("item/math.d")
+# print(txt)
 
-print(fs)
 
-# 调用系统函数
-txt : fs.read("item/math.d")
+node : {
+	1+2
+	n+m
+}
 
-print(txt)
+print(node[1])
+
+
+
 
 
 # import "container.d" # 容器

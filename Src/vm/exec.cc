@@ -284,6 +284,7 @@ DO* Exec::Evaluat(Node* n)
         IF(Return)
         IF(List)
         IF(Dict)
+        IF(Block)
         IF(Print)
         IF(If)
         IF(While)
@@ -718,6 +719,26 @@ DO* Exec::Dict(Node* n)
 }
 
 
+/**
+ * block 块数据结构建立
+ */
+DO* Exec::Block(Node*n)
+{
+    LOCALIZE_gc
+    NodeBlock* p = (NodeBlock*)n;
+
+    ObjectBlock* block = _gc->AllotBlock();
+    size_t i = 0
+         , s = p->ChildSize();
+    while( i < s ){
+        // 添加数组项目
+        block->Push( _gc->AllotNode( p->Child(i) ) );
+        i++;
+    }
+
+    return block;
+
+}
 
 
 /**
@@ -1127,7 +1148,8 @@ DO* Exec::ContainerAccess(Node* n)
         DO* i1 = Evaluat( idx->Child(0) );
         OT i1t = i1->type;
 
-        if(ot==OT::Dict){ // 字典访问
+        // 字典访问
+        if(ot==OT::Dict){
             if(i1t!=OT::String){
                 ERR("Dict key only <string> type !");
             }
@@ -1135,7 +1157,8 @@ DO* Exec::ContainerAccess(Node* n)
             // cout<<"key = "<<key<<endl;
             result = ((ObjectDict*)obj)->Visit(key); 
 
-        }else if(ot==OT::List){ // 列表访问
+        // 列表访问
+        }else if(ot==OT::List){
             if(i1t!=OT::Int){
                 ERR("List index only <int> type !");
             }
@@ -1145,6 +1168,18 @@ DO* Exec::ContainerAccess(Node* n)
                     ERR("List index begin from <int> 1 !");
                 }
                 result = ((ObjectList*)obj)->Visit(i-1);
+            }
+        // 块访问
+        }else if(ot==OT::Block){
+            if(i1t!=OT::Int){
+                ERR("Block index only <int> type !");
+            }
+            if(idxlen==1){ // 单个获取
+                size_t i = Conversion::Long( i1 );
+                if(!i){
+                    ERR("Block index begin from <int> 1 !");
+                }
+                result = ((ObjectBlock*)obj)->Visit(i-1);
             }
         }
     }
