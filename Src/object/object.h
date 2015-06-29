@@ -66,7 +66,7 @@ struct DefObject{
 		: type(t)
 		, refcnt(r)
 	{}
-	static void Print(DefObject*); // 打印
+	static void Print(DefObject* obj, bool r=false); // 打印
 	static string GetTypeName(DefObject*); // 获取变量类型名称
 };
 

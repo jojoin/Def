@@ -20,6 +20,12 @@
 
 # print(node[1])
 
+v : ("yangjie" 25)
+
+printl(v)
+printlr(v)
+print(v)
+printr(v)
 
 # num : 1
 # bl : num~=1
@@ -37,16 +43,16 @@
 
 # import "item/proc.d" # 处理器
 
-arr : (100 3.69 "yangjie")
-dt : [
-	'name' "yangjie"
-	'age' 25
-]
-# arr.print()
-for dt k v
-	print(k)
-	print(v)
-;
+# arr : (100 3.69 "yangjie")
+# dt : [
+# 	'name' "yangjie"
+# 	'age' 25
+# ]
+# # arr.print()
+# for dt k v
+# 	print(k)
+# 	print(v)
+# ;
 
 
 # 测试处理器

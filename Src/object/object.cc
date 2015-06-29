@@ -18,8 +18,9 @@ namespace object {
 
 /**
  * 打印对象
+ * @r 是否递归打印容器，并且格式化变量
  */
-void DefObject::Print(DefObject *obj){
+void DefObject::Print(DefObject *obj, bool r){
 
     T t = obj->type; // 获取类型
 
@@ -32,12 +33,16 @@ void DefObject::Print(DefObject *obj){
         cout << ((ObjectFloat*)obj)->value;
 
     }else if(t==T::String){
-        cout << "\"";
+        if(r) cout << "\"";
         cout << ((ObjectString*)obj)->value;
-        cout << "\"";
+        if(r) cout << "\"";
 
     }else if(t==T::List){ // 列表
         //cout<<"-Print List-"<<endl;
+        if(!r){
+            cout<<"<list>";
+            return;
+        }
         ObjectList* list = (ObjectList*)obj;
         cout << "(";
         //size_t sz = obj->Size();
@@ -50,6 +55,10 @@ void DefObject::Print(DefObject *obj){
 
     }else if(t==T::Dict){ // 字典
         //cout<<"-Print Dict-"<<endl;
+        if(!r){
+            cout<<"<dict>";
+            return;
+        }
         ObjectDict* dict = (ObjectDict*)obj;
         cout << "[";
         map<string, DefObject*>::iterator it = dict->value.begin();

@@ -15,12 +15,18 @@ DO* Exec::Sysfunc(string name, Node* para)
 
 
     // 打印
-    if(name=="print"){
+    if(name=="print"||name=="printr"||name=="printl"||name=="printlr"){
 
         if(!len>0) return ObjNone();
         DO *obj = Evaluat( argv->Child(0) );
-        DO::Print( obj );
-        cout<<endl;
+        bool r = false;
+        if(name=="printr"||name=="printlr"){
+            r = true;
+        }
+        DO::Print( obj, r );
+        if(name=="printl"||name=="printlr"){
+            cout<<endl;
+        }
         return obj;
 
     // 求类型
