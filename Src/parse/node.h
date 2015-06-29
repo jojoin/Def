@@ -28,6 +28,8 @@ namespace parse {
 	D(Float, 0)					\
 	D(String, 0)				\
 								\
+	D(Not, 0)					\
+								\
 	D(Assign, 1)              	\
 	D(AssignUp, 1)             	\
 								\
@@ -37,7 +39,6 @@ namespace parse {
 	D(MoreEqual, 3)				\
 	D(LessEqual, 3)				\
 	D(NotEqual, 3)				\
-	D(Not, 3)					\
 								\
 	D(Add, 6)					\
 	D(Sub, 6)					\
@@ -313,6 +314,7 @@ NODEONETREE(Print)      // print 打印变量至屏幕
 NODEONETREE(Priority)   // Priority 优先级
 NODEONETREE(Import)     // Import 模块加载
 NODEONETREE(Return)     // Return 函数返回
+NODEONETREE(Not)            // ~
 
 
 // 双叉子节点
@@ -333,7 +335,6 @@ NODETWINTREE(Less)           // <
 NODETWINTREE(MoreEqual)      // >=
 NODETWINTREE(LessEqual)      // <=
 NODETWINTREE(NotEqual)       // ~=
-NODETWINTREE(Not)            // ~
 
 
 // 多叉子节点

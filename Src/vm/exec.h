@@ -70,15 +70,8 @@ class Exec {
 	DO* AssignUp(Node*); // 向上搜索赋值
 
 	DO* Operate(Node*, Node*, NodeType); // 算法操作 + - * /
-	DO* Compare(Node*, Node*, NodeType); // 比较 = > < >= <= ~= ~
-	// DO* Equal(Node*, Node*);      // 等于 =
-	// DO* More(Node*, Node*);       // 大于 >
-	// DO* Less(Node*, Node*);       // 小于 <
-	// DO* MoreEqual(Node*, Node*);  // 大于等于 >=
-	// DO* LessEqual(Node*, Node*);  // 小于等于 <=
-	// DO* NotEqual(Node*, Node*);   // 不等于 ~=
-	
-	DO* Not(Node*, Node*);        // bool取反 ~
+	DO* Compare(Node*, Node*, NodeType); // 比较 = > < >= <= ~=
+	DO* Not(Node*);  // bool取反 ~
 
 	DO* If(Node*); // if 结构
 	DO* While(Node*); // while 结构

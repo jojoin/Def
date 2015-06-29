@@ -398,9 +398,9 @@ Node* Nodezer::ParseNode(Node*p1, Node*p)
         return p;
 
     // 模块加载 打印 函数返回
-    }else if( t==T::Import || t==T::Print || t==T::Return ){
+    }else if( t==T::Import || t==T::Print || t==T::Return  || t==T::Not ){
 
-        // cout << "-Import Print Return-" << endl;
+        // cout << "-Import Print Return Not-" << endl;
         Move(1); // jump import print return
         p->AddChild( Express() );
         return p;
