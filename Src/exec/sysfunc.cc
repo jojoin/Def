@@ -14,6 +14,9 @@ DO* Exec::Sysfunc(string name, Node* para)
     size_t len = argv->ChildSize();
 
 
+
+
+
     // 打印
     if(name=="print"||name=="printr"||name=="printl"||name=="printlr"){
 
@@ -21,13 +24,17 @@ DO* Exec::Sysfunc(string name, Node* para)
         DO *obj = Evaluat( argv->Child(0) );
         bool r = false;
         if(name=="printr"||name=="printlr"){
-            r = true;
+            r = true; // 是否递归容器
         }
-        DO::Print( obj, r );
+        DO::Print( obj, r ); // 打印
         if(name=="printl"||name=="printlr"){
-            cout<<endl;
+            cout<<endl; // 是否末尾换行
         }
         return obj;
+
+
+
+
 
     // 求类型
     }else if(name=="type"){
@@ -38,7 +45,15 @@ DO* Exec::Sysfunc(string name, Node* para)
         DO *obj = Evaluat( argv->Child(0) );
         return _gc->AllotString( DO::GetTypeName(obj) );
 
+
+
+
+        
+    // 转换为int
     }else if(name=="int"){
+
+
+
 
 
     // 求容器大小
@@ -57,6 +72,10 @@ DO* Exec::Sysfunc(string name, Node* para)
         }
 
         return _gc->AllotInt(res_sz);
+
+
+
+
 
     // 节点赋值 or 节点执行取值
     }else if(name=="assign" || name=="evaluat"){
