@@ -25,6 +25,7 @@ enum class ObjectType
 {
 	// 系统
 	Error,   // 执行错误
+	Sysmod,  // 系统模块
 
 	// 基本
 	None,    // none
@@ -195,6 +196,19 @@ struct ObjectExPkg : DefObject{
 	EXPKG(Object)  // Object 对象实例
 	EXPKG(Module)  // Module 模块对象
 #undef EXPKG
+
+
+// 系统模块
+struct ObjectSysmod : DefObject{
+	string name;
+	ObjectSysmod(string n)
+	: DefObject(T::Sysmod)
+	, name(n)
+	{}
+	inline string GetName(){ 
+		return name; 
+	}
+};
 
 
 

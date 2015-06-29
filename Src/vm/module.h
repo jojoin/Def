@@ -31,9 +31,7 @@ class Module {
 
 	Module();
 
-	// 判断并加载模块（模块已缓存或为系统模块则加载成功）
-	ObjectModule* Load(string name, string file=""); 
-	ObjectModule* LoadSys(string name); // 加载系统模块
+	static bool IsSysmodName(string); // 检测是否为系统模块名称
 
 	static string MatchFile(string name, string basefile=""); // 匹配模块文件
 

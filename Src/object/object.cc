@@ -66,6 +66,7 @@ void DefObject::Print(DefObject *obj){
     }else if(t==T::Func){ cout << "<function>";
     }else if(t==T::Node){ cout << "<node>";
     }else if(t==T::Exec){ cout << "<exec>";
+    }else if(t==T::Sysmod){ cout << "<sysmod>";
 
     }else if(t==T::None){
         cout << "none";
@@ -106,6 +107,7 @@ string DefObject::GetTypeName(DefObject *obj)
     ELSEIF(Object,object)
     ELSEIF(Module,module)
     ELSEIF(Exec,exec)
+    ELSEIF(Sysmod,sysmod)
 #undef ELSEIF
     return ""; // 未匹配
 }

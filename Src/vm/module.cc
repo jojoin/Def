@@ -25,7 +25,6 @@ namespace vm {
 
 Module::Module()
 {
-
 }
 
 
@@ -65,15 +64,18 @@ void Module::ClearCache(string name, string basefile)
 }
 
 
-/**
- * 加载系统模块
- */
-ObjectModule* Module::LoadSys(string name)
+// 检测是否为系统模块名称
+bool Module::IsSysmodName(string n)
 {
+	if(
+		n=="sys" ||
+		n=="fs"
+	){
+		return true;
+	}
 
-	return NULL; // 未查找到模块
+	return false;
 }
-
 
 /**
  * 获取目标文件列表

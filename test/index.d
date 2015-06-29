@@ -6,7 +6,15 @@
 # 模块导入测试
 
 # 导入系统模块
-# import "fs" 
+import "fs" 
+
+print(fs)
+
+# 调用系统函数
+txt : fs.read("item/math.d")
+
+print(txt)
+
 
 # import "container.d" # 容器
 # print container.li
@@ -32,14 +40,14 @@
 # 	print( v )
 # }
 
-# 函数递归测试
-defun recur(i)
-	if i=0
-		return "bottom"
-	;
-	# print(i)
-	recur(i-1)
-;
+# # 函数递归测试
+# defun recur(i)
+# 	if i=0
+# 		return "bottom"
+# 	;
+# 	# print(i)
+# 	recur(i-1)
+# ;
 
-print( recur(200) )
+# print( recur(200) )
 

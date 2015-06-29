@@ -1214,14 +1214,23 @@ DO* Exec::Import(Node* n)
     DO* str = Evaluat( n->Child() );
     string name = Conversion::String( str );
 
+
+    DO* mod; // 模块
+
+    if(Module::IsSysmodName(name)){
+        // 新建系统模块
+        mod = new ObjectSysmod(name);
+    }else{
+        // 解析路径加载用户模块
+        mod = Import( name );
+    }
+
 #ifdef WINDOWS
     // 替换字符
     // cout<<"ifdef WINDOWS : "<<name<<endl;
     Str::replace_all(name,"/","\\");
     // cout<<"endif WINDOWS : "<<name<<endl;
 #endif
-
-    DO* mod = Import( name );
 
     if(mod){ //自动入栈
         string vn = Path::getName(name);
@@ -1244,8 +1253,7 @@ DO* Exec::Import(string mdname)
 	LOCALIZE_module
 
 	// 加载模块
-	ObjectModule* md = _module->LoadSys( mdname );
-	if(md) return md; // 系统模块
+	ObjectModule* md;
 
     // 获得模块绝对路径
     string tarfile = Path::join( 
@@ -1445,6 +1453,8 @@ DO* Exec::Objfunc(DO* base, string name, Node* para)
     NodeGroup* argv = (NodeGroup*) para;
     size_t len = argv->ChildSize();
 
+    OT bt = base->type;
+
     // 打印
     if(name=="print"){
 
@@ -1457,6 +1467,38 @@ DO* Exec::Objfunc(DO* base, string name, Node* para)
 
 
     }
+
+    // 系统模块
+    if(bt==OT::Sysmod){
+        ObjectSysmod *mod = (ObjectSysmod*)base;
+        string modname = mod->GetName();
+        // 文件模块
+        if(modname=="fs"){
+            // 当前文件所在文件
+            string path = Path::getDir(_envir._file);
+            cout<<"Path::getDir(_envir._file) = "<<path<<endl;
+            string p1 = ""; // 第一个参数
+            if(len>0){
+                DefObject* o1 = Evaluat( para->Child(0) );
+                if(o1->type==OT::String){
+                    p1 = ((ObjectString*)o1)->value;
+                }
+            }
+            // 读取文件
+            if(name=="read"){
+                string tarfile = Path::join(path, p1);
+                if(!Fs::Exist(tarfile)){
+                    ERR("\""+tarfile+"\" is not find !")
+                }
+                // 读取文件
+                return new ObjectString( Fs::ReadFile(tarfile) );
+            }
+        }
+
+
+    }
+
+
 
     return NULL;
 }
