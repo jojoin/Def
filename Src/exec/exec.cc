@@ -9,7 +9,7 @@
 
 #include "../global.h"
 
-#include "exec.h"
+#include "../vm/exec.h"
 #include "../util/str.h"
 #include "../util/fs.h"
 #include "../util/path.h"
@@ -144,7 +144,7 @@ Node* Exec::Parse(string &text, string file)
 DO* Exec::Eval(string code)
 {
     code += "      ";
-    string file = "file.d";
+    string file = _envir._file;
     // 词法+语法分析
     Node* nd = Parse(code, file);
     // nd->Print();
@@ -228,6 +228,9 @@ inline ObjectBool* Exec::ObjFalse()
 {
     return _envir._gc->prep_false;
 }
+
+
+
 
 /**
  * 对语法节点进行求值操作
@@ -327,7 +330,6 @@ DO* Exec::Variable(string name)
     DO* val = _envir._stack->VarGetUp( name );
     return val; // 变量不存在返回 NULL
 }
-
 
 
 
