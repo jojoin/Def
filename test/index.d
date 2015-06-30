@@ -12,7 +12,7 @@ import "fs"
 # txt : fs.read("item/math.d")
 # print(txt)
 
-# print(fs.exist("item"))
+# printl(fs.exist("item"))
 printlr(fs.getfiles("../src"))
 # printlr(fs.getdirs("../src"))
 # printlr(fs.getchilds("../src"))

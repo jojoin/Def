@@ -15,7 +15,6 @@
 #include <vector>
 
 #include <iomanip> 
-#include <io.h>
 #include <string.h>
 #include <ctime>
 
@@ -23,8 +22,10 @@
 
 #ifdef WINDOWS
 #include <direct.h>
+#include <io.h>
 #else
 #include <unistd.h>
+#include <sys/dir.h>
 #endif
 
 
@@ -47,7 +48,11 @@ class Fs {
 	// 判断目录是否存在
 	static bool ExistDir(const string &path)
 	{
+#ifdef WINDOWS
 		return _access(path.c_str(), 0)==0 ? true : false;
+#else
+		return access(path.c_str(), 0)==0 ? true : false;
+#endif
 	}
 
 	// 读取文件，得到文本string
@@ -85,6 +90,8 @@ class Fs {
 	// type==2 获取文件和目录
 	static void GetChilds(string path, vector<string>& files, int type=0)
 	{
+
+	#ifdef WINDOWS
 	    //文件句柄
 	    // HANDLE   hFile   =   0;    
 	    long     hFile   =   0;    
@@ -110,7 +117,35 @@ class Fs {
 	        }while(_findnext(hFile, &fileinfo) == 0);    
 	  
 	        _findclose(hFile);    
-	    }  
+	    }
+
+	#else
+
+		DIR *pDir;  
+	    struct dirent *ent;  
+	    char childpath[512];  
+	    char absolutepath[512];  
+	    pDir = opendir(path.c_str());  
+	    // memset(childpath, 0, sizeof(childpath));  
+	    while ((ent = readdir(pDir)) != NULL)  
+	    {
+	        if (ent->d_type & DT_DIR)  
+	        {   // 如果为目录
+	            if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0)  
+	            {   continue;   }
+	            
+                // sprintf(childpath, "%s/%s", path, ent->d_name);  
+	            if(type>0) files.push_back(ent->d_name);
+	        }  
+	        else  
+	        {	// 文件
+	            // sprintf(absolutepath, "%s/%s", path, ent->d_name);  
+	            if(type!=1) files.push_back(ent->d_name);
+	        }  
+	    } 
+
+	#endif
+
 	}  
 
 
