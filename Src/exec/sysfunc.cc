@@ -34,6 +34,14 @@ DO* Exec::Sysfunc(string name, Node* para)
 
 
 
+    // 获取时间戳（秒）
+    }else if(name=="time"){
+
+        time_t now_time;
+        now_time = time(NULL);
+        // cout<<now_time;
+        return _gc->AllotInt(now_time);
+
 
 
     // 求类型

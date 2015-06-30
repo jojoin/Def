@@ -6,26 +6,34 @@
 # 模块导入测试
 
 # # 导入系统模块
-# import "fs" 
+import "fs" 
 # print(fs)
 # # 调用系统函数
 # txt : fs.read("item/math.d")
 # print(txt)
 
-# # 块结构
+# print(fs.exist("item"))
+printlr(fs.getfiles("../src"))
+# printlr(fs.getdirs("../src"))
+# printlr(fs.getchilds("../src"))
+
+
+
+
+# 块结构
 # node: {
 # 	num : n+m
 # 	count : 999
 # }
-
 # n : 10
 # m : 90
 # num : 0
-
 # exec(node)
-
 # printl(num)
-# # printl(count)
+# printl(count)
+
+# print( time() )
+
 
 
 # print(node[1])
