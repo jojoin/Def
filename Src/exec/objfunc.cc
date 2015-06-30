@@ -39,7 +39,9 @@ DO* Exec::Objfunc(DO* base, string name, Node* para)
 
     // 字符串函数
     }else if(bt==OT::String){
-        return ObjfuncString(name, para);
+        string bastr = ((ObjectString*)base)->value;
+
+        return ObjfuncString(bastr, name, para);
 
 
     }

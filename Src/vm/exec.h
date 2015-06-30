@@ -105,7 +105,7 @@ class Exec {
 	DO* Objfunc(DO*, string, Node*); // 调用变量自带函数（调用失败返回 NULL ）
 
 	// 对象函数
-	DO* ObjfuncString(string, Node*);
+	DO* ObjfuncString(string, string, Node*);
 
 	// 系统模块
 	DO* SysmodFs(string, Node*); // 文件模块

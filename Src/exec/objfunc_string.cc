@@ -1,7 +1,7 @@
 /**
  * 对象函数 string
  */
-DO* Exec::ObjfuncString(string func, Node* para)
+DO* Exec::ObjfuncString(string base, string func, Node* para)
 {
     // cout<<"-Exec::ObjfuncString-"<<endl;
     LOCALIZE_gc
@@ -20,12 +20,15 @@ DO* Exec::ObjfuncString(string func, Node* para)
     if(func=="at"){
         if(o1 && o1->type==OT::Int){
             int idx = ((ObjectInt*)o1)->value - 1; // 索引从1开始
-            if(idx>=0){
-
+            if( idx>=0 && idx < base.size() ){
+                return _gc->AllotString( base.substr(idx,1) );
             }
         }
         return ObjNone();
 
+
+    // 截取字符串
+    }else if(func=="substr"){
 
     // 替换字符串
     }else if(func=="replace"){

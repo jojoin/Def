@@ -6,17 +6,19 @@
 # 模块导入测试
 
 # # 导入系统模块
-import "fs" 
+# import "fs" 
 # print(fs)
 # # 调用系统函数
 # txt : fs.read("item/math.d")
 # print(txt)
 
 # printl(fs.exist("item"))
-printlr(fs.getfiles("../src"))
+# printlr(fs.getfiles("../src"))
 # printlr(fs.getdirs("../src"))
 # printlr(fs.getchilds("../src"))
 
+
+printlr("yangjie".at(1))
 
 
 
