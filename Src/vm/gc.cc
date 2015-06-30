@@ -180,16 +180,21 @@ DefObject* Gc::Allot(Node* n)
 		size_t len = o->Size();\
 		for(size_t i=0; i<len; i++)\
 			OPT(o->Visit(i)); \
-	}else if(t==T::Dict){\
-		map<string, DefObject*> value = ((ObjectDict*)obj)->value;\
-		map<string, DefObject*>::iterator iter;\
-	    for(iter = value.begin(); iter != value.end(); iter++)\
-	        OPT(iter->second);\
 	}else if(t==T::Block){\
 		ObjectBlock* o = (ObjectBlock*)obj;\
 		size_t len = o->Size();\
 		for(size_t i=0; i<len; i++)\
 			OPT(o->Visit(i));\
+	}else if(t==T::Dict){\
+		map<string, DefObject*> value = ((ObjectDict*)obj)->value;\
+		map<string, DefObject*>::iterator iter;\
+	    for(iter = value.begin(); iter != value.end(); iter++)\
+	        OPT(iter->second);\
+	}else if(t==T::Module){\
+		map<string, DefObject*> value = ((ObjectModule*)obj)->value;\
+		map<string, DefObject*>::iterator iter;\
+	    for(iter = value.begin(); iter != value.end(); iter++)\
+	        OPT(iter->second);\
 	}
 
 // 过滤不需要处理引用的

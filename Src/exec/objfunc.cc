@@ -1,8 +1,3 @@
-
-
-
-
-
 /**
  * 调用变量自带函数
  * @name 函数名
@@ -40,10 +35,7 @@ DO* Exec::Objfunc(DO* base, string name, Node* para)
     // 字符串函数
     }else if(bt==OT::String){
         string bastr = ((ObjectString*)base)->value;
-
         return ObjfuncString(bastr, name, para);
-
-
     }
 
 
