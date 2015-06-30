@@ -37,6 +37,10 @@ DO* Exec::Objfunc(DO* base, string name, Node* para)
             return SysmodFs(name, para);
         }
 
+    // 字符串函数
+    }else if(bt==OT::String){
+        return ObjfuncString(name, para);
+
 
     }
 

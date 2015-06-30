@@ -26,8 +26,8 @@ Gc::Gc(){
 	for(int i=0; i<270; i++){
 		prep_ints[i] = new ObjectInt(i-10);
 	}
-	// 初始化小字符串列表
-	// TODO::
+	// 初始化空字符串
+	prep_empty_str = new ObjectString("");
 }
 
 
@@ -51,16 +51,8 @@ ObjectInt* Gc::AllotInt(long val)
 		//cout<<"get from mini int poll"<<endl;
 		return prep_ints[val+10];
 	}
-	if(0==free_int.size()){
-		// cout<<"new ObjectInt"<<endl;
-		return new ObjectInt(val);
-	}
-	// 取自 int 空闲内存池
-	// cout<<"get from free int poll"<<endl;
-	ObjectInt* pi = (ObjectInt*)free_int.back();
-	free_int.pop_back();
-	pi->value = val; // 改值
-	return pi; 
+
+	return new ObjectInt(val); 
 }
 
 
@@ -81,20 +73,10 @@ ObjectFloat* Gc::AllotFloat(double val)
 ObjectString* Gc::AllotString(string val)
 {
 	//cout<<"string = "<<val<<endl;
-	return new ObjectString(val);
-	/*
-
-	if(0==free_string.size()){
-		// cout<<"new ObjectInt"<<endl;
-		return new ObjectString(val);
+	if(val==""){ //空字符串
+		return prep_empty_str;
 	}
-	// 取自 int 空闲内存池
-	// cout<<"get from free int poll"<<endl;
-	ObjectString* str = (ObjectString*)free_string.back();
-	free_string.pop_back();
-	str->value = val; // 改值
-	return str; 
-	*/
+	return new ObjectString(val);
 }
 
 
@@ -190,12 +172,38 @@ DefObject* Gc::Allot(Node* n)
 
 
 #define T ObjectType
-#define IS_CONTAINER_OBJ obj->type==T::List||obj->type==T::Dict
-// 判断是否为小整数
-#define IF_MINI_INT_OBJ \
-		ObjectInt* obj_int = (ObjectInt*)obj; \
-		long val = obj_int->value; \
-		if(val<260&&val>=-10)
+
+// 容器递归操作
+#define CONTAINER_OPT(OPT)\
+	if(t==T::List){\
+		ObjectList* o = (ObjectList*)obj;\
+		size_t len = o->Size();\
+		for(size_t i=0; i<len; i++)\
+			OPT(o->Visit(i)); \
+	}else if(t==T::Dict){\
+		map<string, DefObject*> value = ((ObjectDict*)obj)->value;\
+		map<string, DefObject*>::iterator iter;\
+	    for(iter = value.begin(); iter != value.end(); iter++)\
+	        OPT(iter->second);\
+	}else if(t==T::Block){\
+		ObjectBlock* o = (ObjectBlock*)obj;\
+		size_t len = o->Size();\
+		for(size_t i=0; i<len; i++)\
+			OPT(o->Visit(i));\
+	}
+
+// 过滤不需要处理引用的
+#define FILTRATE_OPT\
+	if(t==T::None||t==T::Bool) return true;\
+	if(t==T::Int){\
+		int val = ((ObjectInt*)obj)->value;\
+		if(val<260&&val>=-10) return true; }\
+	if( t==T::String && ((ObjectString*)obj)->value=="" )\
+		return true;
+		
+	
+
+
 
 
 
@@ -207,18 +215,15 @@ bool Gc::Quote(DefObject* obj)
 {
 	//cout<<"Gc::Quote"<<endl;
 	T t = obj->type;
-	if(t==T::None||t==T::Bool){
-		return obj; // 小对象
-	}
-	if(t==T::Int){
-		IF_MINI_INT_OBJ{
-			return obj; // 小整数
-		}
-	}
+	// 处理过滤
+	FILTRATE_OPT
 	// 引用计数 +1
 	obj->refcnt += 1;
+	// 递归容器加引用
+	CONTAINER_OPT(Quote)
+
 	//cout<<"quote refcnt = "<<obj->refcnt<<endl;
-	return obj;
+	return true;
 }
 
 
@@ -232,86 +237,24 @@ bool Gc::Free(DefObject* obj)
 {
 	//cout<<"Gc::Free"<<endl;
 	T t = obj->type;
-	if(t==T::None||t==T::Bool){
-		return true; // 静态对象不需要 Free
-	}
-	size_t r = obj->refcnt;
+	// 处理过滤
+	FILTRATE_OPT
+	// 计数 -1
+	obj->refcnt -= 1;
 	// 递归释放容器对象
-	if(IS_CONTAINER_OBJ){
-	   	// TODO:: 
+	CONTAINER_OPT(Free)
+	// 引用归零 回收对象
+	if(!obj->refcnt){
+		delete obj; // 删除对象
 	}
-	if(r<=1){ // 引用归零 回收对象
-		return Recycle(obj);
-	}
-	// 更新引用计数
-	//cout<<"free refcnt = "<<(r-1)<<endl;
-	obj->refcnt = r-1;
-	return false;
-}
-
-
-/**
- * 回收对象
- * 递归容器对象 判断是否回收
- */
-bool Gc::Recycle(DefObject* obj)
-{
-	// cout<<"Gc::Recycle"<<endl;
-	T t = obj->type;
-	if(t==T::Int){
-		IF_MINI_INT_OBJ{ // 小整数 不需要 del
-			//cout<<"IF_MINI_INT_OBJ"<<endl;
-			return true;
-		}
-		if(free_int.size()<1024){ // 限制空闲列表大小
-			obj->refcnt = 0; //引用归零
-			free_int.push_back(obj); //保存至空闲内存
-			// cout<<"free_int.push  size="<<free_int.size()<<endl;
-			return true;
-		}
-	/*
-	}else if(t==T::String){
-		if(free_string.size()<1024){ // 限制空闲列表大小
-			obj->refcnt = 0; //引用归零
-			((ObjectString*)obj)->value = "";
-			free_string.push_back(obj); //保存至空闲内存
-			// cout<<"free_string.push  size="<<free_int.size()<<endl;
-			return true;
-		}
-	*/
-
-	}else if(t==T::List){
-		ObjectList* o = (ObjectList*)obj;
-		size_t len = o->Size();
-		for(size_t i=0; i<len; i++){
-			Free(o->Visit(i)); //递归回收
-		}
-
-	}else if(t==T::Dict){
-		//遍历dict
-		map<string, DefObject*> value = ((ObjectDict*)obj)->value;
-		map<string, DefObject*>::iterator iter;
-	    for(iter = value.begin(); iter != value.end(); iter++)
-	    {
-	        Free(iter->second);
-	    }
-
-	}else if(t==T::Block){
-		ObjectBlock* o = (ObjectBlock*)obj;
-		size_t len = o->Size();
-		for(size_t i=0; i<len; i++){
-			Free(o->Visit(i)); //递归回收
-		}
-	}
-
-	// cout<<"delete obj"<<endl;
-	delete obj; // delete 对象指针 
 	return true;
 }
 
 
+
 #undef T
 #undef IS_CONTAINER_OBJ
+#undef CONTAINER_OPT
 
 
 } // --end-- namespace vm
