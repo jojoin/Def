@@ -15,7 +15,7 @@ Def 支持多范式、反射、元编程、函数式、垃圾回收等高级特�
 
 下载 Def 虚拟机（可执行文件）：
 
-　　Windows : [def.exe](http://www.deflang.com/download/def.exe)　\　Linux :  [def](http://www.deflang.com/download/def)　\　OS X : [def](http://www.deflang.com/download/def)
+　　Windows : [def.exe](http://www.deflang.org/download/def.exe)　\　Linux :  [def](http://www.deflang.org/download/def)　\　OS X : [def](http://www.deflang.org/download/def)
 
 你也可以[下载源码](https://codeload.github.com/yangjiePro/Def/zip/master)自行编译得到 Def 虚拟机。通过执行 `build`文件夹下的编译脚本，通过支持 C++11 标准的编译器编译。 
 
