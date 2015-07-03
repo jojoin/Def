@@ -7,6 +7,16 @@ Def 是新一代基于虚拟机的开源脚本编程语言，拥有 C 的简捷�
 
 Def 支持多范式、反射、元编程、函数式、垃圾回收等高级特征。通过强大的独一无二的处理器语法，让 Def 成为“可编程的编程语言”，甚至在运行时期改变程序行为。运用其精简直观的语法，可快速构建出模块化、易重构、可读性强的应用程序。
 
+### 链接
+
+官方网站 [www.deflang.org](http://www.deflang.org/)
+
+快速开始 [www.deflang.org/getstart](http://www.deflang.org/getstart)
+
+文档手册 [www.deflang.org/document](http://www.deflang.org/document)
+
+下载 [www.deflang.org/download](http://www.deflang.org/download)
+
 ### 代码示例
 
 ```python
