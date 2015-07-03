@@ -7,7 +7,7 @@
 #include "token.h"
 #include "tokenizer.h"
 
-#include "../Util/str.h"
+#include "../util/str.h"
 
 using namespace std;
 using namespace def::util;

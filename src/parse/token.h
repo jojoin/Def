@@ -7,7 +7,7 @@
 ///////
 #include <string>
 
-#include "../Util/str.h"
+#include "../util/str.h"
 
 
 using namespace std;
