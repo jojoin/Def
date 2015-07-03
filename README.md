@@ -9,13 +9,15 @@ Def 支持多范式、反射、元编程、函数式、垃圾回收等高级特�
 
 ### >>> 链接
 
-　[官方网站](http://www.deflang.org/)　\　[快速开始](http://www.deflang.org/getstart)　\　[文档手册](http://www.deflang.org/document)　\　[下载](http://www.deflang.org/download)
+　[官方网站](http://www.deflang.org/)　　\　　[快速开始](http://www.deflang.org/getstart)　　\　　[文档手册](http://www.deflang.org/document)　　\　　[下载](http://www.deflang.org/download)
 
 ### >>> 使用
 
 下载 Def 虚拟机（可执行文件）：
 
-　　Windows : [def.exe](http://www.deflang.org/download/def-win.exe)　\　Linux :  [def](http://www.deflang.org/download/def-linux)　\　OS X : [def](http://www.deflang.org/download/def-osx)
+　　Windows : [def-win.exe](http://www.deflang.org/download/def-win.exe)  
+　　Linux :  [def-linux](http://www.deflang.org/download/def-linux)  
+　　OS X : [def-osx](http://www.deflang.org/download/def-osx)  
 
 你也可以[下载源码](https://codeload.github.com/yangjiePro/Def/zip/master)自行编译得到 Def 虚拟机。通过执行 `build`文件夹下的编译脚本，通过支持 C++11 标准的编译器编译。 
 
@@ -78,6 +80,5 @@ foreach{ con k v
 
 本项目采用 MIT 协议。
 
-作者：杨捷
-
+作者：杨捷  
 邮箱：yangjie@jojoin.com
