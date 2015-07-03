@@ -68,7 +68,12 @@ con : ("def" 2015 12.5)
 foreach{ con k v
   print(v) # 打印每一项
 }
-
-
-
 ```
+
+### 其它
+
+本项目采用 MIT 协议。
+
+作者：杨捷
+
+邮箱：yangjie@jojoin.com
