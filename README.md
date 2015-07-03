@@ -9,13 +9,13 @@ Def 支持多范式、反射、元编程、函数式、垃圾回收等高级特�
 
 ### 链接
 
-官方网站 [www.deflang.org](http://www.deflang.org/)
+　[官方网站](http://www.deflang.org/)
 
-快速开始 [www.deflang.org/getstart](http://www.deflang.org/getstart)
+　[快速开始](http://www.deflang.org/getstart)
 
-文档手册 [www.deflang.org/document](http://www.deflang.org/document)
+　[文档手册](http://www.deflang.org/document)
 
-下载 [www.deflang.org/download](http://www.deflang.org/download)
+　[下载](http://www.deflang.org/download)
 
 ### 代码示例
 
