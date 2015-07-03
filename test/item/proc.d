@@ -34,5 +34,3 @@ def foreach{con k v}
 	;
 ;
 
-
-

@@ -15,8 +15,8 @@ do
 done
 cat ./exec/_footer.c >> $target
 
-# 开始编译
-g++ ./*.cc ./util/*.cc ./parse/*.cc ./object/*.cc ./vm/*.cc -std=c++11 -w -o ../build/def 
+# 开始编译 -static
+g++ ./*.cc ./util/*.cc ./parse/*.cc ./object/*.cc ./vm/*.cc -std=c++11 -w -static -o ../build/def 
 
 cd ../build
 

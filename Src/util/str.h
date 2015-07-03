@@ -66,16 +66,15 @@ class Str {
 	}
 
 	// 替换所有子字符串
-	static void replace_all(string & s, string const & t, string const & w)  
-	{  
+	static void replace_all(string & s, string const & t, string const & w)
+	{
 		string::size_type pos = s.find(t), t_size = t.size(), r_size = w.size();  
 		while(pos != string::npos){ // found   
 			s.replace(pos, t_size, w);   
 			pos = s.find(t, pos + r_size );   
 		}  
-	} 
+	}
 
-	
 
 }; // --end-- class Token
 

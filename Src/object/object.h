@@ -62,7 +62,7 @@ enum class ObjectType
 struct DefObject{
 	T type;  /*对象类型*/
 	size_t refcnt; /*引用计数*/
-	DefObject(T t, size_t r=0)
+	DefObject(T t, size_t r=1)
 		: type(t)
 		, refcnt(r)
 	{}

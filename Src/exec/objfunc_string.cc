@@ -12,8 +12,12 @@ DO* Exec::ObjfuncString(string base, string func, Node* para)
     string path = Path::getDir(_envir._file);
     // cout<<"Path::getDir(_envir._file) = "<<path<<endl;
     DefObject* o1 = NULL;
+    DefObject* o2 = NULL;
     if(len>0){
         o1 = Evaluat( para->Child(0) );
+    }
+    if(len>1){
+        o2 = Evaluat( para->Child(1) );
     }
 
     // 取单个字符
@@ -32,7 +36,11 @@ DO* Exec::ObjfuncString(string base, string func, Node* para)
 
     // 替换字符串
     }else if(func=="replace"){
-
+        string nstr = base;
+        if( o1 && o2 && o1->type==OT::String && o2->type==OT::String ){
+            Str::replace_all(nstr, ((ObjectString*)o1)->value, ((ObjectString*)o2)->value);
+        }
+        return _gc->AllotString( nstr );
     }
 
 }

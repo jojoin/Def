@@ -22,8 +22,6 @@ DO* Exec::SysmodFs(string func, Node* para)
 
 
 
-
-
     // 判断文件或目录是否存在
     if(func=="exist"){
         // cout<<tarfile<<endl;
@@ -79,10 +77,25 @@ DO* Exec::SysmodFs(string func, Node* para)
         return li;
 
 
-    // 获取目录下的所有目录名称列表
-    }else if(func=="getdirs"){
+    // 拷贝文件到 目标文件 或 目录
+    }else if(func=="copy"){
 
-
+        if(len>=2){
+            DefObject* ostr = Evaluat( para->Child(1) );
+            if(ostr->type==OT::String){
+                string wfile = ((ObjectString*)ostr)->value;
+                if(Fs::Exist(tarfile)){
+                    // 拷贝文件
+                    string rfilestr = Fs::ReadFile(tarfile);
+                    if(Fs::ExistDir(wfile)){ // 至目录
+                        wfile = Path::join(wfile, Path::getFileName(tarfile));
+                    }
+                    if(Fs::WriteFile(wfile, rfilestr))
+                        return ObjTrue(); // 写入成功
+                }
+            }
+        }
+        return ObjFalse(); // 失败
 
 
     }
