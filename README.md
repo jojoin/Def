@@ -14,9 +14,12 @@ Def 支持多范式、反射、元编程、函数式、垃圾回收等高级特�
 ### 使用
 
 下载 Def 虚拟机（可执行文件）：
-	1. Windows : [def.exe](http://www.deflang.com/)
-	2. Linux :  [def](http://www.deflang.com/)
-	3. OS X : [def](http://www.deflang.com/)
+
+	Windows : [def.exe](http://www.deflang.com/)
+	
+	Linux :  [def](http://www.deflang.com/)
+	
+	OS X : [def](http://www.deflang.com/)
 
 ### 代码示例
 
