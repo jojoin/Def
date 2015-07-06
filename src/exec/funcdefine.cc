@@ -34,7 +34,7 @@ DO* Exec::FuncDefine(Node* n)
         // cout<<"func parameter"<<endl;
     }
     func->argv = para; // 默认参数赋值
-    func->stack = (void*)_envir._stack; // 定义所在栈帧环境
+    func->envir = (void*)& _envir; // 定义所在栈帧环境
     // 变量入栈
     // cout<<"string name = p->GetName();"<<endl;
     string name = p->GetName();

@@ -231,17 +231,17 @@ struct ObjectNode : DefObject{
 // 处理器对象
 struct ObjectProc : DefObject{ 
 	Node* value; // 指向对应语法节点
-	void* stack; // 定义所在栈帧环境
-	ObjectProc(Node*v=NULL,void*s=NULL)
+	void* envir; // 定义处环境指针
+	ObjectProc(Node*v=NULL,void*e=NULL)
 	: DefObject(T::Proc)
 	, value(v)
-	, stack(s)
+	, envir(e)
 	{}
 	inline Node* GetNode(){ 
 		return value; 
 	}
-	inline void* GetStack(){ 
-		return stack; 
+	inline void* GetEnvir(){ 
+		return envir; 
 	}
 };
 
@@ -249,12 +249,12 @@ struct ObjectProc : DefObject{
 struct ObjectFunc : DefObject{ 
 	Node* value; // 指向对应语法节点
 	ObjectDict* argv; // 默认参数
-	void* stack; // 定义所在栈帧环境
-	ObjectFunc(Node*v=NULL,ObjectDict*a=NULL,void*s=NULL)
+	void* envir; // 定义处环境指针
+	ObjectFunc(Node*v=NULL,ObjectDict*a=NULL,void*e=NULL)
 	: DefObject(T::Func)
 	, value(v)
 	, argv(a)
-	, stack(s)
+	, envir(e)
 	{}
 	~ObjectFunc(){
 		delete argv;
@@ -262,8 +262,8 @@ struct ObjectFunc : DefObject{
 	inline Node* GetNode(){ 
 		return value; 
 	}
-	inline void* GetStack(){ 
-		return stack; 
+	inline void* GetEnvir(){ 
+		return envir; 
 	}
 };
 

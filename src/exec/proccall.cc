@@ -18,10 +18,11 @@ DO* Exec::ProcCall(Node* n)
     }
     // fbody->Print();
     // 拷贝环境
-    Envir env = Envir(_envir);
-    // 新栈帧
+    Envir proc_envir = *(Envir*)op->GetEnvir();
+    Envir env = Envir(proc_envir);
+    // 新栈帧（父级栈帧）
     Stack *stack = new Stack();
-    stack->SetParent( (Stack*)op->GetStack() ); // 定义所在环境
+    stack->SetParent( proc_envir._stack );
     // 混合生成处理器参数
     BuildProcArgv(proc->GetArgv(), p->Right(), stack);
     // 调用执行环境对象入栈

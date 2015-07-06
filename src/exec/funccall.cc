@@ -42,10 +42,11 @@ DO* Exec::FuncCall(Node* n)
     }
     // fbody->Print();
     // 拷贝环境
-    Envir env = Envir(_envir);
+    Envir func_envir = *(Envir*)of->GetEnvir();
+    Envir env = Envir(func_envir);
     // 新栈帧（父级栈帧）
     Stack *stack = new Stack();
-    stack->SetParent( (Stack*)of->GetStack() );
+    stack->SetParent( func_envir._stack );
     // 处理默认参数
     ObjectDict* para = of->argv;
     // cout<<"*para="<<(int)para<<endl;

@@ -6,7 +6,7 @@
 # 模块导入测试
 
 # # 导入系统模块
-# import "fs" 
+import "fs" 
 # print(fs)
 # # 调用系统函数
 # txt : fs.read("item/math.d")
@@ -17,8 +17,17 @@
 # printlr(fs.getdirs("../src"))
 # printlr(fs.getchilds("../src"))
 
+# printlr("yangjie".at(1))
 
-printlr("yangjie".at(1))
+
+defun ttt(n)
+	fs.read(n+'.d')
+;
+
+
+# print(fs.read('item/math.d'))
+print(ttt('item/math'))
+
 
 
 

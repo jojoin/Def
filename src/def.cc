@@ -26,7 +26,8 @@ int main(int argc, char *argv[])
 
     if(argc==1){
         // 显示简介
-        cout<<"Welcome to use Def ( version 0.1.0 ), available parameters:"<<endl;
+        cout<<"Welcome to use Def ( version 0.1.0, www.deflang.org )"<<endl;
+        cout<<"available parameters:"<<endl;
         cout<<"  -c      Open REPL(Read-Eval-Print Loop)"<<endl;
         cout<<"  <file>  Code file to run like 'hello.d'"<<endl;
         cout<<"New can input your order like above: "<<endl;
@@ -91,7 +92,7 @@ int main_cmd(const string &cmd)
         }
 
     // 解析执行文件
-    }else{
+    }else if(cmd!=""){
         // cout << "code file is " << argv[1] << endl;
         Exec exec = Exec(); // 初始化
         return exec.Main( cmd ); // 入口文件执行

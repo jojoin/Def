@@ -58,9 +58,11 @@ class Envir {
 		_module = new Module();
 		_gc     = new Gc();
 		_stack  = new Stack();
+		_node   = NULL;
 	}
 	// 拷贝构造
 	Envir(const Envir &e){
+		_file   = e._file;
 		_type   = e._type;
 		_module = e._module;
 		_gc     = e._gc;

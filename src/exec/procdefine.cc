@@ -9,7 +9,7 @@ DO* Exec::ProcDefine(Node* n)
     NodeProcDefine* p = (NodeProcDefine*)n;
 
     ObjectProc* proc = new ObjectProc(p); //新建对象
-    proc->stack = (void*)_envir._stack; // 定义所在栈帧环境
+    proc->envir = (void*) &_envir; // 定义所在栈帧环境
 
     string name = p->GetName();
     if(name!=""){ // 变量入栈
