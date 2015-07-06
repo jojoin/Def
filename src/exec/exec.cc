@@ -116,9 +116,10 @@ DO* Exec::Eval(string code)
     // 解释执行
     // Run();
     NodeGroup *gr = (NodeGroup*)nd;
-    DO* res = Evaluat( gr->Child(0) );
+    DO* res = Evaluat( gr );
     // 清除环境数据
     // _envir.Clear();
+    delete nd;
 
     // 返回
     return res;

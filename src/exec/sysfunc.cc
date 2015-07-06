@@ -86,15 +86,15 @@ DO* Exec::Sysfunc(string name, Node* para)
 
 
     // 在当前环境中执行节点
-    }else if(name=="exec"){
+    }else if(name=="eval"){
         DO* res = ObjNone();
         if(len>0){
             // 节点对象
             DefObject *obj = Evaluat( argv->Child(0) );
             OT t = obj->type;
-            if(t==OT::Node){ // 执行
+            if(t==OT::Node){ // 执行节点
                 res = Evaluat( ((ObjectNode*)obj)->GetNode() );
-            }else if(t==OT::Block){ // 遍历执行
+            }else if(t==OT::Block){ // 遍历执行节点
                 ObjectBlock *blc = (ObjectBlock*)obj;
                 size_t len = blc->Size();
                 for (int i=0; i<len; ++i)
