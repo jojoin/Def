@@ -16,7 +16,7 @@ type .\exec\_footer.c >> %target%
 set "cpp=.\*.cc .\util\*.cc .\parse\*.cc .\object\*.cc .\vm\*.cc"
 
 :: 开始编译 -static
-g++ %cpp% -std=c++11 -w -o ..\build\def.exe
+g++ %cpp% -std=c++11 -w -static -o ..\build\def.exe
 
 cd ..\build
 

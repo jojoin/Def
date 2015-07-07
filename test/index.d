@@ -20,15 +20,19 @@ import "fs"
 # printlr("yangjie".at(1))
 
 
-defun ttt(n)
-	fs.read(n+'.d')
-;
+# defun ttt(n)
+# 	fs.read(n+'.d')
+# ;
 
 
 # print(fs.read('item/math.d'))
-print(ttt('item/math'))
+# print(ttt('item/math'))
 
 
+
+sss : "yang.jie"
+
+printr( sss.split('.') )
 
 
 # 块结构

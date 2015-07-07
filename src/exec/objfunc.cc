@@ -27,10 +27,12 @@ DO* Exec::Objfunc(DO* base, string name, Node* para)
         ObjectSysmod *mod = (ObjectSysmod*)base;
         string modname = mod->GetName();
 
-        // 文件模块
-        if(modname=="fs"){
-            return SysmodFs(name, para);
+#define MOD(n, f) }else if(modname==#n){ return Sysmod##f(name, para);
+        if(modname==""){
+        MOD(fs, Fs)                 // 文件系统
+        MOD(path, Path)             // 路径处理
         }
+#undef MOD
 
     // 字符串函数
     }else if(bt==OT::String){

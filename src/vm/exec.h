@@ -108,7 +108,8 @@ class Exec {
 	DO* ObjfuncString(string, string, Node*);
 
 	// 系统模块
-	DO* SysmodFs(string, Node*); // 文件模块
+	DO* SysmodFs(string, Node*);   // 文件系统模块
+	DO* SysmodPath(string, Node*); // 路径处理模块
 
 
 };
