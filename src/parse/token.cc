@@ -36,7 +36,7 @@ string Token::GetEscapeChat(string tok)
 {
 	char tk = (char)tok[0];
 	char re = GetEscapeChat(tk);
-	return ""+re;
+	return {re};
 }
 char Token::GetEscapeChat(char tok)
 {

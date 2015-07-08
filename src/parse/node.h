@@ -100,7 +100,9 @@ struct Node{
 		line = w.line;
 		posi = w.posi;
 	}
-	//判断是否为变量的字面量
+	// 获取变量类型名称
+	static string GetTypeName(Node*);
+	// 判断是否为变量的字面量
 	inline bool IsValue(){
 	    if(type==NT::Variable){
 	        return false;
@@ -115,7 +117,7 @@ struct Node{
 	    }
 	    return false;
 	}
-	//判断是否为运算操作节点
+	// 判断是否为运算操作节点
 	inline bool IsOperate(){
 	    if(
 	        type==NT::Add ||

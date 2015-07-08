@@ -9,6 +9,7 @@
 
 #include <sstream>
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -74,6 +75,26 @@ class Str {
 			pos = s.find(t, pos + r_size );   
 		}  
 	}
+
+	// 分割字符串
+	static void split(const string & str, string const & t, vector<string> & slist)
+	{
+
+        size_t stsz = t.size();
+        int sta = 0;
+        while(1){
+            size_t found = str.find(t, sta);  
+            if(found==string::npos){
+                slist.push_back( str.substr(sta) );
+                break;
+            }
+            slist.push_back( str.substr(sta, found-sta) );
+            sta = found + stsz; // 更新查找位置
+        }
+	}
+
+
+
 
 
 }; // --end-- class Token

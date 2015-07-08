@@ -24,15 +24,35 @@ import "fs"
 # 	fs.read(n+'.d')
 # ;
 
-
 # print(fs.read('item/math.d'))
 # print(ttt('item/math'))
 
+# sss : 
+# """
+# yang"jie
+# """
+# printlr( sss )
+# printlr( sss.split('"') )
 
+# n : 10
+# for n 5 i
+# 	printl(i)
+# ;
 
-sss : "yang.jie"
+# sss : '123 abc xyz'
+# for sss ' ' s
+# 	printl(s)
+# ;
 
-printr( sss.split('.') )
+bbb : {
+	k
+	n : n+1
+	if ;
+}
+
+nnn : bbb[3]
+
+print( nnn.type() )
 
 
 # 块结构

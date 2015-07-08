@@ -68,7 +68,7 @@ class Tokenizer
 		pprev_tok = prev_tok; // 存储
 		prev_tok = tok; // 存储
 		tok = Peek();
-		Jump();
+		Jump(1);
 		return tok;
 	};
 

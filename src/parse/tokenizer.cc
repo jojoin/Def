@@ -63,6 +63,17 @@ void Tokenizer::Push(S sta=S::Normal)
 		}else{
 			sta = S::Int;
 		}
+	// 忽略块字符串开头及末尾的两个换行
+	}else if(sta==S::BlockQuotation){
+
+		if(buf[0]=='\n'){
+			buf.erase(0, 1);  
+		}
+		size_t len = buf.size();
+		if(buf[len-1]=='\n'){
+			buf.erase(len-1, 1);  
+		}
+		sta = S::String;
 	}
 
 	struct Word wd = {
@@ -275,7 +286,7 @@ vector<Word>* Tokenizer::Scan()
 
 			if(tok=="\""&&prev_tok=="\""&&pprev_tok=="\""){
 				Pop(2); //跳过引号
-				Push(S::BlockDQuotation);
+				Push(S::BlockQuotation);
 				ss = S::Normal; // 块字符串结束
 			}else{
 				Buf();

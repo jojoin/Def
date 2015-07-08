@@ -106,6 +106,7 @@ class Exec {
 
 	// 对象函数
 	DO* ObjfuncString(string, string, Node*);
+	DO* ObjfuncNode(Node*, string, Node*);
 
 	// 系统模块
 	DO* SysmodFs(string, Node*);   // 文件系统模块

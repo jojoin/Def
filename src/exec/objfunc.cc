@@ -27,6 +27,7 @@ DO* Exec::Objfunc(DO* base, string name, Node* para)
         ObjectSysmod *mod = (ObjectSysmod*)base;
         string modname = mod->GetName();
 
+// 系统模块函数
 #define MOD(n, f) }else if(modname==#n){ return Sysmod##f(name, para);
         if(modname==""){
         MOD(fs, Fs)                 // 文件系统
@@ -34,13 +35,14 @@ DO* Exec::Objfunc(DO* base, string name, Node* para)
         }
 #undef MOD
 
-    // 字符串函数
-    }else if(bt==OT::String){
-        string bastr = ((ObjectString*)base)->value;
-        return ObjfuncString(bastr, name, para);
+
+// 原生对象函数
+#define ELSE(N) }else if(bt==OT::N){ return Objfunc##N(((Object##N*)base)->value, name, para);
+    ELSE(String)  // 字符串
+    ELSE(Node)    // 节点
+#undef ELSE
+
     }
-
-
 
     return NULL;
 }

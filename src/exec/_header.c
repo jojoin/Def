@@ -8,9 +8,13 @@
 #include <string>
 #include <map>
 
+#include <algorithm>
+
 #include "../global.h"
 
+#include "../parse/node.h"
 #include "../vm/exec.h"
+
 #include "../util/str.h"
 #include "../util/fs.h"
 #include "../util/path.h"
