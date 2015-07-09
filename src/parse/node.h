@@ -33,12 +33,15 @@ namespace parse {
 	D(Assign, 1)              	\
 	D(AssignUp, 1)             	\
 								\
-	D(Equal, 3)					\
-	D(More, 3)					\
-	D(Less, 3)					\
-	D(MoreEqual, 3)				\
-	D(LessEqual, 3)				\
-	D(NotEqual, 3)				\
+	D(And, 2)               	\
+	D(Or, 3)                 	\
+								\
+	D(Equal, 4)					\
+	D(More, 4)					\
+	D(Less, 4)					\
+	D(MoreEqual, 4)				\
+	D(LessEqual, 4)				\
+	D(NotEqual, 4)				\
 								\
 	D(Add, 6)					\
 	D(Sub, 6)					\
@@ -67,6 +70,8 @@ namespace parse {
 	D(Priority, 0)				\
 	D(Print, 0)              	\
 	D(Return, 0)              	\
+	D(Continue, 0)             	\
+	D(Break, 0)              	\
 								\
 	N(End, 0)            
 
@@ -160,6 +165,10 @@ struct Node{
 	virtual void SetBody(Node*g=NULL){};
 	virtual Node* GetBody(){};
 };
+
+
+
+
 
 
 // 单叉节点
@@ -268,6 +277,17 @@ struct NodeTree : Node{
 
 
 
+// 无叉节点
+#define NODENOTREE(xxx)                       \
+struct Node##xxx : Node{                      \
+	Node##xxx(Word &w)                       \
+	: Node(NT::xxx, w){}                      \
+	inline void Print(string prefix=""){      \
+		cout<<prefix+#xxx<<endl;              \
+	};                                        \
+};
+
+
 // 单叉节点
 #define NODEONETREE(xxx)                      \
 struct Node##xxx : NodeOneTree{               \
@@ -312,6 +332,11 @@ struct Node##xxx : NodeTree{                 \
 
 
 
+// 无叉节点
+NODENOTREE(Continue)    // 循环继续
+NODENOTREE(Break)       // 循环退出
+
+
 // 单叉子节点
 NODEONETREE(Print)      // print 打印变量至屏幕
 NODEONETREE(Priority)   // Priority 优先级
@@ -338,6 +363,9 @@ NODETWINTREE(Less)           // <
 NODETWINTREE(MoreEqual)      // >=
 NODETWINTREE(LessEqual)      // <=
 NODETWINTREE(NotEqual)       // ~=
+//条件组合
+NODETWINTREE(And)       // &
+NODETWINTREE(Or)        // |
 
 
 // 多叉子节点

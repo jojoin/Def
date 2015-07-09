@@ -71,10 +71,13 @@ class Exec {
 
 	DO* Operate(Node*, Node*, NodeType); // 算法操作 + - * /
 	DO* Compare(Node*, Node*, NodeType); // 比较 = > < >= <= ~=
+	DO* Judge(Node*, Node*, NodeType);   // 判断 & |
 	DO* Not(Node*);  // bool取反 ~
 
 	DO* If(Node*); // if 结构
 	DO* While(Node*); // while 结构
+	DO* Continue(Node*);     // 函数返回
+	DO* Break(Node*);     // 函数返回
 	DO* For(Node*); // while 结构
 
 	DO* List(Node*);  // list 列表

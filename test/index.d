@@ -6,7 +6,7 @@
 # 模块导入测试
 
 # # 导入系统模块
-import "fs" 
+# import "fs" 
 # print(fs)
 # # 调用系统函数
 # txt : fs.read("item/math.d")
@@ -44,15 +44,8 @@ import "fs"
 # 	printl(s)
 # ;
 
-bbb : {
-	k
-	n : n+1
-	if ;
-}
 
-nnn : bbb[3]
 
-print( nnn.type() )
 
 
 # 块结构

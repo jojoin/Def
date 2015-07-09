@@ -27,8 +27,13 @@ DO* Exec::ObjfuncNode(Node* base, string func, Node* para)
         transform(tp.begin(), tp.end(), tp.begin(), ::tolower); // ::toupper 转大写
         return _gc->AllotString( tp );
         
-    }else if(func=="eee"){
-
+    }else if(func=="name"){
+        string nn = "";
+        NT t = base->type;
+        if(t==NT::Variable){
+            nn = ((NodeVariable*)base)->GetName();
+        }
+        return _gc->AllotString( nn );
     }
 
 }

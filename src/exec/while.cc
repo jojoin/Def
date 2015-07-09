@@ -14,8 +14,22 @@ DO* Exec::While(Node* n)
         if(!Conversion::Bool( Evaluat( cond ) )){
             break; // 条件假，跳出循环
         }
-        for(int i=1; i<len; i++){
-            res = Evaluat( p->Child(i) ); //执行 while 块
+        // 捕获 content 或 break
+        try{
+            for(int i=1; i<len; i++){
+                res = Evaluat( p->Child(i) ); //执行 while 块
+            }
+        }
+        catch(Throw* tr) // 函数返回
+        {
+            ThrowType t = tr->GetType();
+            if(t==ThrowType::Continue){ // 循环继续
+                // do nothing
+            }else if(t==ThrowType::Break){ // 循环退出
+                break;
+            }else{ // 其它异常
+                throw tr;
+            }
         }
     }
     return res; 

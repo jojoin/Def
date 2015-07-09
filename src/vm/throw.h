@@ -21,6 +21,8 @@ namespace vm {
 // 抛出类型
 enum class ThrowType{
     Return,    // 函数执行返回
+    Continue,  // 循环继续
+    Break,     // 循环退出
 };
 
 

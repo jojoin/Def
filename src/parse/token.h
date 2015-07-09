@@ -32,6 +32,9 @@ namespace parse {
 	S(Div, "/", 0)              \
 	/*S(Mod, "%", 0)*/              \
     							\
+	S(And, "&", 0)              \
+	S(Or, "|", 0)               \
+    							\
 	S(Lparen, "(", 0)              \
 	S(Rparen, ")", 0)              \
 	S(Lbrack, "[", 0)              \
@@ -58,6 +61,8 @@ namespace parse {
 	K(Class, "class", 0)            \
 									\
 	K(Return, "return", 0)          \
+	K(Continue, "continue", 0)      \
+	K(Break, "break", 0)            \
 									\
 	K(None, "none", 0)              \
 	K(True, "true", 0)              \
@@ -67,7 +72,7 @@ namespace parse {
 	K(Elif, "elif", 0)              \
 	K(Else, "else", 0)              \
 	K(While, "while", 0)            \
-	K(For, "for", 0)              \
+	K(For, "for", 0)                \
 									\
 	K(Import, "import", 0)          \
 									\

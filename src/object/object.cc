@@ -53,6 +53,22 @@ void DefObject::Print(DefObject *obj, bool r){
         }
         cout << ")";
 
+    }else if(t==T::Block){ // 块
+        //cout<<"-Print Block-"<<endl;
+        if(!r){
+            cout<<"<block>";
+            return;
+        }
+        ObjectBlock* block = (ObjectBlock*)obj;
+        cout << "{";
+        //size_t sz = obj->Size();
+        size_t sz = block->Size();
+        for(size_t i=0; i<sz; i++){
+            if(i) cout<<" ";
+            Print( block->Visit(i), r );
+        }
+        cout << "}";
+
     }else if(t==T::Dict){ // 字典
         //cout<<"-Print Dict-"<<endl;
         if(!r){
@@ -110,12 +126,10 @@ void DefObject::Print(DefObject *obj, bool r){
             cout<<pm->GetName();
         }
         cout << ")>";
-    }else if(t==T::Node){
-        cout << "<node>";
-    }else if(t==T::Exec){
-        cout << "<exec>";
-    }else if(t==T::Sysmod){
-        cout << "<sysmod>";
+    }else if(t==T::Node){ cout << "<node>";
+    }else if(t==T::Exec){ cout << "<exec>";
+    }else if(t==T::Sysmod){ cout << "<sysmod>";
+    }else if(t==T::Module){ cout << "<module>";
 
     }else if(t==T::None){
         cout << "none";

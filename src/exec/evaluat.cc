@@ -50,6 +50,8 @@ DO* Exec::Evaluat(Node* n)
         IF(ProcCall)
         IF(FuncCall)
         IF(Return)
+        IF(Continue)
+        IF(Break)
         IF(List)
         IF(Dict)
         IF(Block)
@@ -70,6 +72,10 @@ DO* Exec::Evaluat(Node* n)
     }else if(t==T::Equal||t==T::More||t==T::Less||t==T::MoreEqual||t==T::LessEqual||t==T::NotEqual){ // 比较操作
         //cout<<"compare !!!"<<endl;
         return Compare( n->Left(), n->Right(), t);
+
+    }else if(t==T::And||t==T::Or){ // 组合判断
+        //cout<<"judge !!!"<<endl;
+        return Judge( n->Left(), n->Right(), t);
 
     }else if(t==T::None||t==T::Bool||t==T::Int||t==T::Float||t==T::String){ // none bool int 字面量求值
         // cout<<"Allot !!!"<<endl;

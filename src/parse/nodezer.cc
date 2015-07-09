@@ -103,9 +103,11 @@ NodeType Nodezer::GetNodeType(Word &cwd)
         IF("print", Print)
         IF("if", If)
         IF("while", While)
+        IF("continue", Continue)
+        IF("break", Break)
         IF("for", For)
         IF("import", Import) // 模块加载
-        IF("return", Return) // 模块加载
+        IF("return", Return)
 
         }
 
@@ -133,6 +135,9 @@ NodeType Nodezer::GetNodeType(Word &cwd)
         IF("<=", LessEqual)
         IF("~=", NotEqual)
         IF("~", Not)
+
+        IF("&", And)
+        IF("|", Or)
 
         }
 
@@ -284,6 +289,10 @@ Node* Nodezer::ParseNode(Node*p1, Node*p)
         }
         // 字典
         while(1){
+            if(IS_SIGN(",")){
+                Move(1); //jump ,
+                continue;
+            }
             if(IS_SIGN("]")){
                 break; //字典结束
             }
