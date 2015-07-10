@@ -19,16 +19,16 @@ DO* Exec::Sysfunc(string name, Node* para)
 
     // 打印
     if(name=="print"||name=="printr"||name=="printl"||name=="printlr"){
-
-        if(!len>0) return ObjNone();
-        DO *obj = Evaluat( argv->Child(0) );
-        bool r = false;
-        if(name=="printr"||name=="printlr"){
-            r = true; // 是否递归容器
-        }
-        DO::Print( obj, r ); // 打印
-        if(name=="printl"||name=="printlr"){
-            cout<<endl; // 是否末尾换行
+        DO *obj = ObjNone(); // 返回值
+        bool isr = (name=="printr"||name=="printlr");
+        bool isl = (name=="printl"||name=="printlr");
+        // 循环打印各个参数
+        for(int i=0; i<len; ++i){
+            obj = Evaluat( argv->Child(i) );
+            DO::Print( obj, isr ); // 打印
+            if(isl){ // 是否末尾换行
+                cout<<endl; // 是否末尾换行
+            }
         }
         return obj;
 

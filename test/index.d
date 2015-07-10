@@ -39,11 +39,24 @@
 # 	printl(i)
 # ;
 
+
 # sss : '123 abc xyz'
 # for sss ' ' s
 # 	printl(s)
 # ;
 
+
+count : 1
+# 定义操作顶层变量的函数
+defun add(n)
+    printl(count)  # 可直接访问
+    count :: count + n  # 向上查询赋值
+    printl(count)  # 可直接访问
+    count : 999  # 在函数本地作用域中创建一个名为 count 的变量并赋值，与上层变量无关。
+;
+# 执行
+add(10) # 打印：1 , 11
+printl(count)
 
 
 

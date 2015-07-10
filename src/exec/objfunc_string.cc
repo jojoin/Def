@@ -44,14 +44,21 @@ DO* Exec::ObjfuncString(string base, string func, Node* para)
             size_t stsz = st.size();
             int sta = 0;
             ObjectList *res = _gc->AllotList();
-            while(1){
-                size_t found = base.find(st, sta);  
-                if(found==string::npos){
-                    res->Push( _gc->AllotString( base.substr(sta) ) );
-                    break;
+            if(st==""){
+                size_t bsz = base.size();
+                for(int i=0; i<bsz; ++i){
+                    res->Push( _gc->AllotString( base.substr(i, 1) ) );
                 }
-                res->Push( _gc->AllotString( base.substr(sta, found-sta) ) );
-                sta = found + stsz; // 更新查找位置
+            }else{
+                while(1){
+                    size_t found = base.find(st, sta);  
+                    if(found==string::npos){
+                        res->Push( _gc->AllotString( base.substr(sta) ) );
+                        break;
+                    }
+                    res->Push( _gc->AllotString( base.substr(sta, found-sta) ) );
+                    sta = found + stsz; // 更新查找位置
+                }
             }
             return res; //返回分割的字符串
         }

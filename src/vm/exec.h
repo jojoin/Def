@@ -96,8 +96,8 @@ class Exec {
 	DO* MemberAccess(Node*);    // 成员访问
 	DO* MemberAccess(DO*, string);    // 成员访问
 	
-	DO* Import(Node*);        // 模块加载
-	DO* Import(string name);        // 模块加载
+	DO* Import(Node*);// 模块加载
+	DO* Import(string name);         // 模块加载
 	ObjectModule* CreateModule(string); // 模块创建
 
 	DO* Print(Node*); // 打印操作

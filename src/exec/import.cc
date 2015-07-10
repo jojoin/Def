@@ -1,5 +1,6 @@
 /**
  * Import 模块加载
+ * @put 是否将当前模块变量入栈
  */
 DO* Exec::Import(Node* n)
 {
