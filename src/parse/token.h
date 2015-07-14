@@ -74,6 +74,10 @@ namespace parse {
 	K(While, "while", 0)            \
 	K(For, "for", 0)                \
 									\
+	K(Try, "try", 0)                \
+	K(Catch, "catch", 0)            \
+	K(Throw, "throw", 0)            \
+									\
 	K(Import, "import", 0)          \
 									\
 	/*K(Print, "print", 0)屏蔽*/

@@ -5,5 +5,5 @@ DO* Exec::Break(Node*n)
 {
     // cout<<"Break !!!"<<endl;
     // 抛出
-    throw new Throw(ThrowType::Break);
+    throw new Abnor(AbnorType::Break);
 }  

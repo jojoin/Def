@@ -63,6 +63,8 @@ DO* Exec::Evaluat(Node* n)
         IF(ContainerAccess)
         IF(MemberAccess)
         IF(Import)
+        IF(Try)
+        IF(Throw)
 #undef IF
 
     }else if(t==T::Add||t==T::Sub||t==T::Mul||t==T::Div){ // + - * / 算法操作

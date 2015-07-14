@@ -62,6 +62,9 @@ namespace parse {
 	D(While, 0)              	\
 	D(For, 0)              		\
 								\
+	D(Try, 0)              		\
+	D(Throw, 0)            		\
+								\
 	D(FuncDefine, 0)			\
 	D(ProcDefine, 0)			\
 	D(ClassDefine, 0)			\
@@ -342,7 +345,8 @@ NODEONETREE(Print)      // print 打印变量至屏幕
 NODEONETREE(Priority)   // Priority 优先级
 NODEONETREE(Import)     // Import 模块加载
 NODEONETREE(Return)     // Return 函数返回
-NODEONETREE(Not)            // ~
+NODEONETREE(Throw)      // Throw 对象抛出
+NODEONETREE(Not)        // ~
 
 
 // 双叉子节点
@@ -431,6 +435,40 @@ NODEEXDEFINE(FuncDefine)        // 函数定义
 NODEEXDEFINE(ClassDefine)       // 类定义
 
 #undef NODEEXDEFINE
+
+
+
+
+
+
+// try 抛出捕获
+struct NodeTry : Node{
+	Node *run; // try 代码
+	Node *cat; // catch 代码
+	Node *els; // else 代码
+	NodeTry(Word &w)
+		: Node(NT::Try, w){}
+	inline void Print(string prefix=""){ // 打印
+		cout<<prefix+"Try"<<endl;
+		if(run){
+			cout<<prefix<<"try: "<<endl;
+			run->Print(prefix);
+		}
+		if(cat){
+			cout<<prefix<<"catch: "<<endl;
+			cat->Print(prefix);
+		}
+		if(els){
+			cout<<prefix<<"else: "<<endl;
+			els->Print(prefix);
+		}
+	};
+};
+
+
+
+
+
 
 
 

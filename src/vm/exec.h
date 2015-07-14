@@ -17,7 +17,7 @@
 #include "stack.h"
 #include "module.h"
 #include "envir.h"
-#include "throw.h"
+#include "abnor.h"
 
 using namespace std;
 
@@ -79,6 +79,9 @@ class Exec {
 	DO* Continue(Node*);     // 函数返回
 	DO* Break(Node*);     // 函数返回
 	DO* For(Node*); // while 结构
+
+	DO* Try(Node*);   // 捕获
+	DO* Throw(Node*); // 抛出
 
 	DO* List(Node*);  // list 列表
 	DO* Dict(Node*);  // dict 字典

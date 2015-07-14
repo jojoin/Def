@@ -20,13 +20,15 @@ DO* Exec::While(Node* n)
                 res = Evaluat( p->Child(i) ); //执行 while 块
             }
         }
-        catch(Throw* tr) // 函数返回
+        catch(Abnor* tr) // 函数返回
         {
-            ThrowType t = tr->GetType();
-            if(t==ThrowType::Continue){ // 循环继续
+            AbnorType t = tr->GetType();
+            if(t==AbnorType::Continue){ // 循环继续
                 // do nothing
-            }else if(t==ThrowType::Break){ // 循环退出
+                delete tr;
+            }else if(t==AbnorType::Break){ // 循环退出
                 break;
+                delete tr;
             }else{ // 其它异常
                 throw tr;
             }

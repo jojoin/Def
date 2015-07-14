@@ -76,13 +76,15 @@ DO* Exec::FuncCall(Node* n)
     {
         retval = exec.Run();
     }
-    catch(Throw* tr) // 函数返回
+    catch(Abnor* tr) // 函数返回
     {
-        if(tr->GetType()!=ThrowType::Return){
-            ERR("Function run excepction not <Return> !");
+        if(tr->GetType()==AbnorType::Return){
+            retval = tr->GetObject(); // 返回值
+            delete tr;
+            // ERR("Function run excepction not <Return> !");
+        }else{
+            throw tr;
         }
-        retval = tr->GetObject(); // 返回值
-        delete tr;
     }
     // cout<<"bool done = exec.Run();"<<endl;
     // stack->Print();

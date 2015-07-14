@@ -17,5 +17,5 @@ DO* Exec::Return(Node*n)
     }
     
     // 抛出返回
-    throw new Throw(ThrowType::Return, "", obj);
+    throw new Abnor(AbnorType::Return, "", obj);
 }  

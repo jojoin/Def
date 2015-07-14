@@ -108,6 +108,8 @@ NodeType Nodezer::GetNodeType(Word &cwd)
         IF("for", For)
         IF("import", Import) // 模块加载
         IF("return", Return)
+        IF("throw", Throw)
+        IF("try", Try)  // 异常处理
 
         }
 
@@ -421,8 +423,42 @@ Node* Nodezer::ParseNode(Node*p1, Node*p)
         Move(1); // jump ;
         return p;
 
+    // 异常处理
+    }else if( t==T::Try ){
+
+        //cout << "-Try-" << endl;
+        Move(1); // jump try
+        // 开始构建 Try 块结构
+        NodeTry *pp = (NodeTry*)p;
+        NodeGroup *run = new NodeGroup(cur);
+        NodeGroup *cat = NULL;
+        NodeGroup *els = NULL;
+        NodeGroup *add = run;
+        while(1){
+            if(IS_SIGN(";")){
+                pp->run = run;
+                pp->cat = cat;
+                pp->els = els;
+                Move(1); // jump ;
+                break;
+            }else if(IS_KEYWORD("else")){
+                Move(1); // jump else
+                els = new NodeGroup(cur);
+                add = els;
+                continue;
+            }else if(IS_KEYWORD("catch")){
+                Move(1); // jump catch
+                cat = new NodeGroup(cur);
+                add = cat;
+                continue;
+            }
+            //添加表达式
+            add->AddChild( Express() );
+        }
+        return pp;
+
     // 模块加载 打印 函数返回
-    }else if( t==T::Import || t==T::Print || t==T::Return  || t==T::Not ){
+    }else if( t==T::Import || t==T::Print || t==T::Return || t==T::Throw || t==T::Not ){
 
         // cout << "-Import Print Return Not-" << endl;
         Move(1); // jump import print return

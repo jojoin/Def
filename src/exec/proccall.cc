@@ -42,13 +42,15 @@ DO* Exec::ProcCall(Node* n)
     {
         retval = exec.Run();
     }
-    catch(Throw* tr) // 处理器返回
+    catch(Abnor* tr) // 处理器返回
     {
-        if(tr->GetType()!=ThrowType::Return){
-            ERR("Function run excepction not <Return> !");
+        if(tr->GetType()==AbnorType::Return){
+            retval = tr->GetObject(); // 返回值
+            delete tr;
+            // ERR("Function run excepction not <Return> !");
+        }else{
+            throw tr;
         }
-        retval = tr->GetObject(); // 返回值
-        delete tr;
     }
     // 处理器调用完成，清理执行栈
     map<string, DO*>::iterator itr_s = stack->v_local.begin();
