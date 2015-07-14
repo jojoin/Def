@@ -135,7 +135,7 @@ DO* Exec::Run()
     LOCALIZE_node;
     LOCALIZE_gc;
 
-    DO *ret = ObjNone();
+    DO *ret = ObjNil();
 
     if(!_node){
     	return ret;
@@ -178,9 +178,9 @@ inline void Exec::VarPut(string name, DO*obj)
 
 
 //返回对象
-inline ObjectNone* Exec::ObjNone()
+inline ObjectNil* Exec::ObjNil()
 {
-    return _envir._gc->prep_none;
+    return _envir._gc->prep_nil;
 }
 inline ObjectBool* Exec::ObjTrue()
 {

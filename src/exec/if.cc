@@ -4,7 +4,7 @@
 DO* Exec::If(Node* n)
 {
     NodeIf* p = (NodeIf*)n;
-    DO* ret = ObjNone();
+    DO* ret = ObjNil();
     size_t i = 0
          , s = p->ChildSize();
     while(i<s){

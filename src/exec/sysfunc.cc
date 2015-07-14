@@ -19,7 +19,7 @@ DO* Exec::Sysfunc(string name, Node* para)
 
     // 打印
     if(name=="print"||name=="printr"||name=="printl"||name=="printlr"){
-        DO *obj = ObjNone(); // 返回值
+        DO *obj = ObjNil(); // 返回值
         bool isr = (name=="printr"||name=="printlr");
         bool isl = (name=="printl"||name=="printlr");
         // 循环打印各个参数
@@ -87,7 +87,7 @@ DO* Exec::Sysfunc(string name, Node* para)
 
     // 在当前环境中执行节点
     }else if(name=="eval"){
-        DO* res = ObjNone();
+        DO* res = ObjNil();
         if(len>0){
             // 节点对象
             DefObject *obj = Evaluat( argv->Child(0) );
@@ -114,7 +114,7 @@ DO* Exec::Sysfunc(string name, Node* para)
     // 节点赋值 or 节点执行取值
     }else if(name=="assign" || name=="evaluat"){
 
-        DO* res = ObjNone();
+        DO* res = ObjNil();
         if(len>0){
             // 获得调用环境
             ObjectExec *oe = (ObjectExec*)_stack->VarGet("_call_");

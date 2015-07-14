@@ -32,12 +32,12 @@ class Gc{
 	// ObjList free_float;    // 空闲 float 列表
 	// ObjList free_string;   // 空闲 string 列表
 
-	ObjectNone* prep_none;      // none 小对象
+	ObjectNil*  prep_nil;       // nil 小对象
 	ObjectBool* prep_true;      // true 小对象
 	ObjectBool* prep_false;     // false 小对象
 	ObjectInt*  prep_ints[270]; // int    小对象池  -10～260
 	ObjectString*  prep_empty_str; // string 空字符串
-	//ObjectNone* prep_strings[52];   // string 小对象池 a~z A~Z  // 52=26+26
+	//ObjectNil* prep_strings[52];   // string 小对象池 a~z A~Z  // 52=26+26
 
 	Gc();
 

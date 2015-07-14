@@ -94,7 +94,7 @@ NodeType Nodezer::GetNodeType(Word &cwd)
 
         if(v==""){ return T::Normal;
 
-        IF("nil", None)
+        IF("nil", Nil)
         IF("true", Bool)
         IF("false", Bool)
         IF("def", ProcDefine)
@@ -184,7 +184,7 @@ int Nodezer::GetPriority(Node*p)
 
 
 // 节点类型定义
-#define TN_VALUE T::Variable,T::None,T::Bool,T::Int,T::Float,T::String
+#define TN_VALUE T::Variable,T::Nil,T::Bool,T::Int,T::Float,T::String
 #define TN_AS T::Add,T::Sub
 #define TN_MD T::Mul,T::Div
 #define TN_ASMD TN_AS,TN_MD

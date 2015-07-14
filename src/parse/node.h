@@ -22,7 +22,7 @@ namespace parse {
 	D(Group, 0)              	\
 								\
 	D(Variable, 0)				\
-	D(None, 0)					\
+	D(Nil, 0)					\
 	D(Bool, 0)					\
 	D(Int, 0)					\
 	D(Float, 0)					\
@@ -115,7 +115,7 @@ struct Node{
 	    if(type==NT::Variable){
 	        return false;
 	    }else if(
-	        type==NT::None ||
+	        type==NT::Nil ||
 	        type==NT::Bool ||
 	        type==NT::Int ||
 	        type==NT::Float ||
@@ -494,12 +494,12 @@ struct NodeVariable : Node{
 };
 
 
-// none 节点
-struct NodeNone : Node{
-	NodeNone(Word &w)
-		: Node(NT::None, w){}
+// Nil 节点
+struct NodeNil : Node{
+	NodeNil(Word &w)
+		: Node(NT::Nil, w){}
 	inline void Print(string prefix=""){ // 打印
-		cout<<prefix+"None"<<endl;
+		cout<<prefix+"Nil"<<endl;
 	};
 };
 

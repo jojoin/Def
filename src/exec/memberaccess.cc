@@ -38,7 +38,7 @@ DO* Exec::MemberAccess(DO* base, string name)
     }
 
     // cout<<"return result="<<(int)result<<endl;
-    // return result ? result : ObjNone(); // 无效访问 返回 none
+    // return result ? result : ObjNil(); // 无效访问 返回 Nil
     return result;
 
 }

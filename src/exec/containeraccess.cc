@@ -57,5 +57,5 @@ DO* Exec::ContainerAccess(Node* n)
     }
 
     // cout<<"return result="<<(int)result<<endl;
-    return result ? result : ObjNone(); // 无效访问 返回 none
+    return result ? result : ObjNil(); // 无效访问 返回 Nil
 }

@@ -19,7 +19,7 @@ namespace vm {
  */
 Gc::Gc(){
 	// 初始化小对象
-	prep_none = new ObjectNone();
+	prep_nil = new ObjectNil();
 	prep_true = new ObjectBool(true);
 	prep_false = new ObjectBool(false);
 	// 初始化小整数列表
@@ -140,8 +140,8 @@ DefObject* Gc::Allot(Node* n)
 
 	T t = n->type;
 
-	if(t==T::None){ // none
-		return prep_none;
+	if(t==T::Nil){ // nil
+		return prep_nil;
 
 	}else if(t==T::Bool){ // bool
 		return AllotBool(n->GetBool());
@@ -199,7 +199,7 @@ DefObject* Gc::Allot(Node* n)
 
 // 过滤不需要处理引用的
 #define FILTRATE_OPT\
-	if(t==T::None||t==T::Bool) return true;\
+	if(t==T::Nil||t==T::Bool) return true;\
 	if(t==T::Int){\
 		int val = ((ObjectInt*)obj)->value;\
 		if(val<260&&val>=-10) return true; }\

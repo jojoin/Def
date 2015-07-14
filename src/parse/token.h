@@ -64,7 +64,7 @@ namespace parse {
 	K(Continue, "ctn", 0)      \
 	K(Break, "brk", 0)            \
 									\
-	K(None, "nil", 0)              \
+	K(Nil, "nil", 0)                \
 	K(True, "true", 0)              \
 	K(False, "false", 0)            \
 									\

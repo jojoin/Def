@@ -50,7 +50,7 @@ class Exec {
 
 	// 支持
 	inline void VarPut(string,DO*);      // 变量的入栈（带垃圾回收）
-	inline ObjectNone* ObjNone();   // 返回 none 对象
+	inline ObjectNil* ObjNil();   // 返回 Nil 对象
 	inline ObjectBool* ObjTrue();   // 返回 true 对象
 	inline ObjectBool* ObjFalse();  // 返回 false 对象
 

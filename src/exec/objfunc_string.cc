@@ -29,7 +29,7 @@ DO* Exec::ObjfuncString(string base, string func, Node* para)
                 return _gc->AllotString( base.substr(idx,1) );
             }
         }
-        return ObjNone();
+        return ObjNil();
 
 
     // 截取
@@ -62,7 +62,7 @@ DO* Exec::ObjfuncString(string base, string func, Node* para)
             }
             return res; //返回分割的字符串
         }
-        return ObjNone();
+        return ObjNil();
         
     // 替换
     }else if(func=="replace"){

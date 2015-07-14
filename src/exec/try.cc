@@ -6,7 +6,7 @@ DO* Exec::Try(Node *n)
     LOCALIZE_gc
     // cout<<"Try !!!"<<endl;
     NodeTry *p = (NodeTry*)n;
-    DO* res = ObjNone(); // 结果
+    DO* res = ObjNil(); // 结果
     bool iscatch = false;
     // 试运行 try
     if(p->run){

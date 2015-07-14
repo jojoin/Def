@@ -28,7 +28,7 @@ enum class ObjectType
 	Sysmod,  // 系统模块
 
 	// 基本
-	None,    // none
+	Nil,    // Nil
 	Bool,    // 布尔
 	Int,     // 整数
 	Float,   // 浮点数
@@ -73,10 +73,10 @@ struct DefObject{
 
 
 
-// None none 对象
-struct ObjectNone : DefObject{
-	ObjectNone()
-		: DefObject(T::None)
+// nil 对象
+struct ObjectNil : DefObject{
+	ObjectNil()
+		: DefObject(T::Nil)
 	{}
 };
 
@@ -217,7 +217,7 @@ struct ObjectSysmod : DefObject{
  * 处理器 函数 语句 节点对象
  */      
 
-// None node 语句节点对象
+// Nil node 语句节点对象
 struct ObjectNode : DefObject{
 	Node* value; /*指向对应语法节点*/
 	ObjectNode(Node*v=NULL)

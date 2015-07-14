@@ -14,7 +14,7 @@ DO* Exec::ProcCall(Node* n)
     NodeProcDefine *proc = (NodeProcDefine*)op->GetNode();
     NodeGroup *pbody = (NodeGroup*)proc->GetBody();
     if(!pbody || !pbody->ChildSize()){
-        return ObjNone(); //处理器体为空
+        return ObjNil(); //处理器体为空
     }
     // fbody->Print();
     // 拷贝环境
@@ -87,7 +87,7 @@ void Exec::BuildProcArgv(Node*form, Node*real, Stack*stack)
             argv->Push( v );
         }
         if(!v){
-            v = ObjNone(); // 无匹配 none
+            v = ObjNil(); // 无匹配 Nil
         }
         // 匹配形参并入栈
         if(i<num_f){

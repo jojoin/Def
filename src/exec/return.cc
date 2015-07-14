@@ -13,7 +13,7 @@ DO* Exec::Return(Node*n)
         obj = Evaluat( chd );
         _gc->Quote( obj ); // 加引用
     }else{
-        obj = ObjNone(); // 默认返回 none
+        obj = ObjNil(); // 默认返回 Nil
     }
     
     // 抛出返回

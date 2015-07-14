@@ -6,7 +6,7 @@ DO* Exec::For(Node* n)
     LOCALIZE_gc;
     // cout<<"For !!!"<<endl;
     NodeFor* p = (NodeFor*)n;
-    DO* res = ObjNone(); // 结果
+    DO* res = ObjNil(); // 结果
     size_t len = p->ChildSize();
     // cout<<"len="<<len<<endl;
     if(len<3){

@@ -131,8 +131,8 @@ void DefObject::Print(DefObject *obj, bool r){
     }else if(t==T::Sysmod){ cout << "<sysmod>";
     }else if(t==T::Module){ cout << "<module>";
 
-    }else if(t==T::None){
-        cout << "none";
+    }else if(t==T::Nil){
+        cout << "nil";
 
     }else if(t==T::Bool){
         if( Conversion::Bool(obj) ){
@@ -155,7 +155,7 @@ string DefObject::GetTypeName(DefObject *obj)
     T t = obj->type;
 #define ELSEIF(N,S) else if(t==T::N){ return #S; }
     if(t==T::Error){ return "error"; }
-    ELSEIF(None,none)
+    ELSEIF(Nil,nil)
     ELSEIF(Bool,bool)
     ELSEIF(Int,int)
     ELSEIF(Float,float)

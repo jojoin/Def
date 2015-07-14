@@ -34,7 +34,7 @@ bool Conversion::Bool(DefObject *obj)
 
 	T t = obj->type;
 
-	if(t==T::None){
+	if(t==T::Nil){
 		return false;
 	}else if(t==T::Bool){
 		return ((ObjectBool*)obj)->value;
@@ -61,7 +61,7 @@ string Conversion::String(DefObject *obj)
 
 	T t = obj->type;
 
-	if(t==T::None){
+	if(t==T::Nil){
 		return "";
 	}else if(t==T::Bool){
 		if( ((ObjectBool*)obj)->value ) return "true";

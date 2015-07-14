@@ -4,7 +4,7 @@
 DO* Exec::While(Node* n)
 {
     NodeWhile* p = (NodeWhile*)n;
-    DO* res = ObjNone(); // 结果
+    DO* res = ObjNil(); // 结果
     size_t len = p->ChildSize();
     if(!len){
         return res;

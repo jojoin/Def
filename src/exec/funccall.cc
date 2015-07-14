@@ -38,7 +38,7 @@ DO* Exec::FuncCall(Node* n)
     NodeFuncDefine *func = (NodeFuncDefine*)of->GetNode();
     NodeGroup *fbody = (NodeGroup*)func->GetBody();
     if(!fbody || !fbody->ChildSize()){
-        return ObjNone(); //函数体为空
+        return ObjNil(); //函数体为空
     }
     // fbody->Print();
     // 拷贝环境
@@ -159,7 +159,7 @@ void Exec::BuildFuncArgv(Node*form, Node*real, Stack*stack)
             DO *dft = stack->VarGet(name);
             if( iskp && !dft){ 
                 //关键字参数项 没有默认值
-                stack->VarPut(name, ObjNone());
+                stack->VarPut(name, ObjNil());
             }
             // 正常匹配项
             if(!iskp && v){

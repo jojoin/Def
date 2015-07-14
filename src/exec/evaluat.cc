@@ -79,7 +79,7 @@ DO* Exec::Evaluat(Node* n)
         //cout<<"judge !!!"<<endl;
         return Judge( n->Left(), n->Right(), t);
 
-    }else if(t==T::None||t==T::Bool||t==T::Int||t==T::Float||t==T::String){ // none bool int 字面量求值
+    }else if(t==T::Nil||t==T::Bool||t==T::Int||t==T::Float||t==T::String){ // Nil bool int 字面量求值
         // cout<<"Allot !!!"<<endl;
         return _gc->Allot(n);
         
