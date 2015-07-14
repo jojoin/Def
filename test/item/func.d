@@ -13,23 +13,23 @@
 p : (1 2 3)
 
 # 向上查找赋值
-defun addP(v)
+fn addP(v)
 	p[] : v
 ;
 
 # 向上查找赋值
-defun setP(k v)
+fn setP(k v)
 	p[k] : v
 ;
 
-defun getP()
+fn getP()
 	p
 ;
 
 
 # 函数定义（默认参数和关键字参数）
 # 
-defun test(a b c:p d:"ddd")
+fn test(a b c:p d:"ddd")
 	nnn : "cond 'a' is true, return !!! "
 	if a
 		return nnn
@@ -39,12 +39,12 @@ defun test(a b c:p d:"ddd")
 
 
 # 空函数调用
-defun ept()
+fn ept()
 ;
 
 
 # 回调函数
-defun callback(func p1 p2:'' p3:'')
+fn callback(func p1 p2:'' p3:'')
 	func(p1 p2 p3)
 ;
 

@@ -20,7 +20,7 @@
 # printlr("yangjie".at(1))
 
 
-defun run()
+fn run()
     printl('function run')
     throw "I'm an Exception"
 ;

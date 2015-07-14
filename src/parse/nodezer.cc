@@ -94,20 +94,20 @@ NodeType Nodezer::GetNodeType(Word &cwd)
 
         if(v==""){ return T::Normal;
 
-        IF("none", None)
+        IF("nil", None)
         IF("true", Bool)
         IF("false", Bool)
         IF("def", ProcDefine)
-        IF("defun", FuncDefine)
+        IF("fn", FuncDefine)
         IF("class", ClassDefine)
         IF("print", Print)
         IF("if", If)
         IF("while", While)
-        IF("continue", Continue)
-        IF("break", Break)
+        IF("ctn", Continue)
+        IF("brk", Break)
         IF("for", For)
         IF("import", Import) // 模块加载
-        IF("return", Return)
+        IF("ret", Return)
         IF("throw", Throw)
         IF("try", Try)  // 异常处理
 

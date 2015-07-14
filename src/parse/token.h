@@ -57,14 +57,14 @@ namespace parse {
 									\
 	/* 关键字 */					\
 	K(Def, "def", 0)                \
-	K(Defun, "defun", 0)            \
+	K(Defun, "fn", 0)            \
 	K(Class, "class", 0)            \
 									\
-	K(Return, "return", 0)          \
-	K(Continue, "continue", 0)      \
-	K(Break, "break", 0)            \
+	K(Return, "ret", 0)          \
+	K(Continue, "ctn", 0)      \
+	K(Break, "brk", 0)            \
 									\
-	K(None, "none", 0)              \
+	K(None, "nil", 0)              \
 	K(True, "true", 0)              \
 	K(False, "false", 0)            \
 									\

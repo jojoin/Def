@@ -50,7 +50,7 @@ list[3] # 3
 dict['name'] # def lang
 
 # 函数定义
-defun add(a b)
+fn add(a b)
   a + b
 ;
 

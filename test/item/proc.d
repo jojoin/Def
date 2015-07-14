@@ -16,16 +16,16 @@ def myswitch{}
     	v : _argv_[k]
     	if 1=k
     		base : evaluat( v ) # 判断条件
-    		continue
+    		ctn
     	;
     	# printl(v.type())
     	isbreak : 'variable'=v.type() & 'end'=v.name()
     	if getcase
 	    	if isbreak
-	    		break
+	    		brk
 	    	;
 	    	evaluat( v ) # 执行case体
-	    	continue
+	    	ctn
     	;
     	if hd
     		cond : evaluat( v ) # case 条件
