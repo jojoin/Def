@@ -1,0 +1,154 @@
+#-
+	单元测试
+-#
+
+## 测试单元
+
+
+
+include "script/type.def"                 # 类型
+include "script/variable.def"             # 变量
+
+## 控制流结构
+include "script/controlflow/if.def"       # if
+include "script/controlflow/while.def"    # while
+
+## 函数
+include "script/function/common.def"      # 函数
+include "script/function/template.def"    # 函数模板
+include "script/function/nested.def"      # 嵌套函数(变量自动捕获)
+include "script/function/recurse.def"     # 递归函数
+
+## 标准库
+include "script/std.def"
+include "script/stdtest.def"
+
+## 类
+include "script/class/common.def"      # 
+
+
+
+
+
+# ((1+2))+((3+4)+5)+6+7
+
+
+
+
+
+#-
+
+
+
+fun wrap()(
+	
+	type Inner(
+		Int x
+		Int y
+	)
+
+	var i Inner 1 2
+
+	putchar elmget i x
+	
+)
+
+wrap
+
+
+fun addP(a b)(
+	
+)
+
+Fun 
+
+putchar abs 97
+
+fun callback(Function(Point Point Point) func)(
+	func 1 2;
+)
+
+callback lda(a b)( elmset p3 x add a b)
+
+
+xxx(Point p3 Int a Int b)(
+	elmset p3 x add a b
+)
+
+
+
+
+var cond putchar 90
+
+
+
+if 0 (
+	add 1 putchar 97
+) else if 1 (
+	add 2 putchar 98
+) else (
+	add 2 putchar 99
+)
+
+putchar 111
+
+
+
+
+
+
+# duck typing
+
+elmget p x
+elmput p x 5
+
+elmchk p Int x
+elmhas p Int x 
+elmivk p putx 123
+
+
+## 自适应函数 类型自动转换识别
+adt fun Int getPx(Point p)(
+	elmget p x
+)
+
+## 自适应类型转换
+var pot adt p Point
+
+
+## 函数声明
+dcl Point addP(Point Point)
+
+
+
+
+
+
+## 成员函数类定义
+type Line ( 
+	Point a 
+	Point b
+	# 成员函数
+	dcl Point addP(Point Point)
+
+	fun Point addA(Point v)(
+		add a v
+	)
+	type Line fun Point addA(Int v1 Int v2)(
+		add a Point v1 v2
+	)
+)
+
+
+
+## 类初始化
+var li Line p1 p2
+
+
+## 成员函数调用
+elmivk li add2a 5 6
+
+
+-#
+
+

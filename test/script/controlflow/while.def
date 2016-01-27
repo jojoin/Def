@@ -1,0 +1,22 @@
+#-
+    控制流结构 while 循环
+-#
+
+
+
+
+var wcd 128
+
+
+## 循环 单句
+while wcd 
+	set wcd sub wcd 2
+	
+set wcd 127
+
+
+## 循环 块 打印字符
+while wcd (
+	putchar wcd
+	set wcd sub wcd 1
+)

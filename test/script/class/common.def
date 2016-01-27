@@ -1,0 +1,98 @@
+#-
+    类型定义
+-#
+
+
+include "../std.def"
+
+
+## 普通类型、静态成员函数
+type Class (
+    Int x
+    Int y
+    # 成员函数
+    fun setX(Int v)(
+		x+=v
+    )
+    # 静态成员（未使用成员变量的函数自动为静态成员）
+    fun Class add(Class a Class b)(
+        Class
+			(a.x)+(b.x)
+			(a.y)+(b.y)
+    )
+    fun puts()( # 打印
+        putchar x
+        putchar y
+    )
+)
+
+
+
+# 成员函数声明
+type Complex (
+    Class a
+    Class b
+    dcl Class setA(Class)
+    dcl Class setB(Class)
+    dcl Complex puts()
+)
+
+
+## 成员函数外部定义
+elmdef Complex fun setA(Class v)(
+    a = (Class:add a v) # 静态成员函数调用
+)
+
+
+## 多个成员函数外部定义
+elmdef Complex (
+    fun setB(Class v)(
+        b=v
+    )
+    fun puts()(
+        putchar 10
+        putchar 45
+        putchar 45
+        putchar 45
+        putchar 10
+        a:puts
+        b:puts
+        putchar 10
+        putchar 45
+        putchar 45
+        putchar 45
+        putchar 10
+		ret this
+    )
+	# ... 其它成员函数
+)
+
+
+c1 := Class 1 2
+c2 := Class 3 4
+c3 := Class 96 97
+
+com := Complex c1 c2
+
+fun putchar(Class p)(
+	putchar p.x
+	putchar p.y
+)
+fun putchar(Complex p)(
+	p:puts
+)
+
+
+## 成员函数调用
+putchar c1:setX 97
+putchar c2.x
+
+putchar com:setA Class 99 99
+putchar com:setB Class 99 99
+
+putchar com:puts
+
+
+## 静态成员函数调用
+putchar c1:add c1 c2       # 通过实例调用
+putchar Class:add c1 c2    # 通过类名调用

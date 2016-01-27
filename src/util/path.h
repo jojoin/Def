@@ -9,6 +9,9 @@
 #include <cstdlib>
 #include <string>
 
+#include "./str.h"
+
+
 
 #ifdef WINDOWS
 #include <direct.h>
@@ -25,26 +28,48 @@ namespace util {
 class Path {
 
 	public:
-
+        
 	static char D;  // 路径分割斜杠
-
+	static string m_cwd; // 当前路径
+    
 	// 获取路径分割字符
 	static string div()
 	{
 		return D=='/' ? "/" : "\\";
 	}
 
+	// 兼容平台处理
+	static string fix(string path)
+	{
+        if (D=='/') {
+            Str::replace_all(path, "\\", "/");
+        }
+        else {
+            Str::replace_all(path, "/", "\\");
+        }
+        return path;
+	}
+    
 	// 获取当前目录
 	static string cwd()
 	{
-		char buffer[1024];
-	    getcwd(buffer, 1024);
-	    // cout<<buffer<<endl;
-	    return (string)buffer;
+        if (m_cwd=="") {
+		    char buffer[1024];
+	        _getcwd(buffer, 1024);
+	        // cout<<buffer<<endl;
+            m_cwd = (string)buffer;
+        }
+	    return m_cwd;
+	}
+
+	// 获取绝对路径
+	static string absolute(const string & path)
+	{
+        return join(cwd(), path);
 	}
 
 	// 获取文件名称
-	static string getFileName(string file)
+	static string getFileName(const string & file)
 	{
 		int pos = file.find_last_of(D);
 		string s( file.substr(pos+1) );
@@ -53,7 +78,7 @@ class Path {
 
 
 	// 获取文件扩展名
-	static string getFileExt(string file)
+	static string getFileExt(const string & file)
 	{
 		string name = getFileName(file);
 		int pos = name.find_last_of('.');
@@ -64,7 +89,7 @@ class Path {
 	}
 
 	// 获取文件路径
-	static string getDir(string file)
+	static string getDir(const string & file)
 	{
 		int pos = file.find_last_of(D);
 		return file.substr(0, pos);
@@ -90,7 +115,13 @@ class Path {
 
 	// 路径合并
 	static string join(string p1, string p2)
-	{
+    {
+        p1 = fix(p1);
+        p2 = fix(p2);
+        if (""!=getFileExt(p1)) {
+            p1 = getDir(p1); // 文件名路径
+        }
+
 		if(p2==""){
 			return p1;
 		}
@@ -141,4 +172,3 @@ class Path {
 
 
 #endif
-// --end-- DEF_UTIL_PATH_H

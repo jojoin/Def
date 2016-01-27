@@ -1,0 +1,46 @@
+#-
+    标准定义库测试
+-#
+
+
+include "type.def"
+
+include "std.def"
+
+
+## 定义变量
+li := Line Point 1 2 Point 97 98
+
+
+## 成员访问
+putchar li.a.y
+
+
+## 成员赋值
+li.a = Point 99 99
+putchar li.a.y
+
+
+## 成员赋值
+li.a.y = 120
+putchar li.a.y
+
+
+## 换行
+putchar 10
+
+
+## var 赋值
+n := 10 
+
+## 算法
+n++
+n--
+n+=10
+n-=1
+
+## 循环条件中使用
+while n-- 
+    putchar n
+
+

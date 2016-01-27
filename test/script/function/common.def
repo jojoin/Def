@@ -1,0 +1,47 @@
+#-
+	函数定义 调用
+-#
+
+
+include "../type.def"   
+include "../variable.def"   
+
+
+
+## 函数定义
+#  自动推断返回类型
+#    add(int,int) 内置函数
+#  自动返回值
+fun add(Point p Int a)
+(
+    add a elmget p x
+)
+
+
+## 函数声明
+dcl Point add(Point Int Int)
+
+
+## 函数定义
+#  手动返回值
+fun Point add(Point p Int x Int y)
+(
+    var rp Point 
+        add x elmget p x 
+        add y elmget p y 
+    ret rp
+)
+
+
+## 函数调用
+add p1 5 10
+
+
+## 分号截断参数列
+# putchar (add p3 9)
+
+
+## 函数声明（任意位置多次声明）
+dcl Point add(Point Int Int)
+dcl Point add(Point Int Int)
+

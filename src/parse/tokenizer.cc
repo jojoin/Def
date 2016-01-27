@@ -1,337 +1,449 @@
 /**
  * 词法分析器
- * 
- * 
  */
 
-
-///////
-#include <iostream>
-#include <time.h>
-#include <cstdlib>
-///////
-
-#include <fstream> 
-#include <string>
-//#include <exception>
+#include <codecvt>
 
 #include "tokenizer.h"
 
-using namespace std;
+#include "../core/error.h"
+#include "../util/fs.h"
+#include "../util/str.h"
+#include "../sys/debug.h"
 
+using namespace std;
 using namespace def::util;
+using namespace def::sys;
+using namespace def::core;
 
 
 namespace def {
 namespace parse {
-	
-// Log::log
+
+
 #define ERR(str) cerr<<str<<endl;exit(1);
 
-// Token::State
-#define S Token::State
+#define BUFFER_SIZE 1024 // 文件读取 buffer 大小
+
+  
+
+/**
+ * Word 打印
+ */
+string Tokenizer::Word::str()
+{
+    if (state==State::String) {
+        return "\"" + value + "\"";
+    }
+    if (state==State::Char) {
+        return "'" + value + "'";
+    }
+    if (state==State::QuoteOperator) {
+        return "`" + value + "`";
+    }
+    return value;
+}
+
 
 
 /**
  * 构造
- * @isFile 是否为本地文件路径
  */
-Tokenizer::Tokenizer(string &text):
-	filepath(""),
-	text(text)
+Tokenizer::Tokenizer(const string & f, bool checkfile):
+    cursor(0),
+    curline(1),
+    part_seek(0),
+    finish(false),
+    part(""),
+    file(f)
 {
-	// 末尾加上换行 用于兼容
-	// text += "\n\n\n";
-	
-	words = new vector<Word>(1024);
+    if (checkfile && !Fs::exist(f)) {
+        cout<<"Cannot find file '"+file+"' !\n";
+        std::exit(0);
+    }
 
-	// 清理 初始化数据
-	Clear();
+    // 调试打印
+    DEBUG_COUT("include", "[include] "+f)
+    
+    fin.open(f);
+
+    // fin = ifstream(f);
+
+    // 预读一部分
+    readpart();
+    // 切换错误报告信息
+    Error::update(this);
 }
 
-
-/**
- * 保存当前单词 清空缓存
- */
-void Tokenizer::Push(S sta=S::Normal)
-{
-
-	// 判断是整形还是浮点
-	if(sta==S::Number){
-		if(Token::IsFloat(buf)){
-			sta = S::Float;
-		}else{
-			sta = S::Int;
-		}
-	// 忽略块字符串开头及末尾的两个换行
-	}else if(sta==S::BlockQuotation){
-
-		if(buf[0]=='\n'){
-			buf.erase(0, 1);  
-		}
-		size_t len = buf.size();
-		if(buf[len-1]=='\n'){
-			buf.erase(len-1, 1);  
-		}
-		sta = S::String;
-	}
-
-	struct Word wd = {
-		line_start?line_start:line,
-		word_pos,
-		sta,
-		buf
-	};
-
-	if(sta==S::Space ){
-		wd.value = "";
-	}else{
-		buf = "";
-		word_pos++;
-		line_start = 0;
-	}
-
-	words->push_back(wd);
-
-};
 
 
 
 /**
- * 扫描
+ * 跳过空白字符
  */
-vector<Word>* Tokenizer::Scan()
+void Tokenizer::jumpWhitespace()
 {
+    char c;
+    while (1) {
+        c = getchar();
+        if (c=='#') { // 注释
+            c = getchar();
 
+            if ('-'==c) { // 块
+                char o = getchar();
+                while (1) {
+                    c = getchar();
+                    if (o=='-' && c=='#') {
+                        break; // 块结束
+                    }
+                    o = c;
+                }
 
-#define IS_SIGN(str) tok==str&&s==S::Sign
-
-    // cout << "void Tokenizer::Scan()" << endl;
-
-	// 清理
-	Clear();
-
-	// 状态机状态
-
-	S ss = S::Normal;
-	//Token::State status = Token::State::Normal;
-
-    //cout << text << endl;
-	//return;
-
-	while(1){
-
-    	Read(); //读取一个字符
-
-		// 当前字符状态
-    	S s = Token::GetState(tok);
-    	//cout << tok << endl;
-
-		if(s==S::End){ // 结束
-			Push(S::End);
-			break; //结束
-		}
-
-		// 处理默认情况
-		if(ss==S::Normal){
-
-			if( s==S::Normal || s==S::Space || s==S::NewLine ){
-
-				ss = S::Normal; // 忽略
-
-			}else if(s==S::Number || s==S::Sign){
-
-				Buf();
-				ss = s;
-
-			}else if(s==S::Character){
-
-				Buf();
-				ss = S::Character; // 标识符
-
-			}else if(s==S::Annotation){ // 注释
-
-				if(Peek(1)=="-"&&Peek(2)=="-"){
-					Jump(2);
-					ss = S::BlockAnnotation; // 块注释
-				}else{
-					ss = S::Annotation;
-				}
-
-			}else if(s==S::DQuotation){
-
-				if(Peek(1)=="\""&&Peek(2)=="\""){
-					Jump(2);
-					line_start = line; //记录开始行
-					ss = S::BlockDQuotation;
-				}else{
-					ss = S::DQuotation;
-				}
-
-			}else if(s==S::Quotation){
-
-				if(Peek(1)=="\'" &&Peek(2)=="\'"){
-					Jump(2);
-					line_start = line; //记录开始行
-					ss = S::BlockQuotation;
-				}else{
-					ss = S::Quotation;
-				}
-
-			}else if(s==S::Unknow){
-
-				// 未识别的符号
-				ERR(" no sign ！");
-
-			}
-
-#define IF_PUSH_CALL                                 \
-	if(s==S::Sign){                                  \
-		if(tok=="("){                                \
-			Push(S::FuncCall); /*函数调用*/          \
-		}else if(tok=="{"){                          \
-			Push(S::ProcCall); /*处理器调用*/        \
-		}else if(tok=="["){                          \
-			Push(S::ContainerAccess); /*容器访问*/   \
-		}                                            \
-	}
-
-		// 标识符
-		}else if(ss==S::Character){
-
-			if(s==S::Character||s==S::Number){
-				Buf();
-			}else{
-				if(Token::IsKeyword(buf)){// 关键字？
-					Push(S::Keyword);
-				}else{
-					Push(S::Variable); //变量名
-					IF_PUSH_CALL // !访问和调用!
-				}
-				Back(); // 回退
-				ss = S::Normal;
-			}
-
-		// 符号
-		}else if(ss==S::Sign){
-
-			if(s==S::Sign&&Token::IsSign(buf+tok)){
-				Buf(); // 多元操作符
-			}else{
-				string bf = buf;
-				// cout<<"bf =  "<<bf<<endl;
-				Push(S::Sign);
-				// 是否连续调用
-				if(bf==")"||bf=="}"||bf=="]"){
-					// cout<<" string bf = buf; "<<endl;
-					IF_PUSH_CALL // !访问和调用!
-				}
-				Back(); // 回退
-				ss = S::Normal;
-			}
-
-#undef IF_PUSH_CALL
-
-		// 数字
-		}else if(ss==S::Number){
-
-			if(s==S::Number||tok=="."){
-				Buf();
-			}else if(s==S::Character){
-				//TODO:: 【错误】数字后面不能跟字母
-				ERR("T0002");
-			}else{
-				Push(S::Number);
-				Back(); // 回退
-				ss = S::Normal;
-			}
-
-		}else if(ss==S::Annotation){ // 注释
-
-			if(s==S::NewLine){
-				ss = S::Normal;  // 注释结束
-			}
-
-		}else if(ss==S::BlockAnnotation){ // 块注释
-
-			if(tok=="#"&&prev_tok=="-"&&pprev_tok=="-"){
-				ss = S::Normal;  // 块注释结束
-			}
-
-		}else if(ss==S::DQuotation){ //双引号字符串
-
-			if(s==S::DQuotation){
-				Push(S::String);
-				ss = S::Normal; // 字符串结束
-			}else if(tok=="\\"){//转义
-				Read();
-				Buf(Token::GetEscapeChat(tok));
-			}else{
-				Buf();
-			}
-
-		}else if(ss==S::Quotation){ //单引号字符串
-
-			if(s==S::Quotation){
-				Push(S::String);
-				ss = S::Normal; // 字符串结束
-			}else if(tok=="\\"){//转义
-				Read();
-				Buf(Token::GetEscapeChat(tok));
-			}else{
-				Buf();
-			}
-
-		}else if(ss==S::BlockDQuotation){ //块字符串
-
-			if(tok=="\""&&prev_tok=="\""&&pprev_tok=="\""){
-				Pop(2); //跳过引号
-				Push(S::BlockQuotation);
-				ss = S::Normal; // 块字符串结束
-			}else{
-				Buf();
-			}
-
-		}else if(ss==S::BlockQuotation){ //块字符串
-
-			if(tok=="\'"&&prev_tok=="\'"&&pprev_tok=="\'"){
-				Pop(2); //跳过引号
-				Push(S::BlockQuotation);
-				ss = S::Normal; // 块字符串结束
-			}else{
-				Buf();
-			}
-
-		}else{
-
-			// 未识别的符号
-			ERR(" no match sign ");
-		}
-
-    	// 换行纪录
-		if(s==S::NewLine){
-			//cout<<"line: "<<line<<endl;
-			line++; //新行
-			word_pos = 1;
-			//cout<<"prev_tok: "<<prev_tok<<endl;
-
-		}
-
-	}
-
-    // cout << "void Tokenizer::Scan() end" << endl;
-
-	// 语法分析执行完毕
-
-#undef IS_SIGN
-
-	return words;
+            } else {
+                while (1) {
+                    if (c=='\n') {
+                        break; // 行结束
+                    }
+                    c = getchar();
+                }
+            }
+            continue;
+        }
+        if (c!=' '&&c!='\n'&&c!='\t') {
+            break;
+        }
+    }
+    seek(-1);
 }
 
 
-#undef S // Token::State
-#undef ERR // Log::log exit
+
+/**
+ * 读取文件的一部分
+ */
+void Tokenizer::readpart()
+{
+    char buf[BUFFER_SIZE+1];
+    if (fin.get(buf, BUFFER_SIZE+1, '\0')) {
+        part = string(buf);
+    }
+    else {
+        part = ""; // 读完
+    }
+    part_seek = 0;
+}
+
+/**
+ * 取得一个字符并移动游标
+ */
+char Tokenizer::getchar()
+{
+    if (finish) { // 已经读取结束
+        return '\0';
+    }
+    if (part_seek==BUFFER_SIZE) {
+        readpart(); // 再读
+    }
+    if(part==""){
+        return '\0'; // 结束
+    }
+    /*
+    if (part_seek>=part.size()) {
+        return '\0'; // 结束
+    }
+    */
+    // 读取单个字符
+    char t = part[part_seek];
+    seek(1); // 向前一步
+    if(t=='\n'){
+        curline++; // 换行
+        cursor = 0;
+    }
+    return t;
+
+}
+
+
+/**
+ * 获取转义字符
+ */
+char Tokenizer::escape(const char & t)
+{
+    switch (t) {
+        case '\'':  // fall through
+        case '"' :  // fall through
+        case '\\': 
+        return t;
+        case '0' : return '\0'; //NULL空字符
+        case 'a' : return '\a'; //响铃
+        case 'b' : return '\b'; //退格
+        case 'f' : return '\f'; //换页
+        case 'n' : return '\n'; //换行
+        case 'r' : return '\r'; //回车
+        case 't' : return '\t'; //水平制表
+    }
+    return t;
+}
+
+
+/**
+ * 判断是否为合法的符号
+ */
+bool Tokenizer::isoperator(const char & t)
+{
+    // 保留符号 # () ' " ` ;
+    string opts = "~!@$%^&=+-*/,.:?|<>[]{}\\";
+    int pos = opts.find_first_of(t);
+    return pos==-1 ? false : true;
+}
+bool Tokenizer::isoperator(const string & tok)
+{
+    int len = tok.length();
+    for(int i=0; i<len; i++){
+        if(!isoperator(tok[i])){
+            return false;
+        }
+    } 
+    return true;
+}
+
+
+/**
+ * 获取单个字符的类型
+ */
+Tokenizer::State Tokenizer::state(const char & tok)
+{
+    if( (tok>='a' && tok<='z') || 
+        (tok>='A' && tok<='Z') ||
+        tok=='_'
+    ){ //字母或下划线
+        return State::Character;
+    }
+
+    if( tok==' ' || tok=='\t'){ // 空格或tab
+        return State::Space;
+    }
+
+    if( tok>='0' && tok<='9' ){ // 数字
+        return State::Number;
+    }
+
+    if( tok=='#' ){ // 注释
+        return State::Annotation;
+    }
+    
+    if( tok=='"' ){  // 双引号 字符串
+        return State::String;
+    }
+    if( tok=='\'' ){ // 单引号 字符
+        return State::Char;
+    }
+
+    if (tok == '(' || tok == ')' || tok == ';') { // 标记
+        return State::Sign;
+    }
+
+    if( tok==DEF_RESERVED_TOK_SIGN ){ // 符号引用
+        return State::QuoteOperator;
+    }
+
+    //有效符号
+    if( isoperator(tok) ){
+        return State::Operator;
+    }
+
+    if( tok=='\n' ){ //结束
+        return State::NewLine;
+    }
+
+    if( tok=='\0' ){ //结束
+        return State::End;
+    }
+
+    return State::Unknow;
+
+
+}
+
+
+
+#define S State
+#define OS(T) os==S::T
+#define TS(T) ts==S::T
+#define RESET(T) ts = S::T;
+#define UP(T) os = S::T; continue;
+#define BUF() curword.append(1,t); continue;
+#define RET(T) \
+    if(TS(Character)||TS(Number)||TS(Sign)\
+    ||TS(Operator)||TS(Char)||TS(String))\
+    { seek(-1); } \
+    return Tokenizer::Word{ Tokenizer::State::T, curword };
+
+
+/**
+ * 取得一个单词并移动游标
+ */
+Tokenizer::Word Tokenizer::gain()
+{
+
+    char prev(' ');
+    string curword("");
+
+    S os = S::Normal;
+
+    while (1) {
+
+        char t = getchar();
+        S ts = state( t );
+
+        // 文件读取结束
+        if(TS(End)){
+            finish = true; // 结束标记
+            if (curword!="") { // 返回最后一个token
+                return Tokenizer::Word( os, curword );
+            }
+            // 返回结束
+            return Tokenizer::Word(
+                Tokenizer::State::End, "");
+        }
+
+        // 开始
+        if(OS(Normal)){
+
+            // 无需缓存的
+            if(TS(NewLine)||TS(Space)){
+                continue;
+            } else if (TS(Annotation)) { // 注释
+                char ct = getchar();
+                if (ct == '-') {
+                    UP(BlockAnnotation)
+                } else if (ct == '\n') {
+                    UP(Normal) // 单行注释结束
+                } else {
+                    UP(Annotation)
+                }
+            } else if (TS(Char)
+                ||TS(String)
+                ||TS(QuoteOperator)) {
+                os = ts; // 切换状态
+                continue; 
+            }
+            // 需要缓存的
+            os = ts;
+            BUF()
+
+        // 注释
+        } else if (OS(Annotation)){
+            if(TS(NewLine)){
+                UP(Normal) // 单行注释结束，恢复状态
+            }
+
+        // 块注释
+        } else if (OS(BlockAnnotation)){
+            char ct = getchar();
+            while(1){
+                if(prev=='-'&&ct=='#'){
+                    break; // 块注释结束
+                }
+                prev = ct;
+                ct = getchar();
+            }
+            UP(Normal) // 恢复状态
+
+
+        // 名字
+        } else if (OS(Character)){
+            if(TS(Character)||TS(Number)){
+                BUF()
+            }
+            RET(Character)
+
+        // 数字
+        } else if (OS(Number)){
+            if( TS(Number) || t=='.' ){
+                BUF()
+            }
+            RET(Number)
+
+        // 符号
+        } else if (OS(Sign)){
+            RET(Sign)
+
+        // 操作符
+        } else if (OS(Operator)){
+            if (TS(Operator)) {
+                BUF()
+            } else { // 结束
+                RET(Operator)
+            }
+
+
+
+
+        // 引用操作符（将单词变为操作符）
+        } else if (OS(QuoteOperator)){
+            if(t=='\\'){ // 转义
+                curword.append(1, escape( getchar() ) );
+                continue;
+            }else if( TS(NewLine) ){
+                FATAL("Quote Sign Missing End !")
+            }else if(TS(QuoteOperator)){
+                RET(Operator)
+            }
+            BUF()
+
+        // 单字符
+        } else if (OS(Char)){
+            // 允许保存多个 char 兼容 UTF8 编码
+            if (TS(Char)) { // 结束
+                RESET(Normal) // 复位
+                RET(Char)
+            }
+            if(t=='\\'){ // 转义
+                t = escape( getchar() );
+            }
+            BUF()
+
+        // 双字符串
+        } else if (OS(String)){
+            if(t=='\\'){ // 转义
+                curword.append(1, escape( getchar() ) );
+                continue;
+            }else if(TS(String)){
+                RESET(Normal) // 复位
+                RET(String)
+            }
+            BUF()
+        }
+    }
+}
+
+
+#undef  S
+#undef OS
+#undef TS
+#undef BUF
+#undef RET
+
+
+
+
+//判断是否为浮点数
+bool Tokenizer::isfloat(const string & str)
+{
+    // npos 表示未找到
+    if(str.find(".")!=string::npos){
+        return true;
+    }
+    return false;
+}
+
+
+
+
 
 
 } // --end-- namespace parse
 } // --end-- namespace def
+
+

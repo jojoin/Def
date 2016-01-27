@@ -1,147 +1,102 @@
-#ifndef DEF_VM_TOKENIZER_H
-#define DEF_VM_TOKENIZER_H
-/**
- * 词法分析器 
- * 
- * 
- */
+#pragma once
 
-
+#include <fstream>
+#include <iostream>
 #include <string>
-#include <vector>
-
-#include "token.h"
-#include "../util/log.h"
-#include "../util/str.h"
 
 
-using namespace std;
+// 保留字符定义
+#define DEF_RESERVED_TOK_SIGN '`'
+#define DEF_RESERVED_TOK_STR '"'
+
 
 namespace def {
 namespace parse {
 
-
-#define S Token::State
-
-// 单词
-struct Word {
-	size_t line;          // 代码行
-	size_t posi;          // 所属位置
-	S type; // 类型
-	string value;     // 值
-};
+using namespace std;
 
 
-// 词法分析类
+
+/**
+ * 词法分析器
+ */
 class Tokenizer
 {
 
-	private:
+public:
+    // 单词状态
+    enum class State {
+        Normal,                 // 默认
+        Character,              // 英文字母（变量名和关键字）
+        Number,                 // 数字
+        Sign,                   // 标记
+        Operator,               // 操作符
+          QuoteOperator,           // 引用操作符
+        Char,                   // 字符 '
+        String,                 // 字符串 "
+        Annotation,             // 单行注释
+        BlockAnnotation,        // 块注释
+        Space,                  // 空格、tab等制表符
+        NewLine,                // 换行
+        Unknow,                 // 不明字符
+        End                     // 结束符
+    };
+    // 单词
+    struct Word {
+        State state;
+        string value;
+        string str();
+        Word(State s=State::Unknow, const string &v="")
+            : state(s)
+            , value(v)
+        {}
+        bool inline operator==(const Word &w){
+            return state == w.state && value == w.value;
+        };
+    }; // 缓存的
+    
+    
+public:
+    
+    string file;  // 文件
 
-	size_t line;  //当前所在行号
-	size_t line_start;  //记录开始行号，用于跨行命令
-	size_t word_pos;  //上次预读字符位置
+    size_t cursor; // 当前游标
+    size_t curline; // 当前行号
 
-	string text;  // 需要分析的文本
-	string pprev_tok; // 上上一个字符
-	string prev_tok; // 上一个字符
-	string tok;      // 当前字符
-	size_t cursor;  // 当前字符读取位置
-	
-	string buf;   // 缓存的字符
-	vector<Word>* words;  // 词法分析后的单词列表
+private:
 
-	public:
+    ifstream fin;  // 文件读入流
 
-	string filepath; // 分析的文件（用于错误信息）
+    void readpart(); // 读取文件的一部分
+    string part; // 文件部分缓存
+    size_t part_seek; // 读取游标
+    bool finish; // 文件是否读取完毕
+    
+    inline void seek(int s = 1) {
+        cursor += s;
+        part_seek += s;
+    }
 
-	public:
+    inline char escape(const char & t); // 获取转义
+    inline char getchar(); // 读取一个字符，并移动游标
 
-	Tokenizer(string &text);
+public:
+    
+    Tokenizer(const string & filepath, bool checkfile=true); // 初始化
+    ~Tokenizer() {
+    }
+    Word gain(); // 读取一个单词
+    void jumpWhitespace(); // 跳过空白字符
 
-	inline void SetFile(string &fp){
-		filepath = fp;
-	}
+public:
 
-	// 读取一个字符 并移动指针
-	inline string Read(){
-		pprev_tok = prev_tok; // 存储
-		prev_tok = tok; // 存储
-		tok = Peek();
-		Jump(1);
-		return tok;
-	};
+    static State state(const char & t); // 获取单个字符的类型
+    static bool isoperator(const string & tok);
+    static bool isoperator(const char & t);
+    static bool isfloat(const string &); // 判断是否为浮点数
 
-	// 预先查看后一个字符
-	/*
-	inline char Peek(size_t c=1){
-		return (char)text[cursor+(--c)];
-	};
-	*/
-	inline string Peek(size_t c=1){
-		size_t idx = cursor+(--c);
-    	// cout << "Peek " << idx << endl;
-		try{
-			return text.substr(idx,1);
-		}catch(const exception& e){
-			return "\0";
-		}
-	};
+};
 
-	// 向前一步
-	inline void Jump(size_t c=1){
-		cursor += c; // 向后移动指针
-	};
-
-	// 返回一步
-	inline void Back(size_t c=1){
-		cursor -= c; // 向后移动指针
-	};
-
-	// 缓存当前的字符
-	inline void Buf(string t=""){
-		if(t!=""){
-			buf += t;
-		}else{
-			buf += tok;
-		}
-	};
-
-	// 弹出一个缓存的字符
-	inline void Pop(size_t n=1){
-		buf.erase(buf.size()-n, n);
-	};
-
-	// 保存当前单词 清空缓存
-	inline void Push(S);
-
-	// 清理
-	inline void Clear(){
-		line = 1;
-		line_start = 0;
-		word_pos = 1;
-		cursor = 0;
-		pprev_tok = "";
-		prev_tok = "";
-		tok = "";
-		buf = "";
-		words->clear();
-	};
-
-
-	// 扫描文本，得到单词数组
-	vector<Word>* Scan();
-
-}; // --end-- class Token
-
-#undef S
 
 } // --end-- namespace parse
 } // --end-- namespace def
-
-
-#endif
-// --end-- DEF_VM_TOKENIZER_H
-
-
-

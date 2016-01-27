@@ -1,0 +1,21 @@
+#-
+    递归函数
+-#
+
+
+
+
+# dcl Int recurse(Int)
+
+## 递归函数 打印字符
+fun recurse(Int n)(
+    putchar n
+    if n
+        recurse sub n 1 
+    1
+)
+
+## 开始
+recurse 127
+
+

@@ -1,0 +1,51 @@
+#-
+    模板函数定义调用
+-#
+
+
+include "../type.def"
+include "../variable.def"
+
+
+## 模板函数定义
+#  参数及返回值类型完全推断
+#
+tpf add(a b)
+(
+    var rp Point 
+        add
+            elmget a x 
+            elmget b x
+        add 
+            elmget a y 
+            elmget b y
+    ret rp
+)
+
+
+## 模板函数定义
+tpf putchar(a)(
+    putchar elmget a x
+    putchar elmget a y
+)
+
+
+## 模板函数调用
+var ap add p1 p2
+var apx elmget ap x
+
+
+## 重载内置函数调用
+putchar ap
+
+## 鸭子类型定义
+type Position(
+    Int x
+    Int y
+    Int z
+)
+
+## 其它类型调用
+putchar add p1 p2
+putchar add p1 Position 5 7 9
+

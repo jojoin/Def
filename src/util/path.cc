@@ -17,6 +17,8 @@ namespace util {
 	char Path::D = '/';
 #endif
 
+string Path::m_cwd = "";
+
 
 
 } // --end-- namespace util

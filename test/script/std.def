@@ -1,0 +1,24 @@
+#-
+    标准语法定义库
+-#
+
+
+## 变量操作
+let (a:=b)  (var a b)
+let (a=b)   (set a b)
+
+
+## 算法
+let (a+b)  (add a b)
+let (a-b)  (sub a b)
+let (a++)  (set a add a 1)
+let (a--)  (set a sub a 1)
+let (a+=b) (set a add a b)
+let (a-=b) (set a sub a b)
+
+
+## 类型操作
+let (a.b)    (elmget a b)
+let (a.b=c)  (elmset a b c)
+let (a:f)    (elmivk a f)
+let (a::)    (elmdef a)
