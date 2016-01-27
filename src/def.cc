@@ -181,14 +181,21 @@ int run(const string & file, argv::Values & options)
     if (options.is_set("emit")&&options.is_set("output")) {
         string emit = options["emit"];
         string filename = options["output"];
+        // ast tree
+        if (emit=="ast") {
+            ofstream outfile(filename);
+            streambuf *oldbuf = cout.rdbuf(); 
+            cout.rdbuf(outfile.rdbuf());
+            tree->print(); // 重定向 cout 流           
+            cout.rdbuf(oldbuf);// 复位
         // llvm IR
-        if (emit=="ir") {
+        } else if (emit=="ir") {
             std::error_code cd;
             raw_fd_ostream ofile(filename, cd, llvm::sys::fs::OpenFlags(8));
             ofile << gen.module;
             ofile.close();
         // 汇编
-        } else {
+        } else if(emit=="obj") {
             def::compile::Target tar(context, gen.module);
             TargetMachine::CodeGenFileType cgft;
             // 输出类型

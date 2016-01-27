@@ -5,7 +5,6 @@
 ## 测试单元
 
 
-
 include "script/type.def"                 # 类型
 include "script/variable.def"             # 变量
 
@@ -25,6 +24,10 @@ include "script/stdtest.def"
 
 ## 类
 include "script/class/common.def"      # 
+
+
+
+
 
 
 

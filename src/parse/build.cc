@@ -92,13 +92,17 @@ ASTGroup* Build::buildGroup()
  */
 AST* Build::build(bool spread)
 {
-    /*
-    cout << "【";
-    for (auto &p : prepare_words) {
-        cout << " " << p.value;
-    }
-    cout << "】" << endl;
-    */
+    
+    // 调试打印
+    DEBUG_WITH("prepare_words", \
+        if(prepare_words.size()){ \
+        cout << "prepare【"; \
+        for (auto &p : prepare_words) { \
+            cout << " " << p.value; \
+        } \
+        cout << "】" << endl; \
+        } \
+        )
 
 
     if (!prepare_builds.empty()) {
@@ -1715,12 +1719,13 @@ list<Word> Build::spreadOperatorBind(list<Word>*pwds)
 
     ElementLet* let(nullptr);
     filterLet* filter(nullptr);
+    bool end = false;
     list<Word> cache;
     while (true) {
         cache.clear();
         auto word = getWord();
-        if (ISWS(End)) { // 结束
-            return cache;
+        if (ISWS(End)) { // 文本结束
+            end = true;
         }
         cache.push_back(word);
         if (ISSIGN("(")) { // 子级
@@ -1747,7 +1752,7 @@ list<Word> Build::spreadOperatorBind(list<Word>*pwds)
             let = filter->unique;
             break; // 找到唯一匹配
         }
-        if(match==0){
+        if(end||match==0){
             if (let) {
                 prepareWord(cache); // 复位多余内容
                 break; // 返回上一步的全匹配
@@ -1780,14 +1785,16 @@ list<Word> Build::spreadOperatorBind(list<Word>*pwds)
         }
     }
 
-    /*
-    cout << "spreadLetBind【";
-    for (auto &p : results) {
-        cout << " " << p.value;
-    }
-    cout << "】" << endl;
-    */
-
+    // 调试打印
+    DEBUG_WITH("binding_spread", \
+        if(results.size()){ \
+        cout << "binding spread "+idname+"【"; \
+        for (auto &p : results) { \
+            cout << " " << p.value; \
+        } \
+        cout << "】" << endl; \
+        } \
+    )
 
     // 判断下一个是否为符号绑定
     auto word = getWord();

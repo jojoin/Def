@@ -33,14 +33,18 @@ putchar 10
 ## var 赋值
 n := 10 
 
+
 ## 算法
 n++
 n--
 n+=10
 n-=1
 
+
 ## 循环条件中使用
 while n-- 
     putchar n
 
 
+## 括号左值使用
+putchar (Point 1 2).x

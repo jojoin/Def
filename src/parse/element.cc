@@ -65,7 +65,7 @@ FUNC_HEAD_STR(Let)
     }
     s += "=>";
     for (auto &w : bodywords) {
-        s += w.value;
+        s += w.value + " ";
     }
     return s;
 }

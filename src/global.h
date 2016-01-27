@@ -2,8 +2,6 @@
 
 // 是否为调试打印模式
 
-#define DEBUG 1
-
 /* DEBUG_WITH 函数参数解析
 
    tok_list         打印词法分析序列

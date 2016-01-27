@@ -96,3 +96,6 @@ putchar com:puts
 ## 静态成员函数调用
 putchar c1:add c1 c2       # 通过实例调用
 putchar Class:add c1 c2    # 通过类名调用
+
+
+

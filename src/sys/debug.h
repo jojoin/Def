@@ -57,7 +57,7 @@ public:
 
 
 // 打印指定类型的错误
-#ifdef DEBUG
+#ifdef _DEBUG
     #define DEBUG_WITH(T,D)\
         if(Debug::CheckType(T)){\
             D\

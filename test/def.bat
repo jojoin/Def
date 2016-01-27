@@ -1,10 +1,13 @@
 @echo off
 
 ::   Debug   Release
-I:\GitHub\Def\x64\Release\def "index.def" --emit ir -o index.ll
-::-d ast_tree,als_stack,tok_list
-:: --emit obj -o index.obj 
+
+I:\GitHub\Def\x64\Debug\def "index.def" --emit obj -o index.obj
+
+:: -d ast_tree,als_stack,tok_list
+:: -d prepare_words,binding_spread
 :: --print ir
+:: --emit ast -o index.txt
 :: --emit ir -o index.ll
 :: --emit asm -o index.s
 :: --emit obj -o index.obj
