@@ -37,8 +37,8 @@ fun Point add(Point p Int x Int y)
 add p1 5 10
 
 
-## 分号截断参数列
-# putchar (add p3 9)
+## 括号截断参数列
+putchar (add p3 9)
 
 
 ## 函数声明（任意位置多次声明）

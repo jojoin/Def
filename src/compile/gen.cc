@@ -64,24 +64,13 @@ Value* Gen::valueVaryPointer(void* v)
     Value *val = (Value *)v;
     llvm::Type* ty = val->getType();
     // 结构类型的值，重新分配内存
-    if (1 || isa<StructType>(ty)) {
 
-        if (! isa<PointerType>(ty)) {
-            //cout << "ty->PointerType(" << endl;
-            //ty->dump();
-            //ty = ty->getPointerElementType();
-            //ty->dump();
-            Value *aoc = builder.CreateAlloca(ty);
-            builder.CreateStore(val, aoc); // 拷贝
-            val = aoc;
-        }
+    if (! isa<PointerType>(ty) ){
+        Value *aoc = builder.CreateAlloca(ty);
+        builder.CreateStore(val, aoc); // 拷贝
+        val = aoc;
     }
-    if (isa<AllocaInst>(val)) {
-        // cout << "cast<AllocaInst>(" << endl;
-        // val = builder.CreatePointerCast(val, val->getType());
-        // val->dump();
-    }
-
+    
 
     return val;
 
@@ -105,7 +94,7 @@ Value* Gen::createLoad(void* p)
 Value* Gen::createLoadValue(void* v)
 {
     Value *val = (Value*)v;
-    llvm::Type *vty = val->getType();
+    llvm::Type *ty = val->getType();
 
     // Store 操作
     if (isa<StoreInst>(val)) {
@@ -114,16 +103,7 @@ Value* Gen::createLoadValue(void* v)
     }
 
     // 其它节点
-    if( 
-        isa<AllocaInst>(val)
-     || isa<GetElementPtrInst>(val)
-        
-     || ( isa<Argument>(val) && (
-            isa<PointerType>(vty)
-        ))
-        
-        
-    ){
+    if( isa<PointerType>(ty) ) {
         // 需要从地址载入数据
         return builder.CreateLoad(val);
     }
@@ -220,7 +200,9 @@ Function* Gen::createFunction(void* p)
             //}
         }
     }
-    if (! last) {
+
+    // 是否为构造函数
+    if (! last || call->fndef->is_construct) {
         builder.CreateRetVoid();
     }else if ( ! isa<ReturnInst>(last)) {
         // 函数体最后一句自动成为返回值，返回值必须 Load
@@ -283,11 +265,10 @@ llvm::Type* Gen::fixType(def::core::Type* ty, vector<def::core::Type*>* append)
         }
         for (auto &p : obj->types) {
             auto *pty = fixType(p);
-            // if (1 || dynamic_cast<TypeStruct*>(p)) {
-            if ( ! isa<PointerType>(pty)) {
-                // 【【 内建函数不能通过指针，必须通过值传递参数 】】
-                // 通过指针传递结构类型参数
-                pty = PointerType::get(pty, 0);
+            if (dynamic_cast<TypeStruct*>(p)) {
+                if (!isa<PointerType>(pty)) {
+                    pty = PointerType::get(pty, 0);
+                }
             }
             ptys.push_back( pty ); // 参数类型
         }

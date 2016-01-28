@@ -14,15 +14,15 @@
 #include "../core/ast.h"
 #include "../core/builtin.h"
 
+#include "../parse/filter.h"
+
+
 using namespace std;
 using namespace def::core;
 using namespace def::util;
 using namespace def::sys;
 using namespace def::compile;
-
-
-namespace def {
-namespace parse {
+using namespace def::parse;
 
     
 #define Word Tokenizer::Word 
@@ -177,13 +177,7 @@ AST* Build::build(bool spread)
         // 类型构造 ？
         if (auto gr = dynamic_cast<ElementType*>(res)) {
 
-            auto *claty = (TypeStruct*)gr->type;
-            auto *cst = new ASTTypeConstruct(claty);
-            int plen = claty->len();
-            while (plen--) { // 添加类型构造参数
-                cst->add(build());
-            }
-            return cst;
+            return buildConstruct(gr, chara);
         }
 
         // 函数调用 ？
@@ -197,7 +191,7 @@ AST* Build::build(bool spread)
         }
 
         // 模板函数调用？
-        res = stack->find(DEF_SPLITFIX_TPFPREFIX+chara, true);
+        res = stack->find(DEF_PREFIX_TPF+chara, true);
         if (res) {
             return buildTemplateFuntion(chara, (ElementTemplateFuntion*)res);
         }
@@ -472,6 +466,115 @@ AST* Build::buildTemplateFuntion(const string & name, ElementTemplateFuntion* tp
     */
 
     // TODO:: 创建函数调用
+}
+
+/**
+ * 变量构造函数调用
+ */
+AST* Build::buildConstruct(ElementType* ety, const string & name)
+{
+    auto *tyclass = (TypeStruct*)ety->type;
+    // 查找是否存在构造函数
+    auto fd = stack->find(DEF_PREFIX_CSTC + name);
+
+    // 无构造函数时
+    if (!fd) {
+        auto *cst = new ASTTypeConstruct(tyclass);
+        int plen = tyclass->len();
+        while (plen--) { // 添加类型构造参数
+            cst->add(build());
+        }
+        return cst;
+        
+    }
+
+    // 调用构造函数
+    auto *val = new ASTTypeConstruct(tyclass, true); // 空构造
+
+
+    string funname = DEF_PREFIX_CSTC + name;
+    
+    // 查询目标类成员函数
+    // auto word = getWord();
+    auto target_stack = type_member_stack[tyclass];
+    // 成员函数调用，不向上查找
+    auto filter = filterFunction(target_stack, funname, false);
+    if (!filter.size()) {
+        FATAL("can't find member function '"
+            +funname+"' in class '"+tyclass->name+"'")
+    }
+
+
+    // string name = word.value;
+    auto *fncall = new ASTFunctionCall(nullptr);
+    // auto elms = grp->elms;
+        
+    ASTFunctionDefine* fundef(nullptr);
+
+    // 临时用来查询函数的类型
+    auto *tmpfty = new TypeFunction(funname);
+
+
+    // 解析成员函数调用
+
+        // 采用贪婪匹配模式
+    while (true) {
+        // 匹配函数（第一次无参）
+        int match = filter.match(tmpfty);
+        if (match==1 && filter.unique) {
+            fundef = filter.unique; // 找到唯一匹配
+            string idname = fundef->ftype->getIdentify();
+            break;
+        }
+        if (match==0) {
+            //prepareBuild(cachebuilds);
+            FATAL("No macth function '"+tyclass->name+"."+tmpfty->getIdentify()+"' !");
+            // throw ""; // 无匹配
+        }
+        // 判断函数是否调用结束
+        auto word = getWord();
+        prepareWord(word); // 上层处理括号
+        if (ISWS(End) || ISSIGN(")")) { // 提前手动调用结束
+            if (filter.unique) {
+                fundef = filter.unique; // 找到唯一匹配
+                break;
+            }
+        }
+        // 添加参数
+        AST *exp = build();
+        if (!exp) {
+            if (filter.unique) {
+                fundef = filter.unique; // 无更多参数，找到匹配
+                break;
+            }
+            FATAL("No macth function '"+tyclass->name+"."+tmpfty->getIdentify()+"' !");
+        }
+        //cachebuilds.push_back(exp);
+        fncall->addparam(exp); // 加实参
+        auto *pty = getType(exp);
+        // 重载函数名
+        tmpfty->add("", pty);
+    }
+
+    fncall->fndef = fundef; // elmfn->fndef;
+        
+
+    delete tmpfty;
+
+
+
+    // 静态成员函数验证
+    //if (is_static && ! fundef->is_static_member) {
+    //    FATAL("'"+fundef->ftype->name+"' is not a static member function !")
+    //}
+
+    
+    auto * mfc = new ASTMemberFunctionCall(val, fncall);
+
+    return mfc;
+
+
+
 }
 
 /**
@@ -840,35 +943,62 @@ AST* Build::build_dcl()
  */
 AST* Build::build_fun()
 {
-    Word word = getWord();
+    auto word = getWord();
     if (NOTWS(Character)) {
         FATAL("function define need a type name to belong !")
     }
 
     // 函数返回值类型
     Type *rty(nullptr); // nullptr 时需要推断类型
-    Element* elmret = stack->find(word.value);
-    if (auto *ety = dynamic_cast<ElementType*>(elmret)) {
-        rty = ety->type;
-    } else {
-        prepareWord(word);
-    }
+    
+    // 是否为类型构造函数
+    if(stack->tydef
+        && word.value==stack->tydef->type->name)
+    {
+        auto word = getWord();
+        if(ISSIGN("(")){
+            // 类型中与类型同名且无返回值的为构造函数
+            status_construct = true;
+        } else {
+            prepareWord(word);
+        }
 
-    // 函数名称
-    word = getWord();
-    if (NOTWS(Character)) {
-        FATAL("function define need a legal name !")
+    }
+    
+    // 普通函数处理
+    if (!status_construct ) {
+        Element* elmret = stack->find(word.value);
+        if (auto *ety = dynamic_cast<ElementType*>(elmret)) {
+            rty = ety->type;
+        }
+        else {
+            prepareWord(word);
+        }
+
+        // 函数名称
+        word = getWord();
+        if (NOTWS(Character)) {
+            FATAL("function define need a legal name !")
+        }
+        // 括号
+        auto word = getWord();
+        if (NOTSIGN("(")) {
+            FATAL("function  define need a sign ( to belong !")
+        }
     }
 
     // 新建函数类型
     string funcname = word.value;
-    auto *functy = new TypeFunction(funcname);
-
-    // 括号
-    word = getWord();
-    if (NOTSIGN("(")) {
-        FATAL("function define need a sign ( to belong !")
+    TypeFunction *functy;
+    TypeFunction *constructfuncty;
+    if (status_construct) {
+        functy = new TypeFunction(DEF_PREFIX_CSTC + funcname);
+        constructfuncty = new TypeFunction(DEF_PREFIX_CSTC + funcname);
+    
+    } else {
+        functy = new TypeFunction(funcname);
     }
+
 
     // 函数参数解析
     while (true) {
@@ -881,7 +1011,8 @@ AST* Build::build_fun()
         if (auto *ety = dynamic_cast<ElementType*>(
             stack->find(word.value))) {
             pty = ety->type;
-        } else {
+        }
+        else {
             FATAL("Parameter format is not valid !")
         }
         word = getWord();
@@ -889,11 +1020,15 @@ AST* Build::build_fun()
             FATAL("function parameter need a legal name !")
         }
         pnm = word.value;
-        if (stack->tydef && pnm==DEF_MEMFUNC_ISTC_PARAM_NAME) {
+        if (stack->tydef && pnm == DEF_MEMFUNC_ISTC_PARAM_NAME) {
             // 类成员函数，参数名称冲突
-            FATAL("can't give a parameter name '"+pnm+"' in type member function !")
+            FATAL("can't give a parameter name '" + pnm + "' in type member function !")
         }
         functy->add(pnm, pty);
+        // 构造函数入栈
+        if (status_construct) {
+            constructfuncty->add(pnm, pty);
+        }
     }
 
     // 函数是否已经声明
@@ -915,8 +1050,6 @@ AST* Build::build_fun()
     // 设置可能标记的返回值
     functy->ret = rty;
     fundef->ftype = functy;
-
-    // 解析函数体
 
     // 创建新分析栈
     Stack* old_stack = stack;
@@ -955,20 +1088,34 @@ AST* Build::build_fun()
         body->add( build() );
     }
 
-    // 返回值验证与推断
-    size_t bodylen = body->childs.size();
-    Type *lastChildTy(nullptr);
-    if(bodylen>0){
-        // 获取函数体最后一句为返回类型
-        AST* last = body->childs[bodylen - 1];
-        lastChildTy = getType(last);
+    
+    /*
+    // 构造函数加上类实例返回值
+    if (status_construct) {
+        status_construct = false;
+        prepareWord(Word(State::Character,"this"));
+        prepareWord(Word(State::Character,"ret"));
+        body->add( build() );
+        status_construct = true;
+    }*/
+
+    
+    if ( ! status_construct) {
+        // 返回值验证与推断
+        size_t bodylen = body->childs.size();
+        Type *lastChildTy(nullptr);
+        if(bodylen>0){
+            // 获取函数体最后一句为返回类型
+            AST* last = body->childs[bodylen - 1];
+            lastChildTy = getType(last);
+        }
+
+        // 检查返回值类型一致性
+        verifyFunctionReturnType(lastChildTy);
     }
 
-    // 检查返回值类型一致性
-    verifyFunctionReturnType(lastChildTy);
-
     if ( ! functy->ret) {
-        cout << "! functy->ret" << endl;
+        // cout << "! functy->ret" << endl;
         functy->ret = Type::get("Nil");
     }
 
@@ -985,6 +1132,19 @@ AST* Build::build_fun()
     // 加上 Body
     fundef->body = body;
 
+    // 构造函数入栈
+    if (status_construct) {
+        auto * main_stack = old_stack->parent;
+        constructfuncty->ret = stack->tydef->type;
+        auto *constrct = new ASTFunctionDefine(
+            constructfuncty, body);
+        constrct->is_construct = true;
+        main_stack->addFunction(constrct);
+        // 
+        fundef->is_construct = true;
+        fundef->is_static_member = false;
+    }
+
     // 函数已经声明过了，添加 body
     if (aldef) {
         // 替换 ftype，加入参数名称
@@ -993,6 +1153,9 @@ AST* Build::build_fun()
 
     // 否则添加新函数
     } else {
+        // 是否为构造函数
+        fundef->is_construct = status_construct;
+        fundef->is_construct = status_construct;
         stack->addFunction(fundef);
     }
 
@@ -1000,6 +1163,9 @@ AST* Build::build_fun()
     if(stack->tydef){
         stack->tydef->members.push_back(fundef);
     }
+    
+    // 复位
+    status_construct = false;
 
     // 返回值
     return fundef;
@@ -1028,7 +1194,7 @@ AST* Build::build_tpf()
     }
 
     string tpfName = word.value; // fixNamespace(word.value);
-    if (stack->find(DEF_SPLITFIX_TPFPREFIX + tpfName)) {
+    if (stack->find(DEF_PREFIX_TPF + tpfName)) {
         FATAL("template function duplicate definition '"+tpfName+"' !");
     }
 
@@ -1062,7 +1228,7 @@ AST* Build::build_tpf()
     cacheWordSegment(tpfdef->bodywords); // 缓存括号段内容
     
     // 添加到分析栈
-    stack->put(DEF_SPLITFIX_TPFPREFIX + tpfName, new ElementTemplateFuntion(tpfdef));
+    stack->put(DEF_PREFIX_TPF + tpfName, new ElementTemplateFuntion(tpfdef));
 
     return tpfdef;
 }
@@ -1191,7 +1357,7 @@ AST* Build::build_let()
         relet->head.push_back(str);
         if (ISWS(Character)) {
             let->params.push_back(str);
-            idname += "_";
+            idname += DEF_SPLITFIX_OPRT_BIND;
         } else if (ISWS(Operator)) {
             idname += str;
             sign = true;
@@ -1395,13 +1561,7 @@ AST* Build::build_elmivk()
     string name = word.value;
     auto *fncall = new ASTFunctionCall(nullptr);
     // auto elms = grp->elms;
-
-    // 节点缓存
-    //list<AST*> cachebuilds;
         
-    // string fname(name); // 函数参数组装名
-    // vector<Element*> matchs; // 匹配的函数
-    // ElementFunction* elmfn;
     ASTFunctionDefine* fundef(nullptr);
 
     // 临时用来查询函数的类型
@@ -1494,8 +1654,7 @@ AST* Build::build_elmivk()
         
     // return fncall;
 
-
-
+    delete tmpfty;
 
 
     /*
@@ -1713,7 +1872,7 @@ list<Word> Build::spreadOperatorBind(list<Word>*pwds)
     vector<list<Word>> params;
 
     if (pwds) { // 左侧参数
-        idname = "_";
+        idname = DEF_SPLITFIX_OPRT_BIND;
         params.push_back(*pwds);
     }
 
@@ -1734,11 +1893,11 @@ list<Word> Build::spreadOperatorBind(list<Word>*pwds)
                 FATAL("Operator binding priority error !")
             }
             params.push_back(cache);
-            idname += "_";
+            idname += DEF_SPLITFIX_OPRT_BIND;
         }else if (ISWS(Operator)) { // 操作符
             idname += word.value;
         } else {
-            idname += "_";
+            idname += DEF_SPLITFIX_OPRT_BIND;
             list<Word> pms;
             pms.push_back(word);
             params.push_back(pms);
@@ -1830,7 +1989,3 @@ void Build::cacheWordSegment(list<Word>& cache)
 
 
 
-
-
-}
-}

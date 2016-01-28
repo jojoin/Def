@@ -61,6 +61,11 @@ public:
     void verifyFunctionReturnType(Type*); 
     
 public:
+    
+    // 是否为构造函数状态
+    bool status_construct = false;
+    
+public:
     // 缓存/预备的单词
     list<Tokenizer::Word> prepare_words; 
 

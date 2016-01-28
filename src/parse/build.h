@@ -49,8 +49,6 @@ protected:
     // 上下文状态
     // bool ctx_type = false;  // 类型定义
     // bool ctx_fun  = false;  // 函数定义
-    // 需要检查的返回值类型返回值
-    Type *fun_ret_ty = nullptr;
     
 protected:
 
@@ -71,6 +69,8 @@ protected:
     AST* buildCoreDefine(const string &);
     // 变量或类成员访问
     AST* buildVaribale(Element*, const string &n="");
+    // 变量构造函数调用
+    AST* buildConstruct(ElementType*, const string &n="");
 
 protected:
 

@@ -2,7 +2,7 @@
 
 ::   Debug   Release
 
-I:\GitHub\Def\x64\Debug\def "index.def" --emit obj -o index.obj
+I:\GitHub\Def\x64\Debug\def "index.def" --print ir -d ast_tree  --emit obj -o index.obj
 
 :: -d ast_tree,als_stack,tok_list
 :: -d prepare_words,binding_spread
@@ -18,11 +18,11 @@ I:\GitHub\Def\x64\Debug\def "index.def" --emit obj -o index.obj
 :: llc index.ll
 :: llc -filetype=obj index.ll
 :: gcc index.s -o index.exe
-:: gcc index.obj "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\lib\chkstk.obj" -o index.exe
+gcc index.obj "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\lib\chkstk.obj" -o index.exe
 
 
 :: echo --------
-:: index.exe
+index.exe
 :: echo;
 :: echo;
 

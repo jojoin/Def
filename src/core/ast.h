@@ -130,9 +130,11 @@ AST_HEAD(ExternalMemberFunctionDefine)
 // 类型构造
 AST_CODE_HEAD(TypeConstruct)
     TypeStruct* type;
-    vector<AST*> childs; // 
-    ASTTypeConstruct(TypeStruct*t=nullptr)
+    vector<AST*> childs; //
+    bool bare = false; // 空构造
+    ASTTypeConstruct(TypeStruct*t=nullptr, bool b=false)
         : type(t)
+        , bare(b)
     {}
     void add(AST*);
 };
@@ -187,6 +189,7 @@ AST_HEAD(FunctionDefine)
     ASTFunctionDefine* wrap = nullptr; // 外层函数
     ASTTypeDefine*  belong = nullptr; // 所属类
     bool is_static_member  = true;    // 是否为静态成员函数
+    bool is_construct  = false;    // 是否为构造函数
     set<string> cptmbr;        // 捕获使用的类成员名称
     map<string, Type*> cptvar;  // 捕获外层作用域的变量
     ASTFunctionDefine(TypeFunction*ft, ASTGroup *bd=nullptr)

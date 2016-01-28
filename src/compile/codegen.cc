@@ -103,6 +103,8 @@ Value* ASTFunctionCall::codegen(Gen & gen)
     if (idname=="add" X "Int" X "Int") {
         Value* v1 = gen.createLoad(params[0]);
         Value* v2 = gen.createLoad(params[1]);
+        v1->dump();
+        v2->dump();
         Value* res = gen.builder.CreateAdd(v1, v2);
         return res;
     }
@@ -197,7 +199,12 @@ Value* ASTFunctionCall::codegen(Gen & gen)
     // 实际参数
     for (auto &p : params) {
         // 转换结构值参数为结构指针
-        Value *pv = gen.varyPointer(p);
+        Value *pv;
+        if (dynamic_cast<TypeStruct*>(Analysis::getType(p))) {
+            pv = gen.varyPointer(p);
+        }else{
+            pv = gen.createLoad(p);
+        }
         argvs.push_back(pv);
         // pv->dump();
     }
@@ -234,6 +241,8 @@ Value* ASTFunctionCall::codegen(Gen & gen)
     }
     */
 
+ 
+
     return retptr;
 }
 
@@ -251,23 +260,44 @@ Value* ASTMemberFunctionCall::codegen(Gen & gen)
     // 解析参数
     std::vector<Value*> argvs;
 
-
     // 类实例（非静态）
-    if( ! call->fndef->is_static_member){
-        argvs.push_back(gen.varyPointer(value));
+    if( ! call->fndef->is_static_member ){
+        Value *pv = gen.varyPointer(value);
+        argvs.push_back(pv);
+        // pv->dump();
     }
 
     // 实际参数
     for (auto &p : call->params) {
         // 转换结构值参数为结构指针
-        Value *pv = gen.varyPointer(p);
+        Value *pv;
+        if (dynamic_cast<TypeStruct*>(Analysis::getType(p))) {
+            pv = gen.varyPointer(p);
+        }else{
+            pv = gen.createLoad(p);
+        }
         argvs.push_back(pv);
         // pv->dump();
     } 
 
     // 创建调用
-    Value *retptr = gen.builder.CreateCall(func, argvs, "mfc.tmp");
+    /*
+    func->dump();
+    cout << "gen.builder.CreateCall: " << idname 
+        << " param num: " << func->arg_size()
+        << " argv num: " << argvs.size() << endl;
+    cout << " ========================== " << endl;
+    */
 
+    // 如果是构造函数
+    if (call->fndef->is_construct)
+    {
+        gen.builder.CreateCall(func, argvs);
+        return argvs[0]; // 返回类实例指针
+    }
+
+    Value *retptr = gen.builder.CreateCall(func, argvs, "mfc.tmp");
+    
     return retptr;
 }
 
@@ -323,13 +353,15 @@ Value* ASTTypeConstruct::codegen(Gen & gen)
 
     AllocaInst *structval = gen.builder.CreateAlloca(scty);
     
-    int len = type->types.size();
-    for (int i = 0; i < len; i++) {
-        AST *child = childs[i];
-        Value *val = gen.createLoad( child );
-        Value *ptr = gen.builder.CreateStructGEP(
-            scty, structval, i);
-        gen.builder.CreateStore(val, ptr);
+    if (! bare ) { // 不是空构造
+        int len = childs.size();
+        for (int i = 0; i < len; i++) {
+            AST *child = childs[i];
+            Value *val = gen.createLoad( child );
+            Value *ptr = gen.builder.CreateStructGEP(
+                scty, structval, i);
+            gen.builder.CreateStore(val, ptr);
+        }
     }
 
     return structval; // gen.builder.CreateLoad(structval);
@@ -352,17 +384,18 @@ Value* ASTVariableDefine::codegen(Gen & gen)
 Value* ASTVariableAssign::codegen(Gen & gen)
 {
     // Value *val = value->codegen(gen);
+    
+    Value *val = value->codegen(gen);
+
 
     Value *old = gen.getValue(name);
     old = gen.valueVaryPointer(old);
-    
-    // 放入
-    gen.putValue(name, old); 
-
-    Value *val = value->codegen(gen);
 
     // 赋值
     gen.builder.CreateStore(val, old);
+
+    // 放入
+    gen.putValue(name, old); 
 
     // gen.putValue(name, val); 
 

@@ -15,7 +15,7 @@ fun wrap(Int n)(
     fun addn()(
         putchar n
         putchar k
-        set n add n 1
+		set n add n 1
         set k add k 1
     )
 
@@ -30,13 +30,12 @@ wrap 97
 
 
 
-
 ## 申明
 dcl Int getPxAdd(Point)
 
 
 ## 调用
-# putchar getPxAdd p3
+putchar getPxAdd p3
 
 
 ## 函数定义
@@ -82,5 +81,4 @@ fun getPxAdd(Point p)(
 
 
 )
-
 

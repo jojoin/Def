@@ -1,0 +1,52 @@
+#-
+    构造函数
+-#
+
+type Construct (
+    Int x
+    Int y
+    # 无参构造函数
+    fun Construct()(
+		set x 97
+		set y 97
+    )
+    # 单参构造函数
+    fun Construct(Int a)(
+        set x a
+        set y 97
+    )
+    # 双参构造函数
+    fun Construct(Int a Int b)(
+        set x a
+        set y b
+    )
+    # 拷贝构造函数
+    fun Construct(Construct c)(
+        set x elmget c x
+        set y elmget c y
+    )
+	# 打印
+	fun puts()(
+		putchar x
+		putchar y
+	)
+)
+
+
+## 通过参数类型和数量调用不同的构造函数
+var cstc1 (Construct)
+var cstc2 (Construct 1)
+var cstc3 (Construct 1 2)
+# 拷贝构造
+var cstc4 Construct Construct 100 100
+
+elmivk cstc1 puts
+elmivk cstc2 puts
+elmivk cstc3 puts
+elmivk cstc4 puts
+
+
+
+123
+
+123

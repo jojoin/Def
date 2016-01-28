@@ -39,11 +39,14 @@ void Service::verifyFunctionReturnType(Type* ret)
     if ( ! fndef) {
         FATAL("Non existence function cannot return value !")
     }
+    if (ret && status_construct) { // 构造函数不能有返回值
+        FATAL("class construct function cannot have any return value !")
+    }
     if ( ret && ! fndef->ftype->ret) {
         fndef->ftype->ret = ret;
         return;
     }
-    if (ret && ! ret->is(fndef->ftype->ret)) {
+    if ( ret && ! ret->is(fndef->ftype->ret)) {
         // 函数返回值参数不匹配
         FATAL("Function '"+fndef->ftype->name+"' return value type not match !")
     }
@@ -177,6 +180,10 @@ Type* Service::getType(AST* ast)
 
     // 成员函数调用
     if (ISAST(MemberFunctionCall)) {
+        // 如果是构造函数
+        if (con->call->fndef->is_construct) {
+            return con->call->fndef->belong->type;
+        }
         return getType( con->call );
     }
 
