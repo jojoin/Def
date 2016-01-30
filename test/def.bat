@@ -2,7 +2,7 @@
 
 ::   Debug   Release
 
-I:\GitHub\Def\x64\Debug\def "index.def" --print ir -d ast_tree  --emit obj -o index.obj
+I:\GitHub\Def\x64\Debug\def "index.def" --print ir -d ast_tree --emit obj -o index.obj
 
 :: -d ast_tree,als_stack,tok_list
 :: -d prepare_words,binding_spread
@@ -12,7 +12,6 @@ I:\GitHub\Def\x64\Debug\def "index.def" --print ir -d ast_tree  --emit obj -o in
 :: --emit asm -o index.s
 :: --emit obj -o index.obj
 :: -d ast_tree,als_stack,tok_list
-
 
 
 :: llc index.ll

@@ -35,7 +35,7 @@ Service::Service(Tokenizer * t)
  */
 void Service::verifyFunctionReturnType(Type* ret)
 {
-    auto *fndef = stack->fundef;
+    auto *fndef = stack->fndef;
     if ( ! fndef) {
         FATAL("Non existence function cannot return value !")
     }
@@ -132,77 +132,6 @@ void Service::prepareWord(list<Tokenizer::Word> wds)
  */
 bool Service::checkType(Type* type, AST* ast)
 {
-    return type->is(getType(ast));
+    return type->is(ast->getType());
 }
-
-
-/**
- * 类型判断
- */
-Type* Service::getType(AST* ast)
-{
-#define ISAST(T) AST##T* con = dynamic_cast<AST##T*>(ast)
-    
-    // 常量类型
-    if (ISAST(Constant)) {
-        return con->type;
-    }
-
-    // 变量类型
-    if (ISAST(Variable)) {
-        return con->type;
-    }
-
-    // 变量定义
-    if (ISAST(VariableDefine)) {
-        return getType( con->value );
-    }
-
-    // 变量赋值
-    if (ISAST(VariableAssign)) {
-        return getType( con->value );
-    }
-
-    // 类型构造
-    if (ISAST(TypeConstruct)) {
-        return con->type;
-    }
-    
-    // 函数类型
-    if (ISAST(FunctionCall)) {
-        return con->fndef->ftype->ret;
-    }
-
-    // 函数返回值
-    if (ISAST(Ret)) {
-        return getType( con->value );
-    }
-
-    // 成员函数调用
-    if (ISAST(MemberFunctionCall)) {
-        // 如果是构造函数
-        if (con->call->fndef->is_construct) {
-            return con->call->fndef->belong->type;
-        }
-        return getType( con->call );
-    }
-
-    // 成员访问
-    if (ISAST(MemberVisit)) {
-        TypeStruct* scty = (TypeStruct*)getType( con->instance );
-        return scty->types[con->index];
-    }
-
-    // 成员赋值
-    if (ISAST(MemberAssign)) {
-        return getType( con->value );
-    }
-
-
-    return nullptr;
-#undef ISAST
-}
-
-
-
 

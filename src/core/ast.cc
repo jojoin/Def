@@ -5,6 +5,7 @@
 
 #include "./ast.h"
 #include "../parse/stack.h"
+#include "./error.h"
 
 
 using namespace def::core;
@@ -16,6 +17,11 @@ using namespace def::parse;
 #define INDCON "├"
 #define INDEND "╰" // └├│╰
 
+
+
+#define FUNC_HEAD_GETTYPE(T) \
+def::core::Type* AST##T::getType() \
+{ \
 
 
 #define FUNC_HEAD_PRINT(T) \
@@ -74,6 +80,10 @@ FUNC_HEAD_PRINT(Ret)
     cout << "return: " << endl;
     PRINT_ONE_CHILD(value)
 }
+FUNC_HEAD_GETTYPE(Ret)
+    return value->getType();
+}
+
 
 
 /**
@@ -82,6 +92,9 @@ FUNC_HEAD_PRINT(Ret)
 FUNC_HEAD_PRINT(Group)
     cout << "group " << childs.size() << ": " << endl;
     PRINT_CHILDS(childs)
+}
+FUNC_HEAD_GETTYPE(Group)
+    return childs.back()->getType();
 }
 void ASTGroup::add(AST*a)
 {
@@ -94,6 +107,9 @@ void ASTGroup::add(AST*a)
  */
 FUNC_HEAD_PRINT(Constant)
     cout << "# " << value << endl;
+}
+FUNC_HEAD_GETTYPE(Constant)
+    return type;
 }
 
 
@@ -115,6 +131,14 @@ FUNC_HEAD_PRINT(If)
     cout << indent+INDEND << "else: " << endl;
     PRINT_CHILD_CHECK(pelse)
 }
+FUNC_HEAD_GETTYPE(If)
+    Type* t1 = pthen->getType();
+    Type* t2 = pelse->getType();
+    if (t1->is(t2)) {
+        return t1;
+    }
+    return Type::get("Nil");
+}
 
 
 /**
@@ -132,6 +156,9 @@ FUNC_HEAD_PRINT(While)
     cout << indent+INDEND << "body: " << endl;
     PRINT_CHILD_CHECK(body)
 }
+FUNC_HEAD_GETTYPE(While)
+    return body->getType();
+}
 
 
 /**
@@ -145,6 +172,9 @@ FUNC_HEAD_PRINT(FunctionCall)
     cout << "function call: " << fndef->ftype->getIdentify() << endl;
     PRINT_CHILDS(params)
 }
+FUNC_HEAD_GETTYPE(FunctionCall)
+    return fndef->ftype->ret;
+}
 
 
 /**
@@ -154,10 +184,16 @@ FUNC_HEAD_PRINT(MemberVisit)
     cout << "member visit: " << index << endl;
     PRINT_ONE_CHILD(instance)
 }
+FUNC_HEAD_GETTYPE(MemberVisit)
+    if (auto scty = dynamic_cast<TypeStruct*>(instance->getType())) {
+        return scty->types[index];
+    }
+    FATAL("cannot getType() , MemberVisit instance is not a class type !")
+}
 
 
 /**
- * MemberVisit
+ * MemberAssign
  */
 FUNC_HEAD_PRINT(MemberAssign)
     //PRINT_ONE_CHILD(instance)
@@ -172,6 +208,9 @@ FUNC_HEAD_PRINT(MemberAssign)
     ind = indent + IND;
     cout << indent+INDEND << "value: " << endl;
     PRINT_CHILD_CHECK(value)
+}
+FUNC_HEAD_GETTYPE(MemberAssign)
+    return value->getType();
 }
 
 
@@ -194,9 +233,13 @@ FUNC_HEAD_PRINT(MemberFunctionCall)
     ind = indent + IND;
     cout << indent+INDEND << "call: " << endl;
     PRINT_CHILD_CHECK(call)
-
-    //PRINT_ONE_CHILD(value)
-    //PRINT_ONE_CHILD(call)
+}
+FUNC_HEAD_GETTYPE(MemberFunctionCall)
+    // 如果是构造函数
+    if (call->fndef->is_construct) {
+        return call->fndef->belong->type;
+    }
+    return call->getType();
 }
 
 
@@ -219,7 +262,9 @@ FUNC_HEAD_PRINT(ExternalMemberFunctionDefine)
 FUNC_HEAD_PRINT(Variable)
     cout << "$" << name << ": " << type->getIdentify() << endl;
 }
-
+FUNC_HEAD_GETTYPE(Variable)
+    return type;
+}
 
 /**
  * VariableDefine
@@ -227,6 +272,9 @@ FUNC_HEAD_PRINT(Variable)
 FUNC_HEAD_PRINT(VariableDefine)
     cout << "variable define $" << name << ":" << endl;
     PRINT_ONE_CHILD(value)
+}
+FUNC_HEAD_GETTYPE(VariableDefine)
+    return value->getType();
 }
 
 
@@ -236,6 +284,9 @@ FUNC_HEAD_PRINT(VariableDefine)
 FUNC_HEAD_PRINT(VariableAssign)
     cout << "variable assign $" << name << ":" << endl;
     PRINT_ONE_CHILD(value)
+}
+FUNC_HEAD_GETTYPE(VariableAssign)
+    return value->getType();
 }
 
 
@@ -256,25 +307,6 @@ FUNC_HEAD_PRINT(TypeDefine)
     // stk->print();
     PRINT_CHILDS(members)
 }
-/*
-// 检查成员函数是否存在
-bool ASTTypeDefine::checkMember(ASTFuntionDefine* fdef)
-{
-    string idname = fdef->ftype->getIdentify();
-    if (members.find(idname) != members.end()) {
-        return true;
-    }
-    return false;
-}
-// 检查成员函数是否存在
-void ASTTypeDefine::addMember(ASTFuntionDefine* fdef)
-{
-    string idname = fdef->ftype->getIdentify();
-    members[idname] = fdef;
-}
-*/
-
-
 
 
 /**
@@ -287,7 +319,9 @@ FUNC_HEAD_PRINT(TypeConstruct)
     cout << "type construct: " << type->getIdentify() << endl;
     PRINT_CHILDS(childs)
 }
-
+FUNC_HEAD_GETTYPE(TypeConstruct)
+    return type;
+}
 
 /**
  * FuntionDeclare

@@ -265,6 +265,7 @@ llvm::Type* Gen::fixType(def::core::Type* ty, vector<def::core::Type*>* append)
         }
         for (auto &p : obj->types) {
             auto *pty = fixType(p);
+            // 类以指针传递，基本类型值传递
             if (dynamic_cast<TypeStruct*>(p)) {
                 if (!isa<PointerType>(pty)) {
                     pty = PointerType::get(pty, 0);

@@ -30,7 +30,7 @@ Stack::Stack(Stack* p)
         Initialize();
     } else {
         tydef = p->tydef;
-        fundef = p->fundef;
+        fndef = p->fndef;
     }
 
 }
@@ -180,9 +180,9 @@ Element* Stack::find(const string & name, bool up)
         auto res = parent->find(name);
         // 记录函数捕获的捕获的变量
         if (auto *ev = dynamic_cast<ElementVariable*>(res)) {
-            if (fundef) {
-                // cout << fundef->ftype->name << "  capture the variable: " << name << endl;
-                fundef->cptvar[name] = ev->type;
+            if (fndef) {
+                // cout << fndef->ftype->name << "  capture the variable: " << name << endl;
+                fndef->cptvar[name] = ev->type;
             }
         }
         return res;

@@ -55,7 +55,7 @@ public:
 
     ElementStack stack;     // 当前分析栈
     
-    ASTFunctionDefine* fundef = nullptr; // 当前正在定义的函数
+    ASTFunctionDefine* fndef = nullptr; // 当前正在定义的函数
     ASTTypeDefine*    tydef  = nullptr; // 当前正在定义的类型
 
 

@@ -77,7 +77,10 @@ Value* ASTGroup::codegen(Gen & gen)
     for (auto &one : childs) {
         // delete last;
         if (one) {
-            last = one->codegen(gen);
+            auto *li = one->codegen(gen);
+            if (li) {
+                last = li;
+            }
         }
     }
     return last;
@@ -103,8 +106,8 @@ Value* ASTFunctionCall::codegen(Gen & gen)
     if (idname=="add" X "Int" X "Int") {
         Value* v1 = gen.createLoad(params[0]);
         Value* v2 = gen.createLoad(params[1]);
-        v1->dump();
-        v2->dump();
+        // v1->dump();
+        // v2->dump();
         Value* res = gen.builder.CreateAdd(v1, v2);
         return res;
     }
@@ -200,7 +203,7 @@ Value* ASTFunctionCall::codegen(Gen & gen)
     for (auto &p : params) {
         // 转换结构值参数为结构指针
         Value *pv;
-        if (dynamic_cast<TypeStruct*>(Analysis::getType(p))) {
+        if (dynamic_cast<TypeStruct*>(p->getType())) {
             pv = gen.varyPointer(p);
         }else{
             pv = gen.createLoad(p);
@@ -271,7 +274,7 @@ Value* ASTMemberFunctionCall::codegen(Gen & gen)
     for (auto &p : call->params) {
         // 转换结构值参数为结构指针
         Value *pv;
-        if (dynamic_cast<TypeStruct*>(Analysis::getType(p))) {
+        if (dynamic_cast<TypeStruct*>(p->getType())) {
             pv = gen.varyPointer(p);
         }else{
             pv = gen.createLoad(p);
@@ -307,7 +310,7 @@ Value* ASTMemberFunctionCall::codegen(Gen & gen)
 Value* ASTMemberVisit::codegen(Gen & gen)
 {
     StructType *scty = (StructType*)gen.fixType(
-        Analysis::getType(instance)
+        instance->getType()
         );
 
     Value* structval = instance->codegen(gen);
@@ -327,7 +330,7 @@ Value* ASTMemberVisit::codegen(Gen & gen)
 Value* ASTMemberAssign::codegen(Gen & gen)
 {
     StructType *scty = (StructType*)gen.fixType(
-        Analysis::getType(instance)
+        instance->getType()
         );
         
     Value* structval = instance->codegen(gen);

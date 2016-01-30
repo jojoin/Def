@@ -48,7 +48,6 @@ public:
 
 public: // 功能型函数
     
-    static Type* getType(AST*); // 类型获取
     static bool checkType(Type*, AST*); // 类型判断
 
 public:

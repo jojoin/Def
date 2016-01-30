@@ -15,6 +15,7 @@
 #include "../global.h"
 
 #include "./type.h"
+#include "./error.h"
 
 #include "../compile/gen.h"
 #include "../parse/tokenizer.h"
@@ -36,8 +37,13 @@ using namespace def::compile;
  */
 struct AST
 {
-    virtual llvm::Value* codegen(Gen &) { return nullptr; };
+    virtual llvm::Value* codegen(Gen &) { return nullptr;  };
     virtual void print(string pre="", string ind="") {};
+    virtual def::core::Type* getType() {
+        FATAL("cannot call getType() , this AST is not a <value> !")
+    };
+    // 是否为 value 值（除了函数、类型的声明、定义等）
+    virtual bool isValue() { return false; }; 
 };
 
 
@@ -51,9 +57,12 @@ struct AST##N : AST \
 { \
     virtual void print(string, string); \
 
+
 #define AST_CODE_HEAD(N) \
 AST_HEAD(N) \
     virtual llvm::Value* codegen(Gen &); \
+    virtual def::core::Type* getType(); \
+    virtual bool isValue() { return true; }; \
 
 
 // 块

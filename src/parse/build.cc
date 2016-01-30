@@ -24,15 +24,24 @@ using namespace def::sys;
 using namespace def::compile;
 using namespace def::parse;
 
-    
+
 #define Word Tokenizer::Word 
 #define State Tokenizer::State
-    
+
 #define ISWS(TS) word.state==State::TS
 #define NOTWS(TS) !(ISWS(TS))
 #define ISSIGN(S) ISWS(Sign)&&word.value==S
 #define NOTSIGN(S) !(ISSIGN(S))
 #define ISCHA(S) ISWS(Character)&&word.value==S
+
+// 检查符号
+/*
+#define CHECKSIGN(S,F)
+    auto word = getWord(); 
+    if(NOTSIGN(S)){
+        FATAL(F)
+    } 
+    */
 
     
 /**
@@ -182,12 +191,23 @@ AST* Build::build(bool spread)
 
         // 函数调用 ？
         if (auto gr = dynamic_cast<ElementGroup*>(res)) {
+            
+            auto fncall = _functionCall(chara ,stack);
+            if (fncall) {
+                /*if(!fncall->fndef){
+                    FATAL(" !!!! fncall->fndef ");
+                }*/
+                return fncall;
+            }
+
+            /*
             try {
                 return buildFunctionCall(chara, gr);
             } catch (...) {
                 // do nothing
                 // cout << chara+": no function match" << endl;
             }
+            */
         }
 
         // 模板函数调用？
@@ -246,14 +266,14 @@ AST* Build::buildVaribale(Element* elm, const string & name)
     }
 
     // 是否为类成员访问
-    if(stack->tydef && stack->fundef){
+    if(stack->tydef && stack->fndef){
         AST* instance = new ASTVariable( // 类变量
             DEF_MEMFUNC_ISTC_PARAM_NAME,
             stack->tydef->type
         );
         // 访问类本身
         if (name==DEF_MEMFUNC_ISTC_PARAM_NAME) {
-            stack->fundef->is_static_member = false; // 有成员函数
+            stack->fndef->is_static_member = false; // 有成员函数
             return instance;
         }
         int i = 0;
@@ -261,7 +281,7 @@ AST* Build::buildVaribale(Element* elm, const string & name)
             if (p==name) { // 找到
                 // 返回类成员访问
                 AST* elmget = new ASTMemberVisit(instance, i);
-                stack->fundef->is_static_member = false; // 有成员函数
+                stack->fndef->is_static_member = false; // 有成员函数
                 return elmget;
             }
             i++;
@@ -289,7 +309,7 @@ AST* Build::buildCoreDefine(const string & name)
 
 /**
  * 函数调用
- */
+ *
 AST* Build::buildFunctionCall(const string & name, ElementGroup* grp, bool istpf)
 {
     auto *fncall = new ASTFunctionCall(nullptr);
@@ -301,7 +321,7 @@ AST* Build::buildFunctionCall(const string & name, ElementGroup* grp, bool istpf
     // string fname(name); // 函数参数组装名
     // vector<Element*> matchs; // 匹配的函数
     // ElementFunction* elmfn;
-    ASTFunctionDefine* fundef(nullptr);
+    ASTFunctionDefine* fndef(nullptr);
 
     // 临时用来查询函数的类型
     auto *tmpfty = new TypeFunction(name);
@@ -312,8 +332,8 @@ AST* Build::buildFunctionCall(const string & name, ElementGroup* grp, bool istpf
         // 匹配函数（第一次无参）
         int match = filter.match(tmpfty);
         if (match==1 && filter.unique) {
-            fundef = filter.unique; // 找到唯一匹配
-            string idname = fundef->ftype->getIdentify();
+            fndef = filter.unique; // 找到唯一匹配
+            string idname = fndef->ftype->getIdentify();
             break;
         }
         if (match==0) {
@@ -325,7 +345,7 @@ AST* Build::buildFunctionCall(const string & name, ElementGroup* grp, bool istpf
         prepareWord(word); // 上层处理括号
         if (ISWS(End) || ISSIGN(")")) { // 提前手动调用结束
             if (filter.unique) {
-                fundef = filter.unique; // 找到唯一匹配
+                fndef = filter.unique; // 找到唯一匹配
                 break;
             }
         }
@@ -333,22 +353,23 @@ AST* Build::buildFunctionCall(const string & name, ElementGroup* grp, bool istpf
         AST *exp = build();
         if (!exp) {
             if (filter.unique) {
-                fundef = filter.unique; // 无更多参数，找到匹配
+                fndef = filter.unique; // 无更多参数，找到匹配
                 break;
             }
         }
         cachebuilds.push_back(exp);
         fncall->addparam(exp); // 加实参
-        auto *pty = getType(exp);
+        auto *pty = exp->getType();
         // 重载函数名
         tmpfty->add("", pty);
     }
 
-    fncall->fndef = fundef; // elmfn->fndef;
+    fncall->fndef = fndef; // elmfn->fndef;
         
     return fncall;
 
 }
+*/
 
 /**W
  * 解析模板函数
@@ -359,63 +380,45 @@ AST* Build::buildTemplateFuntion(const string & name, ElementTemplateFuntion* tp
     TypeFunction* functy = new TypeFunction(name);
     
     // 创建新函数
-    auto *fundef = new ASTFunctionDefine(functy);
+    auto *fndef = new ASTFunctionDefine(functy);
 
     // 创建模板函数调用
-    auto *fcall = new ASTFunctionCall(fundef);
+    auto *fncall = new ASTFunctionCall(fndef);
 
     // 创建新分析栈
     Stack* old_stack = stack;
     Stack new_stack(stack);
-    fundef->wrap = stack->fundef; // wrap
-    new_stack.fundef = fundef; // 当前定义的函数
+    fndef->wrap = stack->fndef; // wrap
+    new_stack.fndef = fndef; // 当前定义的函数
 
-    // ElementStack nsk; // 缓存旧变量
     // 实参入栈
-
-
-    //list<AST*> paramcaches;
-    // ElementStack nsk; // 缓存旧变量
     for (auto &pn : tpf->tpfdef->params) {
-        AST* p = build(); // 不取缓存
-        //paramcaches.push_back(p); // 缓存
-        fcall->addparam(p);
-        Type *ty = getType(p);
+        AST* p = build();
+        fncall->addparam(p);
+        Type *ty = p->getType();
         functy->add(pn, ty); // 参数类型
         new_stack.put(pn, new ElementVariable(ty)); // 加实参
-        //nsk[pn] = old; // 缓存被覆盖的
     }
-
-    /*
-    int i(0);
-    for (auto &pty : functy->types) {
-        string pn(functy->tabs[i]);
-        new_stack.put(pn, new ElementVariable(pty)); // 加实参
-        i++;
-    }
-    */
 
     // 替换新栈帧
     stack = & new_stack;
     
-    // 函数体词组
-    // prepare_words = tpf->tpfdef->bodywords;
+    // 预备函数体词组
     prepareWord(tpf->tpfdef->bodywords);
 
     // 解析函数体
     ASTGroup *body = createAST();
-    auto word = getWord();
-    if (NOTSIGN(")")) {
-        FATAL("Error format function body !")
-    }
+    auto word = getWord(); 
+    if(NOTSIGN(")")){
+        FATAL("Error format function body !)")
+    } 
 
-    // 创建函数体
     // 添加新函数
     Type* tyret(nullptr);
     size_t bodylen = body->childs.size();
     if(bodylen>0){
         // 获取函数体最后一句为返回类型
-        tyret = getType(body->childs[bodylen-1]);
+        tyret = body->childs.back()->getType();
     }
 
     // 检查返回值类型一致性
@@ -438,34 +441,18 @@ AST* Build::buildTemplateFuntion(const string & name, ElementTemplateFuntion* tp
 
     // 设置可能标记的返回值
     functy->ret = tyret;
-    fundef->ftype = functy;
+    fndef->ftype = functy;
     // 加上 Body
-    fundef->body = body;
+    fndef->body = body;
 
-    
     // 复位旧栈帧
     stack = old_stack;
 
     // 添加新函数
-    stack->addFunction(fundef);
+    stack->addFunction(fndef);
 
-    // 设置缓存的参数
-    // prepareBuild(paramcaches);
-
-    
-    return fcall;
-
-
-    // 解析函数
-    /*
-    if (auto res = dynamic_cast<ElementGroup*>(stack->find(name, true))) {
-        return buildFunctionCall(name, res, true);
-    } else {
-        FATAL("Add new function fail !")
-    }
-    */
-
-    // TODO:: 创建函数调用
+    // 返回函数调用
+    return fncall;
 }
 
 /**
@@ -473,9 +460,12 @@ AST* Build::buildTemplateFuntion(const string & name, ElementTemplateFuntion* tp
  */
 AST* Build::buildConstruct(ElementType* ety, const string & name)
 {
+    // 构造函数名称
+    string fname = DEF_PREFIX_CSTC + name;
+
     auto *tyclass = (TypeStruct*)ety->type;
     // 查找是否存在构造函数
-    auto fd = stack->find(DEF_PREFIX_CSTC + name);
+    auto fd = stack->find(fname);
 
     // 无构造函数时
     if (!fd) {
@@ -485,15 +475,27 @@ AST* Build::buildConstruct(ElementType* ety, const string & name)
             cst->add(build());
         }
         return cst;
-        
     }
 
     // 调用构造函数
     auto *val = new ASTTypeConstruct(tyclass, true); // 空构造
 
+    // 类型内部栈
+    auto target_stack = type_member_stack[tyclass];
 
-    string funname = DEF_PREFIX_CSTC + name;
-    
+    // 函数调用
+    ASTFunctionCall* fncall =
+        _functionCall(fname ,target_stack, false);
+
+    // 未找到合适的构造函数
+    if ( ! fncall) {
+        FATAL("can't match class '"+tyclass->name
+            +"' construct function '"
+            +fname+"' !")
+    }
+
+
+    /*
     // 查询目标类成员函数
     // auto word = getWord();
     auto target_stack = type_member_stack[tyclass];
@@ -509,7 +511,7 @@ AST* Build::buildConstruct(ElementType* ety, const string & name)
     auto *fncall = new ASTFunctionCall(nullptr);
     // auto elms = grp->elms;
         
-    ASTFunctionDefine* fundef(nullptr);
+    ASTFunctionDefine* fndef(nullptr);
 
     // 临时用来查询函数的类型
     auto *tmpfty = new TypeFunction(funname);
@@ -522,8 +524,8 @@ AST* Build::buildConstruct(ElementType* ety, const string & name)
         // 匹配函数（第一次无参）
         int match = filter.match(tmpfty);
         if (match==1 && filter.unique) {
-            fundef = filter.unique; // 找到唯一匹配
-            string idname = fundef->ftype->getIdentify();
+            fndef = filter.unique; // 找到唯一匹配
+            string idname = fndef->ftype->getIdentify();
             break;
         }
         if (match==0) {
@@ -536,7 +538,7 @@ AST* Build::buildConstruct(ElementType* ety, const string & name)
         prepareWord(word); // 上层处理括号
         if (ISWS(End) || ISSIGN(")")) { // 提前手动调用结束
             if (filter.unique) {
-                fundef = filter.unique; // 找到唯一匹配
+                fndef = filter.unique; // 找到唯一匹配
                 break;
             }
         }
@@ -544,19 +546,19 @@ AST* Build::buildConstruct(ElementType* ety, const string & name)
         AST *exp = build();
         if (!exp) {
             if (filter.unique) {
-                fundef = filter.unique; // 无更多参数，找到匹配
+                fndef = filter.unique; // 无更多参数，找到匹配
                 break;
             }
             FATAL("No macth function '"+tyclass->name+"."+tmpfty->getIdentify()+"' !");
         }
         //cachebuilds.push_back(exp);
         fncall->addparam(exp); // 加实参
-        auto *pty = getType(exp);
+        auto *pty = exp->getType();
         // 重载函数名
         tmpfty->add("", pty);
     }
 
-    fncall->fndef = fundef; // elmfn->fndef;
+    fncall->fndef = fndef; // elmfn->fndef;
         
 
     delete tmpfty;
@@ -564,17 +566,14 @@ AST* Build::buildConstruct(ElementType* ety, const string & name)
 
 
     // 静态成员函数验证
-    //if (is_static && ! fundef->is_static_member) {
-    //    FATAL("'"+fundef->ftype->name+"' is not a static member function !")
+    //if (is_static && ! fndef->is_static_member) {
+    //    FATAL("'"+fndef->ftype->name+"' is not a static member function !")
     //}
-
+    */
     
     auto * mfc = new ASTMemberFunctionCall(val, fncall);
 
     return mfc;
-
-
-
 }
 
 /**
@@ -697,7 +696,7 @@ AST* Build::build_var()
     auto vardef = new ASTVariableDefine( name, value );
 
     // 添加变量到栈
-    stack->put(name, new ElementVariable(getType(value)));
+    stack->put(name, new ElementVariable(value->getType()));
 
     return vardef;
 }
@@ -727,17 +726,17 @@ AST* Build::build_set()
             );
             // 赋值类本身
             if (name==DEF_MEMFUNC_ISTC_PARAM_NAME) {
-                stack->fundef->is_static_member = false; // 有成员函数
+                stack->fndef->is_static_member = false; // 有成员函数
                 return instance;
             }
             Type* elmty = stack->tydef->type->elmget(name);
             if (elmty) { // 找到成员
                 AST* value = build();
                 // 类型检查
-                if ( ! getType(value)->is(elmty)) {
+                if ( ! value->getType()->is(elmty)) {
                     FATAL("member assign type not match !")
                 }
-                stack->fundef->is_static_member = false; // 有成员函数
+                stack->fndef->is_static_member = false; // 有成员函数
                 // 返回类成员赋值
                 return new ASTMemberAssign(
                     instance,
@@ -755,7 +754,7 @@ AST* Build::build_set()
 
     // 值
     AST* value = build();
-    Type* vty = getType(value);
+    Type* vty = value->getType();
 
     // 类型检查
     if (!vty->is(ty)) {
@@ -800,7 +799,7 @@ AST* Build::build_type()
 
     // 新建类型
     TypeStruct* tyclass = new TypeStruct(typeName);
-    if (stack->fundef) {
+    if (stack->fndef) {
         tyclass->increment(); // 函数定义名称加上自增索引
     }
 
@@ -816,7 +815,7 @@ AST* Build::build_type()
     // 添加到当前栈帧 支持函数参数
     new_stk->put(typeName, elmty);
     new_stk->tydef = tydef;
-    new_stk->fundef = nullptr; // 类成员函数不属于任何包裹函数
+    new_stk->fndef = nullptr; // 类成员函数不属于任何包裹函数
     stack = new_stk;
 
 
@@ -830,13 +829,13 @@ AST* Build::build_type()
             break; // 类型声明结束
         }
         // 类函数定义
-        AST* fundef(nullptr);
+        AST* fndef(nullptr);
         if("fun"==word.value){
-            fundef = build_fun();
+            fndef = build_fun();
         } else if ("dcl" == word.value) {
-            fundef = build_dcl();
+            fndef = build_dcl();
         }
-        if (fundef) {
+        if (fndef) {
             continue; // 成员函数定义
         }
         // 类型标示
@@ -925,17 +924,17 @@ AST* Build::build_dcl()
     }
     
     // 函数是否已经声明
-    ASTFunctionDefine* fundef = stack->findFunction(functy);
+    ASTFunctionDefine* fndef = stack->findFunction(functy);
 
     // 判断函数是否已经定义
-    if (!fundef) {
-        fundef = new ASTFunctionDefine(functy, nullptr);
+    if (!fndef) {
+        fndef = new ASTFunctionDefine(functy, nullptr);
         // 添加新函数
-        stack->addFunction(fundef);
+        stack->addFunction(fndef);
     }
 
     // 返回函数声明
-    return new ASTFuntionDeclare(fundef->ftype);
+    return new ASTFuntionDeclare(fndef->ftype);
 }
 
 /**
@@ -966,7 +965,7 @@ AST* Build::build_fun()
     }
     
     // 普通函数处理
-    if (!status_construct ) {
+    if (!status_construct) {
         Element* elmret = stack->find(word.value);
         if (auto *ety = dynamic_cast<ElementType*>(elmret)) {
             rty = ety->type;
@@ -980,7 +979,8 @@ AST* Build::build_fun()
         if (NOTWS(Character)) {
             FATAL("function define need a legal name !")
         }
-        // 括号
+
+        // 括号验证
         auto word = getWord();
         if (NOTSIGN("(")) {
             FATAL("function  define need a sign ( to belong !")
@@ -989,15 +989,12 @@ AST* Build::build_fun()
 
     // 新建函数类型
     string funcname = word.value;
-    TypeFunction *functy;
-    TypeFunction *constructfuncty;
+    string cstc_funcname = funcname;
     if (status_construct) {
-        functy = new TypeFunction(DEF_PREFIX_CSTC + funcname);
-        constructfuncty = new TypeFunction(DEF_PREFIX_CSTC + funcname);
-    
-    } else {
-        functy = new TypeFunction(funcname);
+        cstc_funcname = DEF_PREFIX_CSTC + funcname;
     }
+    TypeFunction *functy = new TypeFunction(cstc_funcname);
+    TypeFunction *constructfuncty = new TypeFunction(cstc_funcname);
 
 
     // 函数参数解析
@@ -1033,7 +1030,7 @@ AST* Build::build_fun()
 
     // 函数是否已经声明
     ASTFunctionDefine* aldef = stack->findFunction(functy);
-    ASTFunctionDefine *fundef;
+    ASTFunctionDefine *fndef;
 
     // 判断函数是否已经定义
     if (aldef){
@@ -1041,26 +1038,26 @@ AST* Build::build_fun()
             // 函数以声明，且 body 已定义
             FATAL("function define repeat: " + functy->str());
         }
-        fundef = aldef;
+        fndef = aldef;
     } else {
         // 新建函数定义
-        fundef = new ASTFunctionDefine(functy);
+        fndef = new ASTFunctionDefine(functy);
     }
 
     // 设置可能标记的返回值
     functy->ret = rty;
-    fundef->ftype = functy;
+    fndef->ftype = functy;
 
     // 创建新分析栈
     Stack* old_stack = stack;
     Stack new_stack(stack);
-    new_stack.fundef = fundef; // 当前定义的函数
+    new_stack.fndef = fndef; // 当前定义的函数
     // 提前 添加函数 支持递归
-    new_stack.addFunction(fundef);
+    new_stack.addFunction(fndef);
 
     // 函数定义环境
-    fundef->wrap = stack->fundef; // wrap
-    fundef->belong = stack->tydef; // belong
+    fndef->wrap = stack->fndef; // wrap
+    fndef->belong = stack->tydef; // belong
 
     // ElementStack nsk; // 缓存旧变量
     int i(0);
@@ -1102,14 +1099,18 @@ AST* Build::build_fun()
     
     if ( ! status_construct) {
         // 返回值验证与推断
-        size_t bodylen = body->childs.size();
+        size_t len = body->childs.size();
         Type *lastChildTy(nullptr);
-        if(bodylen>0){
-            // 获取函数体最后一句为返回类型
-            AST* last = body->childs[bodylen - 1];
-            lastChildTy = getType(last);
+        while (len--) {
+            AST* li = body->childs[len];
+            if (li->isValue()) {
+                lastChildTy = li->getType();
+                break;
+            }
         }
-
+        if ( ! lastChildTy) {
+            lastChildTy = Type::get("Nil");
+        }
         // 检查返回值类型一致性
         verifyFunctionReturnType(lastChildTy);
     }
@@ -1130,7 +1131,7 @@ AST* Build::build_fun()
 
 
     // 加上 Body
-    fundef->body = body;
+    fndef->body = body;
 
     // 构造函数入栈
     if (status_construct) {
@@ -1141,8 +1142,10 @@ AST* Build::build_fun()
         constrct->is_construct = true;
         main_stack->addFunction(constrct);
         // 
-        fundef->is_construct = true;
-        fundef->is_static_member = false;
+        fndef->is_construct = true;
+        fndef->is_static_member = false;
+    } else {
+        delete constructfuncty;
     }
 
     // 函数已经声明过了，添加 body
@@ -1154,21 +1157,21 @@ AST* Build::build_fun()
     // 否则添加新函数
     } else {
         // 是否为构造函数
-        fundef->is_construct = status_construct;
-        fundef->is_construct = status_construct;
-        stack->addFunction(fundef);
+        fndef->is_construct = status_construct;
+        fndef->is_construct = status_construct;
+        stack->addFunction(fndef);
     }
 
     // 添加到类成员函数
     if(stack->tydef){
-        stack->tydef->members.push_back(fundef);
+        stack->tydef->members.push_back(fndef);
     }
     
     // 复位
     status_construct = false;
 
     // 返回值
-    return fundef;
+    return fndef;
 }
 
 /**
@@ -1178,7 +1181,7 @@ AST* Build::build_ret()
 {
     AST *ret = build();
     // 验证返回值
-    verifyFunctionReturnType( getType(ret) );
+    verifyFunctionReturnType( ret->getType() );
     return new ASTRet(ret);
 }
 
@@ -1197,7 +1200,7 @@ AST* Build::build_tpf()
     if (stack->find(DEF_PREFIX_TPF + tpfName)) {
         FATAL("template function duplicate definition '"+tpfName+"' !");
     }
-
+    
     word = getWord();
     if (NOTSIGN("(")) {
         FATAL("template function define need a sign ( to belong !")
@@ -1242,7 +1245,7 @@ AST* Build::build_if()
 #define DO_FATAL FATAL("No match bool function Type<"+idn+"> when be used as a if condition")
     
     AST* cond = build();
-    Type* cty = getType(cond);
+    Type* cty = cond->getType();
     Type* boolty = Type::get("Bool");
 
     string idn = cty->getIdentify();
@@ -1294,7 +1297,7 @@ AST* Build::build_while()
 #define DO_FATAL FATAL("No match bool function Type<"+idn+"> when be used as a while flow !")
     
     AST* cond = build();
-    Type* cty = getType(cond);
+    Type* cty = cond->getType();
     Type* boolty = Type::get("Bool");
 
     string idn = cty->getIdentify();
@@ -1398,122 +1401,6 @@ AST* Build::build_let()
 }
 
 /**
- * let 符号绑定展开
- *
-AST* Build::spreadLetBind(list<Word>*pwds)
-{
-    string idname("");
-
-    // 参数
-    vector<Word> params;
-    Word placeholder;
-    if (pwds) { // 上层存在，并且连续绑定
-        idname = "_";
-        params.push_back(placeholder);
-    }
-
-    list<Word> caches;
-    
-    ElementLet* let(nullptr);
-    //ElementLet* macth(nullptr);
-    //string stkn("");
-
-    filterLet* filter(nullptr);
-
-    while (true) {
-        auto word = getWord();
-        caches.push_back(word);
-        if (ISWS(Operator)) {
-            idname += word.value;
-        }
-        else {
-            idname += "_";
-            params.push_back(word);
-        }
-        if (!filter) {
-            filter = new filterLet(stack, idname);
-            continue;
-        }
-        int num = filter->match(idname);
-        if (filter->unique) {
-            let = filter->unique;
-            goto macth_success; // 找到唯一匹配
-        }
-        if (num==0) {
-            FATAL("let bind can't find !")
-        }
-    }
-
-    FATAL("let bind can't find until the end !")
-
-
-    macth_success:
-
-    // 解析参数
-    map<string, Word> pmstk;
-    int i = 0;
-    for (auto &p : let->params) {
-        pmstk[p] = params[i];
-        i++;
-    }
-
-    // 展开参数
-    list<Word> results;
-    for (auto &word : let->bodywords) {
-        string str(word.value);
-        if (ISWS(Character) && pmstk.find(str) != pmstk.end()) {
-            auto wd = pmstk[str];
-            if (wd == placeholder) {
-                for (auto &p : *pwds) {
-                    // 上层解析的内容替换
-                    results.push_back(p);
-                }
-            }
-            else {
-                results.push_back(wd); // 参数替换
-            }
-        }
-        else {
-            results.push_back(word);
-        }
-    }
-
-    auto word = getWord();
-
-    // 查看接下来是否需要继续绑定符号
-    if (ISWS(Operator)) {
-        // 继续绑定
-        prepareWord(word);
-        return spreadLetBind(&results);
-    } else {
-
-        cout << "spreadLetBind【";
-        for (auto &p : results) {
-            cout << " " << p.value;
-        }
-        cout << "】" << endl;
-
-
-        // 符号绑定结束
-        prepareWord(word);
-        // 预备
-        prepareWord(results);
-        // 重新开始
-        return build();
-
-    }
-
-
-
-
-
-
-
-
-
-}
-*/
-/**
  * member call 成员函数调用
  */
 AST* Build::build_elmivk()
@@ -1540,146 +1427,33 @@ AST* Build::build_elmivk()
             FATAL("elmivk must belong a struct value !")
         }
         // val->print();
-        tyclass  = dynamic_cast<TypeStruct*>(getType(val));
+        tyclass  = dynamic_cast<TypeStruct*>(val->getType());
     }
 
     if( ! tyclass){
         FATAL("elmivk must belong a struct value '"+word.value+"' !")
     }
 
-    // 查询目标类成员函数
-    word = getWord();
+    // 类内部栈
     auto target_stack = type_member_stack[tyclass];
-    // 成员函数调用，不向上查找
-    auto filter = filterFunction(target_stack, word.value, false);
-    if (!filter.size()) {
+
+    // 成员函数名称
+    word = getWord();
+    string fname = word.value;
+
+    // 函数调用
+    ASTFunctionCall* fncall =
+        _functionCall(fname ,target_stack, false);
+
+    if ( ! fncall) {
         FATAL("can't find member function '"
-            +word.value+"' in class '"+tyclass->name+"'")
+            +fname+"' in class '"+tyclass->name+"'")
     }
-
-
-    string name = word.value;
-    auto *fncall = new ASTFunctionCall(nullptr);
-    // auto elms = grp->elms;
-        
-    ASTFunctionDefine* fundef(nullptr);
-
-    // 临时用来查询函数的类型
-    auto *tmpfty = new TypeFunction(name);
-
-
-    // 解析成员函数调用
-
-        // 采用贪婪匹配模式
-    while (true) {
-        // 匹配函数（第一次无参）
-        int match = filter.match(tmpfty);
-        if (match==1 && filter.unique) {
-            fundef = filter.unique; // 找到唯一匹配
-            string idname = fundef->ftype->getIdentify();
-            break;
-        }
-        if (match==0) {
-            //prepareBuild(cachebuilds);
-            FATAL("No macth function '"+tyclass->name+"."+tmpfty->getIdentify()+"' !");
-            // throw ""; // 无匹配
-        }
-        // 判断函数是否调用结束
-        auto word = getWord();
-        prepareWord(word); // 上层处理括号
-        if (ISWS(End) || ISSIGN(")")) { // 提前手动调用结束
-            if (filter.unique) {
-                fundef = filter.unique; // 找到唯一匹配
-                break;
-            }
-        }
-        // 添加参数
-        AST *exp = build();
-        if (!exp) {
-            if (filter.unique) {
-                fundef = filter.unique; // 无更多参数，找到匹配
-                break;
-            }
-            FATAL("No macth function '"+tyclass->name+"."+tmpfty->getIdentify()+"' !");
-        }
-        //cachebuilds.push_back(exp);
-        fncall->addparam(exp); // 加实参
-        auto *pty = getType(exp);
-        // 重载函数名
-        tmpfty->add("", pty);
-    }
-
-
-
-    /*
-    while (1) {
-        AST *exp;
-        auto word = getWord();
-        if (ISSIGN(";")) { // 函数调用结束
-            int match = filter.match(tmpfty);
-            if(filter.unique){
-                fundef = filter.unique;
-                break;
-            }
-            if (match==0) {
-                prepareBuild(cachebuilds); // 复位缓存节点
-                throw "No macth function !";
-                // FATAL("No macth function !")
-            }
-        } else {
-            prepareWord(word);
-        }
-        // 匹配函数（第一次无参）
-        int match = filter.match(tmpfty);
-        if(filter.unique){
-            fundef = filter.unique;
-            break;
-        }
-        if (match==0) {
-            prepareBuild(cachebuilds); // 复位缓存节点
-            throw "No macth function !";
-            // FATAL("No macth function !")
-        }
-        // 添加参数
-        exp = build();
-        cachebuilds.push_back(exp);
-        fncall->addparam(exp); // 加实参
-        auto *pty = getType(exp);
-        // 重载函数名
-        tmpfty->add("", pty);
-    }
-    */
-
-    fncall->fndef = fundef; // elmfn->fndef;
-        
-    // return fncall;
-
-    delete tmpfty;
-
-
-    /*
-
-
-    // 启动新栈
-    auto old_stack = stack;
-    stack = type_member_stack[tyclass];
-
-    // 调用函数
-    AST* res = build();
-    auto* fcall  = dynamic_cast<ASTFunctionCall*>(res);
-    if( ! fcall){
-        FATAL("elmivk must belong a member function call !")
-    }
-    // 复位栈
-    stack = old_stack;
-
-    
-    */
 
 
     // 静态成员函数验证
-    if (is_static && ! fundef->is_static_member) {
-        FATAL("'"+fundef->ftype->name+"' is not a static member function !")
+    if (is_static && ! fncall->fndef->is_static_member) {
+        FATAL("'"+fncall->fndef->ftype->name+"' is not a static member function !")
     }
 
     auto * mfc = new ASTMemberFunctionCall(val, fncall);
@@ -1696,7 +1470,7 @@ AST* Build::build_elmget()
     auto *ins = new ASTMemberVisit();
 
     AST* sctval = build();
-    auto* scty = dynamic_cast<TypeStruct*>(getType(sctval));
+    auto* scty = dynamic_cast<TypeStruct*>(sctval->getType());
     if( ! scty ){
         FATAL("elmget must eat a Struct value !")
     }
@@ -1728,7 +1502,7 @@ AST* Build::build_elmset()
     auto *ins = new ASTMemberAssign();
 
     AST* sctval = build();
-    auto* scty = dynamic_cast<TypeStruct*>(getType(sctval));
+    auto* scty = dynamic_cast<TypeStruct*>(sctval->getType());
     if( ! scty ){
         FATAL("elmget must eat a Struct value !")
     }
@@ -1750,7 +1524,7 @@ AST* Build::build_elmset()
     ins->index = pos;
     
     AST* putv = build();
-    Type* putty = getType(putv);
+    Type* putty = putv->getType();
     // 类型检查
     Type* pvty = scty->types[ins->index];
     if (!putty->is(pvty)) {
@@ -1989,3 +1763,80 @@ void Build::cacheWordSegment(list<Word>& cache)
 
 
 
+
+/********************************************************/
+
+
+
+/**
+ * 建立函数调用
+ */
+TypeFunction* Build::_functionType(bool declare)
+{
+    return nullptr;
+}
+
+/**
+ * 建立函数调用
+ */
+ASTFunctionCall* Build::_functionCall(const string & fname, Stack* stack, bool up)
+{
+    auto *fncall = new ASTFunctionCall(nullptr);
+    ASTFunctionDefine *fndef(nullptr);
+
+    // 节点缓存
+    list<AST*> cachebuilds;
+
+    // 临时用来查询函数的类型
+    auto *tmpfty = new TypeFunction(fname);
+    filterFunction filter = filterFunction(stack, fname, up);
+    if (!filter.size()) {
+        return nullptr; // 无函数
+    }
+
+    // 采用贪婪匹配模式
+    while (true) {
+        // 匹配函数（第一次无参）
+        int match = filter.match(tmpfty);
+        if (match==1 && filter.unique) {
+            fndef = filter.unique; // 找到唯一匹配
+            string idname = fndef->ftype->getIdentify();
+            break;
+        }
+        // 无匹配
+        if (match==0) {
+            prepareBuild(cachebuilds); // 复位建立的节点
+            delete tmpfty;
+            delete fncall;
+            return nullptr;
+        }
+        // 判断函数是否调用结束
+        auto word = getWord();
+        prepareWord(word); // 上层处理括号
+        if (ISWS(End) || ISSIGN(")")) { // 提前手动调用结束
+            if (filter.unique) {
+                fndef = filter.unique; // 找到唯一匹配
+                break;
+            }
+        }
+        // 添加参数
+        AST *exp = build();
+        if (!exp) {
+            if (filter.unique) {
+                fndef = filter.unique; // 无更多参数，找到匹配
+                break;
+            }
+        }
+        cachebuilds.push_back(exp);
+        fncall->addparam(exp); // 加实参
+        auto *pty = exp->getType();
+        // 重载函数名
+        tmpfty->add("", pty);
+    }
+
+    fncall->fndef = fndef; // elmfn->fndef;
+       
+    // 函数调用解析成功
+    delete tmpfty;
+    return fncall;
+}
