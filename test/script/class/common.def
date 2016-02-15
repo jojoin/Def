@@ -1,26 +1,26 @@
-#-
+;-
     类型定义
--#
+-;
 
 
 include "../std.def"
 
 
-## 普通类型、静态成员函数
+;; 普通类型、静态成员函数
 type Class (
     Int x
     Int y
-    # 成员函数
+    ; 成员函数
     fun setX(Int v)(
 		x+=v
     )
-    # 静态成员（未使用成员变量的函数自动为静态成员）
+    ; 静态成员（未使用成员变量的函数自动为静态成员）
     fun Class add(Class a Class b)(
         Class
 			(a.x)+(b.x)
 			(a.y)+(b.y)
     )
-    fun puts()( # 打印
+    fun puts()( ; 打印
         putchar x
         putchar y
     )
@@ -28,7 +28,7 @@ type Class (
 
 
 
-# 成员函数声明
+; 成员函数声明
 type Complex (
     Class a
     Class b
@@ -37,14 +37,13 @@ type Complex (
     dcl Complex puts()
 )
 
-
-## 成员函数外部定义
+;; 成员函数外部定义
 elmdef Complex fun setA(Class v)(
-    a = (Class:add a v) # 静态成员函数调用
+    a = (Class:add a v) ; 静态成员函数调用
 )
 
 
-## 多个成员函数外部定义
+;; 多个成员函数外部定义
 elmdef Complex (
     fun setB(Class v)(
         b=v
@@ -64,7 +63,7 @@ elmdef Complex (
         putchar 10
 		ret this
     )
-	# ... 其它成员函数
+	; ... 其它成员函数
 )
 
 
@@ -83,7 +82,7 @@ fun putchar(Complex p)(
 )
 
 
-## 成员函数调用
+;; 成员函数调用
 putchar c1:setX 97
 putchar c2.x
 
@@ -93,9 +92,9 @@ putchar com:setB Class 99 99
 putchar com:puts
 
 
-## 静态成员函数调用
-putchar c1:add c1 c2       # 通过实例调用
-putchar Class:add c1 c2    # 通过类名调用
+;; 静态成员函数调用
+putchar c1:add c1 c2       ; 通过实例调用
+putchar Class:add c1 c2    ; 通过类名调用
 
 
 

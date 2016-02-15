@@ -1,13 +1,13 @@
-#-
+;-
     嵌套函数定义 调用
--#
+-;
 
 
 include "../type.def"
 include "../variable.def"
 
 
-## 嵌套定义 修改外层变量
+;; 嵌套定义 修改外层变量
 fun wrap(Int n)(
     
 	var k 35
@@ -30,45 +30,45 @@ wrap 97
 
 
 
-## 申明
+;; 申明
 dcl Int getPxAdd(Point)
 
 
-## 调用
+;; 调用
 putchar getPxAdd p3
 
 
-## 函数定义
+;; 函数定义
 fun getPxAdd(Point p)(
 
     dcl Int getPx(Int)
 
     var it add
         elmget p1 x
-        getPx 2 # 调用
+        getPx 2 ; 调用
 
     ret it
         
-    # 嵌套定义
+    ; 嵌套定义
     fun getPx(Int num)(
 
         dcl Int getPx2(Int)
 
         elmget p x
 
-        # 调用
+        ; 调用
         ret add num getPx2 num
 
-        # 嵌套定义
+        ; 嵌套定义
         fun getPx2(Int n)(
 
             dcl Int getPx3(Int)
             elmget p x
 
-            # 调用
+            ; 调用
             ret add n getPx3 n
 
-            # 嵌套定义
+            ; 嵌套定义
             fun getPx3(Int k)(
                 var r1 add k n
                 var r2 add elmget p1 x

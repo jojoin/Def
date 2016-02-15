@@ -86,14 +86,14 @@ void Tokenizer::jumpWhitespace()
     char c;
     while (1) {
         c = getchar();
-        if (c=='#') { // 注释
+        if (c==DEF_RESERVED_TOK_ANNOTA) { // 注释
             c = getchar();
 
             if ('-'==c) { // 块
                 char o = getchar();
                 while (1) {
                     c = getchar();
-                    if (o=='-' && c=='#') {
+                    if (o=='-' && c==DEF_RESERVED_TOK_ANNOTA) {
                         break; // 块结束
                     }
                     o = c;
@@ -191,8 +191,8 @@ char Tokenizer::escape(const char & t)
  */
 bool Tokenizer::isoperator(const char & t)
 {
-    // 保留符号 # () ' " ` ;
-    string opts = "~!@$%^&=+-*/,.:?|<>[]{}\\";
+    // 保留符号 () ' " ` ;
+    string opts = "~!@#$%^&*-+=/\\,.:?|<>[]{}";
     int pos = opts.find_first_of(t);
     return pos==-1 ? false : true;
 }
@@ -228,7 +228,7 @@ Tokenizer::State Tokenizer::state(const char & tok)
         return State::Number;
     }
 
-    if( tok=='#' ){ // 注释
+    if (tok == DEF_RESERVED_TOK_ANNOTA) { // 注释
         return State::Annotation;
     }
     
@@ -239,7 +239,7 @@ Tokenizer::State Tokenizer::state(const char & tok)
         return State::Char;
     }
 
-    if (tok == '(' || tok == ')' || tok == ';') { // 标记
+    if (tok == '(' || tok == ')') { // 保留符号
         return State::Sign;
     }
 
@@ -342,7 +342,7 @@ Tokenizer::Word Tokenizer::gain()
         } else if (OS(BlockAnnotation)){
             char ct = getchar();
             while(1){
-                if(prev=='-'&&ct=='#'){
+                if (prev == '-'&&ct == DEF_RESERVED_TOK_ANNOTA) {
                     break; // 块注释结束
                 }
                 prev = ct;

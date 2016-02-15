@@ -1,46 +1,39 @@
-#-
+;-
 	单元测试
--#
+-;
 
-## 测试单元
+;; 测试单元
 
+;-
 
+include "script/type.def"                 ; 类型
+include "script/variable.def"             ; 变量
 
-include "script/type.def"                 # 类型
-include "script/variable.def"             # 变量
+;; 控制流结构
+include "script/controlflow/if.def"       ; if
+include "script/controlflow/while.def"    ; while
 
-## 控制流结构
-include "script/controlflow/if.def"       # if
-include "script/controlflow/while.def"    # while
+;; 函数
+include "script/function/common.def"      ; 函数
+include "script/function/template.def"    ; 函数模板
+include "script/function/nested.def"      ; 嵌套函数(变量自动捕获)
+include "script/function/recurse.def"     ; 递归函数
 
-## 函数
-include "script/function/common.def"      # 函数
-include "script/function/template.def"    # 函数模板
-include "script/function/nested.def"      # 嵌套函数(变量自动捕获)
-include "script/function/recurse.def"     # 递归函数
-
-## 标准库
+;; 标准库
 include "script/std.def"
 include "script/stdtest.def"
 
-## 类
-include "script/class/common.def"      # 
-include "script/class/structure.def"   # 构造函数
+;; 类
+include "script/class/common.def"      ; 
+include "script/class/structure.def"   ; 构造函数
+
+-;
 
 
-
-
-
-fun adsf()(
-	putchar 97
-) 
-
-adsf
-
-let (@a) (fun a)
+let (#a) (fun a)
 let (<<a) (putchar a)
 
-@ show(Int n)(
+# show(Int n)(
 	<<n
 )
 
@@ -49,13 +42,15 @@ show 99
 show 100
 
 
-# ((1+2))+((3+4)+5)+6+7
+
+
+; ((1+2))+((3+4)+5)+6+7
 
 
 
 
 
-#-
+;-
 
 
 
@@ -116,7 +111,7 @@ putchar 111
 
 
 
-# duck typing
+; duck typing
 
 elmget p x
 elmput p x 5
@@ -126,16 +121,16 @@ elmhas p Int x
 elmivk p putx 123
 
 
-## 自适应函数 类型自动转换识别
+;; 自适应函数 类型自动转换识别
 adt fun Int getPx(Point p)(
 	elmget p x
 )
 
-## 自适应类型转换
+;; 自适应类型转换
 var pot adt p Point
 
 
-## 函数声明
+;; 函数声明
 dcl Point addP(Point Point)
 
 
@@ -143,11 +138,11 @@ dcl Point addP(Point Point)
 
 
 
-## 成员函数类定义
+;; 成员函数类定义
 type Line ( 
 	Point a 
 	Point b
-	# 成员函数
+	; 成员函数
 	dcl Point addP(Point Point)
 
 	fun Point addA(Point v)(
@@ -160,14 +155,14 @@ type Line (
 
 
 
-## 类初始化
+;; 类初始化
 var li Line p1 p2
 
 
-## 成员函数调用
+;; 成员函数调用
 elmivk li add2a 5 6
 
 
--#
+-;
 
 

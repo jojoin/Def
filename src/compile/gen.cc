@@ -45,12 +45,12 @@ Value* Gen::putValue(const string & name, Value* v)
 /**
  * 将 AST 处理成可以作为函数参数使用
  */
-Value* Gen::varyPointer(void* p)
+Value* Gen::varyPointer(AST* ast)
 {
-    AST* ast = (AST*)p;
+    // AST* ast = (AST*)p;
     Value *v = ast->codegen(*this);
 
-    Value *val = valueVaryPointer(v);
+    Value *val = varyPointer(v);
 
     // 如果是变量，则重赋值
     if (auto *vari = dynamic_cast<ASTVariable*>(ast)) {
@@ -59,9 +59,9 @@ Value* Gen::varyPointer(void* p)
 
     return val;
 }
-Value* Gen::valueVaryPointer(void* v)
+Value* Gen::varyPointer(Value* val)
 {
-    Value *val = (Value *)v;
+    // Value *val = (Value *)v;
     llvm::Type* ty = val->getType();
     // 结构类型的值，重新分配内存
 
@@ -82,18 +82,18 @@ Value* Gen::valueVaryPointer(void* v)
 /**
  * 数据载入
  */
-Value* Gen::createLoad(void* p)
+Value* Gen::createLoad(AST* p)
 {
     AST* ast = (AST*)p;
     // def::parse::Type *ty = Analysis::getType(ast);
     Value *val = ast->codegen(*this);
 
-    return createLoadValue(val);
+    return createLoad(val);
 
 }
-Value* Gen::createLoadValue(void* v)
+Value* Gen::createLoad(Value* val)
 {
-    Value *val = (Value*)v;
+    // Value *val = (Value*)v;
     llvm::Type *ty = val->getType();
 
     // Store 操作
@@ -116,7 +116,7 @@ Value* Gen::createLoadValue(void* v)
 /**
  * 创建函数
  */
-Function* Gen::createFunction(void* p)
+Function* Gen::createFunction(AST* p)
 {
     ASTFunctionCall* call = (ASTFunctionCall*)p;
     string fname = call->fndef->ftype->name;
@@ -177,8 +177,6 @@ Function* Gen::createFunction(void* p)
         idx++;
         // cout << "values[name]: " << name << endl;
     }
-
-
     
     // 创建函数体
     if (!call->fndef->body) {
@@ -209,7 +207,7 @@ Function* Gen::createFunction(void* p)
         // cout << "! isa<ReturnInst>(last)" << endl;
         // builder.CreateRet(last);
         builder.CreateRet(
-           createLoadValue(last)
+           createLoad(last)
         );
     }else {
     }

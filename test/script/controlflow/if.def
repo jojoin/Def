@@ -1,28 +1,28 @@
-#-
+;-
     控制流结构
--#
+-;
 
 
 var cond 1
 
 
-## if 
+;; if 
 if cond putchar 97
 
 
-## if 块
+;; if 块
 if cond (
     putchar 97
     putchar 98
 )
 
 
-## if 和 else
+;; if 和 else
 if cond putchar 97
 else putchar 98
 
 
-## if 和 else 块
+;; if 和 else 块
 if cond (
     putchar 97
 ) else (
@@ -30,7 +30,7 @@ if cond (
 )
 
 
-## if 和 else if 块
+;; if 和 else if 块
 if 0 (
     putchar 97
 ) else if cond (

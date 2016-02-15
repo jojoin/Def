@@ -1,32 +1,32 @@
-#-
+;-
     变量初始化
--#
+-;
 
 
 include "type.def"
 
 
-## MyInt
+;; MyInt
 var myi MyInt 1
 
 
-## Tuple
+;; Tuple
 var tp Tuple 1 myi
 
 
-## Point
+;; Point
 var p1 Point 1 2
 var p2 Point 3 4
 var p3 Point 5 6
 
 
-## Line
+;; Line
 var l1 Line p1 p2
 var l2 Line p2 Point 8 9
 var l3 Line Point 1 2 Point 8 9
 
 
-## 赋值
+;; 赋值
 var v 1
 
 set v 2

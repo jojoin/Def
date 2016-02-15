@@ -6,10 +6,15 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/ConstantFolder.h"
 
-
 #include "../global.h"
 #include "../core/type.h"
 
+
+namespace def {
+    namespace core {
+        class AST;
+    }
+}
 
 
 namespace def {
@@ -17,6 +22,7 @@ namespace compile {
 
 using namespace std;
 using namespace llvm;
+using namespace def::core;
 
 
 class Gen{
@@ -28,9 +34,6 @@ public:
     Module module;
     Function * main;
     BasicBlock * entry;
-    // 创建的函数
-    // map<string, Function*> functions;
-
 
     Gen(LLVMContext & con, const string & m = "main")
         : context(con)
@@ -49,8 +52,6 @@ public:
         builder.CreateRetVoid();
     }
 
-
-
     ~Gen(){
         // delete main;
         // delete entry;
@@ -63,19 +64,13 @@ public:
        );
     llvm::Type* fixBuiltinFunctionType(def::core::TypeFunction*);
 
-    // 通用处理 AST*
-    Value* createLoad(void*);
-    Function* createFunction(void*);
-    Value* varyPointer(void*); // 将 AST 处理成可以作为函数参数使用
+    // 通用处理
+    Value* createLoad(AST*);
+    Value* createLoad(Value*);
+    Value* varyPointer(AST*); // 将 AST 处理成可以作为函数参数使用
+    Value* varyPointer(Value*);
 
-    // 通用处理 llvm::Value*
-    Value* createLoadValue(void*);
-    Value* valueVaryPointer(void*);
-
-    // 函数保存
-    // Function* getFunction(def::parse::TypeFunction*);
-    // Function* getFunction(const string &);
-    
+    Function* createFunction(AST*);    
 
     // 变量操作
     Value* getValue(const string &);

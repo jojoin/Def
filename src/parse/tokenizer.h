@@ -8,6 +8,7 @@
 // 保留字符定义
 #define DEF_RESERVED_TOK_SIGN '`'
 #define DEF_RESERVED_TOK_STR '"'
+#define DEF_RESERVED_TOK_ANNOTA ';' // 注释
 
 
 namespace def {

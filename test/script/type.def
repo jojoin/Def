@@ -1,40 +1,40 @@
-#-
+;-
 	类型定义
--#
+-;
 
 
-## 重命名
+;; 重命名
 type MyInt (
 	Int i
 )
 
 
-## 匿名成员
+;; 匿名成员
 type Tuple (
 	Int
 	MyInt mi
 )
 
 
-## 点
+;; 点
 type Point (
 	Int x
 	Int y
 )
 
 
-## 线
+;; 线
 type Line (
 	Point a
 	Point b
 )
 
 
-#- 初始化
+;- 初始化
 
 MyInt 123
 Tuple 1 MyInt 9
 Point 1 2
 Line Point 1 2 Point 8 9
 
--#
+-;

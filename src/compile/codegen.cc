@@ -193,7 +193,7 @@ Value* ASTFunctionCall::codegen(Gen & gen)
     // 捕获的变量
     for (auto &p : fndef->cptvar) {
         string name = p.first;
-        Value *pv = gen.valueVaryPointer(
+        Value *pv = gen.varyPointer(
             gen.getValue(name)
             );
         argvs.push_back(pv);
@@ -376,7 +376,7 @@ Value* ASTTypeConstruct::codegen(Gen & gen)
 Value* ASTVariableDefine::codegen(Gen & gen)
 {
     Value *val = value->codegen(gen);
-    val = gen.valueVaryPointer(val);
+    val = gen.varyPointer(val);
     gen.putValue(name, val); // 放入
     return val;
 }
@@ -392,7 +392,7 @@ Value* ASTVariableAssign::codegen(Gen & gen)
 
 
     Value *old = gen.getValue(name);
-    old = gen.valueVaryPointer(old);
+    old = gen.varyPointer(old);
 
     // 赋值
     gen.builder.CreateStore(val, old);

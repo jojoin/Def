@@ -1,13 +1,13 @@
-#-
+;-
     递归函数
--#
+-;
 
 
 
 
-# dcl Int recurse(Int)
+; dcl Int recurse(Int)
 
-## 递归函数 打印字符
+;; 递归函数 打印字符
 fun recurse(Int n)(
     putchar n
     if n
@@ -15,7 +15,7 @@ fun recurse(Int n)(
     1
 )
 
-## 开始
+;; 开始
 recurse 127
 
 
