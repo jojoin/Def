@@ -35,18 +35,20 @@ let (a>>) (putchar a)
 
 show#(Int n)(
 	n>>
+	(add n 1)>>
 )
 
 show 98
 show 99
 show 100
 
+let (a`func`) (fun a)
 
 let function(a) (a#)
+let func(a) (a`func`)
 let mcro(a) (function a)
 
-function fff(Int n)(
-	n>>
+func fff(Int n)(
 	n>>
 )
 mcro mmm(Int n)(

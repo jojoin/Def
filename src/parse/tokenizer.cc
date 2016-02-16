@@ -275,8 +275,8 @@ Tokenizer::State Tokenizer::state(const char & tok)
 #define BUF() curword.append(1,t); continue;
 #define RET(T) \
     if(TS(Character)||TS(Number)||TS(Sign)\
-    ||TS(Operator)||TS(Char)||TS(String))\
-    { seek(-1); } \
+    ||TS(Operator)||TS(Char)||TS(String)||TS(QuoteOperator)\
+    ){ seek(-1); } \
     return Tokenizer::Word{ Tokenizer::State::T, curword };
 
 
@@ -377,9 +377,6 @@ Tokenizer::Word Tokenizer::gain()
                 RET(Operator)
             }
 
-
-
-
         // 引用操作符（将单词变为操作符）
         } else if (OS(QuoteOperator)){
             if(t=='\\'){ // 转义
@@ -388,6 +385,7 @@ Tokenizer::Word Tokenizer::gain()
             }else if( TS(NewLine) ){
                 FATAL("Quote Sign Missing End !")
             }else if(TS(QuoteOperator)){
+                RESET(Normal) // 复位
                 RET(Operator)
             }
             BUF()

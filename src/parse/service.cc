@@ -101,7 +101,8 @@ Tokenizer::Word Service::getWord()
     // 获取新词
     Tokenizer::Word word  = tkz->gain();
     // 调试打印 token list
-    DEBUG_WITH("tok_list", cout << word.value << " , ";)
+    DEBUG_WITH("tok_list", cout << word.value << " ";)
+    DEBUG_WITH("token_list", cout << (int)word.state << " " << word.value << endl;)
 
     return word;
 }
