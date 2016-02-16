@@ -646,7 +646,7 @@ AST* Build::build_var()
     string name = word.value;
 
     // 查找是否存在
-    auto fd = stack->find(name);
+    auto fd = stack->find(name, false);
     if (fd) {
         FATAL("Cannot repeat define var '"+name+"' !")
     }
@@ -748,7 +748,7 @@ AST* Build::build_type()
     string typeName = fixNamespace( word.value );
 
     // 查询类型是否定义
-    if (auto *fd = dynamic_cast<ElementType*>(stack->find(typeName))) {
+    if (auto *fd = dynamic_cast<ElementType*>(stack->find(typeName,false))) {
         FATAL("can't repeat type '"+typeName+"' !")
     }
 
@@ -1157,7 +1157,7 @@ AST* Build::build_tpf()
     }
 
     string tpfName = word.value; // fixNamespace(word.value);
-    if (stack->find(DEF_PREFIX_TPF + tpfName)) {
+    if (stack->find(DEF_PREFIX_TPF + tpfName,false)) {
         FATAL("template function duplicate definition '"+tpfName+"' !");
     }
     
