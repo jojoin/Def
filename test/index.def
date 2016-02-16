@@ -30,17 +30,32 @@ include "script/class/structure.def"   ; 构造函数
 -;
 
 
-let (#a) (fun a)
-let (<<a) (putchar a)
+let (a#) (fun a)
+let (a>>) (putchar a)
 
-# show(Int n)(
-	<<n
+show#(Int n)(
+	n>>
 )
 
 show 98
 show 99
 show 100
 
+
+let function(a) (a#)
+let mcro(a) (function a)
+
+function fff(Int n)(
+	n>>
+	n>>
+)
+mcro mmm(Int n)(
+	n>>
+)
+
+fff 120
+fff 121
+mmm 122
 
 
 

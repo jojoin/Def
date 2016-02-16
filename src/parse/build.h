@@ -71,6 +71,7 @@ protected:
     AST* buildVaribale(Element*, const string &n="");
     // 变量构造函数调用
     AST* buildConstruct(ElementType*, const string &n="");
+    AST* buildMacro(ElementLet*, const string &);
 
 protected:
 

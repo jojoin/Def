@@ -182,6 +182,11 @@ AST* Build::build(bool spread)
         if (auto val = buildVaribale(res, chara)) {
             return val;
         }
+
+        // 宏绑定 ？
+        if (auto gr = dynamic_cast<ElementLet*>(res)) {
+            return buildMacro(gr, chara);
+        }
         
         // 类型构造 ？
         if (auto gr = dynamic_cast<ElementType*>(res)) {
@@ -194,20 +199,8 @@ AST* Build::build(bool spread)
             
             auto fncall = _functionCall(chara ,stack);
             if (fncall) {
-                /*if(!fncall->fndef){
-                    FATAL(" !!!! fncall->fndef ");
-                }*/
                 return fncall;
             }
-
-            /*
-            try {
-                return buildFunctionCall(chara, gr);
-            } catch (...) {
-                // do nothing
-                // cout << chara+": no function match" << endl;
-            }
-            */
         }
 
         // 模板函数调用？
@@ -221,14 +214,6 @@ AST* Build::build(bool spread)
         if (core) {
             return core;
         }
-
-        // 语言核心指令？
-        /*
-        AST *ins = buildInstruction(chara);
-        if (ins) {
-            return ins;
-        }
-        */
 
         // 为 Nil 类型字面常量
         if (chara=="nil") {
@@ -307,71 +292,8 @@ AST* Build::buildCoreDefine(const string & name)
 
 }
 
+
 /**
- * 函数调用
- *
-AST* Build::buildFunctionCall(const string & name, ElementGroup* grp, bool istpf)
-{
-    auto *fncall = new ASTFunctionCall(nullptr);
-    auto elms = grp->elms;
-
-    // 节点缓存
-    list<AST*> cachebuilds;
-        
-    // string fname(name); // 函数参数组装名
-    // vector<Element*> matchs; // 匹配的函数
-    // ElementFunction* elmfn;
-    ASTFunctionDefine* fndef(nullptr);
-
-    // 临时用来查询函数的类型
-    auto *tmpfty = new TypeFunction(name);
-    filterFunction filter = filterFunction(stack, name);
-
-    // 采用贪婪匹配模式
-    while (true) {
-        // 匹配函数（第一次无参）
-        int match = filter.match(tmpfty);
-        if (match==1 && filter.unique) {
-            fndef = filter.unique; // 找到唯一匹配
-            string idname = fndef->ftype->getIdentify();
-            break;
-        }
-        if (match==0) {
-            prepareBuild(cachebuilds);
-            throw "No macth function !"; // 无匹配
-        }
-        // 判断函数是否调用结束
-        auto word = getWord();
-        prepareWord(word); // 上层处理括号
-        if (ISWS(End) || ISSIGN(")")) { // 提前手动调用结束
-            if (filter.unique) {
-                fndef = filter.unique; // 找到唯一匹配
-                break;
-            }
-        }
-        // 添加参数
-        AST *exp = build();
-        if (!exp) {
-            if (filter.unique) {
-                fndef = filter.unique; // 无更多参数，找到匹配
-                break;
-            }
-        }
-        cachebuilds.push_back(exp);
-        fncall->addparam(exp); // 加实参
-        auto *pty = exp->getType();
-        // 重载函数名
-        tmpfty->add("", pty);
-    }
-
-    fncall->fndef = fndef; // elmfn->fndef;
-        
-    return fncall;
-
-}
-*/
-
-/**W
  * 解析模板函数
  */
 AST* Build::buildTemplateFuntion(const string & name, ElementTemplateFuntion* tpf)
@@ -575,6 +497,44 @@ AST* Build::buildConstruct(ElementType* ety, const string & name)
 
     return mfc;
 }
+
+/**
+ * 宏解析
+ */
+AST* Build::buildMacro(ElementLet* let, const string & name)
+{
+    // 解析参数
+    map<string, list<Word>> pmstk;
+    for (auto pm : let->params) {
+        list<Word> pmws;
+        auto word = getWord();
+        if(ISSIGN("(")){ // 剥掉外层括号
+            cacheWordSegment(pmws);
+        } else {
+            pmws.push_back(word);
+        }
+        pmstk[pm] = pmws;
+    }
+
+    // 展开宏体
+    list<Word> bodys;
+    for (auto wd : let->bodywords) {
+        auto fd = pmstk.find(wd.value);
+        if (fd != pmstk.end()) {
+            bodys.splice(bodys.end(), fd->second);
+        } else {
+            bodys.push_back(wd);
+        }
+    }
+
+    // 预备
+    prepareWord(bodys);
+
+    // 重新开始解析
+    return build();
+}
+
+
 
 /**
  * namespace 定义名字空间
@@ -1338,41 +1298,64 @@ AST* Build::build_while()
  */
 AST* Build::build_let()
 {
-    auto word = getWord();
-    if (NOTSIGN("(")) {
-        FATAL("let binding need a sign ( to belong !")
-    }
+    auto *let = new ElementLet();
+    auto *relet = new ASTLet();
 
+    auto word = getWord();
+    
     // 唯一名称
     string idname("");
     bool sign = false;
 
-    auto *let = new ElementLet();
-    auto *relet = new ASTLet();
-
-    // 参数
-    while (true) {
-        word = getWord();
-        if (ISSIGN(")")) {
-            break; // 参数结束
+    // 参数宏绑定
+    if (ISWS(Character)) {
+        idname = word.value;
+        relet->head.push_back(idname);
+        auto word = getWord();
+        if (NOTSIGN("(")) {
+            FATAL("let macro binding need a sign ( to belong !")
         }
-        string str(word.value);
-        relet->head.push_back(str);
-        if (ISWS(Character)) {
+        // 参数
+        while (true) {
+            word = getWord();
+            if (ISSIGN(")")) {
+                break; // 参数结束
+            }
+            string str(word.value);
             let->params.push_back(str);
-            idname += DEF_SPLITFIX_OPRT_BIND;
-        } else if (ISWS(Operator)) {
-            idname += str;
-            sign = true;
-        } else {
-            FATAL("let unsupported the symbol type '"+str+"' !")
+            relet->head.push_back(str);
         }
-    }
 
-    if (!sign) { // 至少提供一个符号
-        FATAL("let binding must provide at least one symbol !")
-    }
+    // 操作符绑定
+    } else if (ISSIGN("(")) {
+        
+        // 参数
+        while (true) {
+            word = getWord();
+            if (ISSIGN(")")) {
+                break; // 参数结束
+            }
+            string str(word.value);
+            relet->head.push_back(str);
+            if (ISWS(Character)) {
+                let->params.push_back(str);
+                idname += DEF_SPLITFIX_OPRT_BIND;
+            } else if (ISWS(Operator)) {
+                idname += str;
+                sign = true;
+            } else {
+                FATAL("let unsupported the symbol type '"+str+"' !")
+            }
+        }
+        
+        if (!sign || relet->head.size()<2
+            || idname.substr(0,1)!=DEF_SPLITFIX_OPRT_BIND 
+        ) { // 至少提供一个符号 且不能为前缀符号
+            FATAL("let operator binding format error !")
+        }
 
+    } 
+   
     auto *fd = stack->find(idname);
     if (fd) { // 不能重复绑定
         FATAL("let can't repeat binding '"+idname+"' !")
@@ -1696,6 +1679,8 @@ list<Word> Build::spreadOperatorBind(list<Word>*pwds)
         let = filter->unique;
     }
 
+    delete filter;
+
     // 解析参数
     map<string, list<Word>> pmstk;
     int i = 0;
@@ -1716,7 +1701,7 @@ list<Word> Build::spreadOperatorBind(list<Word>*pwds)
         }else {
             results.push_back(word);
         }
-    }
+    } 
 
     // 调试打印
     DEBUG_WITH("binding_spread", \
@@ -1733,7 +1718,10 @@ list<Word> Build::spreadOperatorBind(list<Word>*pwds)
     auto word = getWord();
     prepareWord(word);
     if (ISWS(Operator)){
-        return spreadOperatorBind(&results);
+        filterLet filter(stack, DEF_SPLITFIX_OPRT_BIND + word.value);
+        if (filter.size()>0) { // 查询匹配
+            return spreadOperatorBind(&results);
+        }
     }
 
 
