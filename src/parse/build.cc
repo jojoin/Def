@@ -1356,7 +1356,7 @@ AST* Build::build_let()
 
     } 
    
-    auto *fd = stack->find(idname);
+    auto *fd = stack->find(idname, false);
     if (fd) { // 不能重复绑定
         FATAL("let can't repeat binding '"+idname+"' !")
     }
@@ -1718,10 +1718,11 @@ list<Word> Build::spreadOperatorBind(list<Word>*pwds)
     auto word = getWord();
     prepareWord(word);
     if (ISWS(Operator)){
+        return spreadOperatorBind(&results);/*
         filterLet filter(stack, DEF_SPLITFIX_OPRT_BIND + word.value);
         if (filter.size()>0) { // 查询匹配
             return spreadOperatorBind(&results);
-        }
+        }*/
     }
 
 

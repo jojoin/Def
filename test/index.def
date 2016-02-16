@@ -4,7 +4,7 @@
 
 ;; 测试单元
 
-;-
+
 
 include "script/type.def"                 ; 类型
 include "script/variable.def"             ; 变量
@@ -27,7 +27,7 @@ include "script/stdtest.def"
 include "script/class/common.def"      ; 
 include "script/class/structure.def"   ; 构造函数
 
--;
+
 
 
 let (a#) (fun a)
@@ -38,9 +38,9 @@ show#(Int n)(
 	(add n 1)>>
 )
 
-show 98
-show 99
-show 100
+;show 98
+;show 99
+;show 100
 
 let (a`func`) (fun a)
 
@@ -48,15 +48,24 @@ let function(a) (a#)
 let func(a) (a`func`)
 let mcro(a) (function a)
 
-func fff(Int n)(
+function fff(Int n)(
+	n>>
+)
+func fnn(Int n)(
 	n>>
 )
 mcro mmm(Int n)(
+	let (n++)(set n add n 1)
 	n>>
+	f#()(
+		n++
+		n>>
+	)
+	f
 )
 
-fff 120
-fff 121
+;fff 120
+;fnn 121
 mmm 122
 
 

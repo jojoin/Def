@@ -2,7 +2,7 @@
 
 ::   Debug   Release
 
-I:\GitHub\Def\x64\Debug\def "index.def" --print ir -d token_list --emit obj -o index.obj
+I:\GitHub\Def\x64\Debug\def "index.def" --print ir -d ast_tree --emit obj -o index.obj
 
 :: -d ast_tree,als_stack,tok_list
 :: -d prepare_words,binding_spread

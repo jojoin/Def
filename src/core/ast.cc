@@ -63,9 +63,9 @@ void AST##T::print(string pre, string ind) \
 FUNC_HEAD_PRINT(Let)
     cout << "let:  ";
     for(auto &h : head){
-        cout << h;
+        cout << h << " ";
     }
-    cout << "  =>  ";
+    cout << " =>  ";
     for(auto &b : body){
         cout << b << " ";
     }
