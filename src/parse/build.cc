@@ -34,14 +34,11 @@ using namespace def::parse;
 #define NOTSIGN(S) !(ISSIGN(S))
 #define ISCHA(S) ISWS(Character)&&word.value==S
 
-// 检查符号
-/*
-#define CHECKSIGN(S,F)
-    auto word = getWord(); 
-    if(NOTSIGN(S)){
-        FATAL(F)
-    } 
-    */
+// 检查括号
+#define CHECKLPAREN(T) word = getWord(); \
+    if (NOTSIGN("(")) { FATAL(T) }
+#define CHECKRPAREN(T) word = getWord(); \
+    if (NOTSIGN(")")) { FATAL(T) }
 
     
 /**
@@ -567,18 +564,12 @@ AST* Build::build_namespace()
     // 添加命名空间
     defspace += "";// (oldlen == 0 ? "" : "_") + word.value;
 
-    word = getWord();
-    if (NOTSIGN("(")) {
-        FATAL("namespace define need a sign ( to belong !")
-    }
+    CHECKLPAREN("namespace define need a sign ( to belong !")
 
     // 循环建立语句
     AST *block = createAST();
 
-    word = getWord();
-    if (NOTSIGN(")")) {
-        FATAL("namespace define need a sign ) to end !")
-    }
+    CHECKRPAREN("namespace define need a sign ) to end !")
 
     // 名字空间复位
     defspace = defspace.substr(0, oldlen);
@@ -764,10 +755,8 @@ AST* Build::build_type()
         FATAL("can't repeat type '"+typeName+"' !")
     }
 
-    word = getWord();
-    if (NOTSIGN("(")) {
-        FATAL("namespace define need a sign ( to belong !")
-    }
+    // 检查括号
+    CHECKLPAREN("namespace define need a sign ( to belong !")
 
     // 新建类型
     TypeStruct* tyclass = new TypeStruct(typeName);
@@ -860,8 +849,7 @@ AST* Build::build_dcl()
     Element* elmret = stack->find(word.value);
     if (auto *ety = dynamic_cast<ElementType*>(elmret)) {
         rty = ety->type;
-    }
-    else {
+    } else {
         FATAL("function declare need a type name to belong !")
     }
 
@@ -876,10 +864,7 @@ AST* Build::build_dcl()
     auto *functy = new TypeFunction(funcname, rty);
 
     // 括号
-    word = getWord();
-    if (NOTSIGN("(")) {
-        FATAL("function declare need a sign ( to belong !")
-    }
+    CHECKLPAREN("function declare need a sign ( to belong !")
 
     // 函数参数解析
     while (true) {
@@ -953,10 +938,8 @@ AST* Build::build_fun()
         }
 
         // 括号验证
-        auto word = getWord();
-        if (NOTSIGN("(")) {
-            FATAL("function  define need a sign ( to belong !")
-        }
+        Word word;
+        CHECKLPAREN("function  define need a sign ( to belong !")
     }
 
     // 新建函数类型
@@ -1173,10 +1156,8 @@ AST* Build::build_tpf()
         FATAL("template function duplicate definition '"+tpfName+"' !");
     }
     
-    word = getWord();
-    if (NOTSIGN("(")) {
-        FATAL("template function define need a sign ( to belong !")
-    }
+    // 检查括号
+    CHECKLPAREN("template function define need a sign ( to belong !")
 
     // 新建定义
     auto *tpfdef = new ASTTemplateFuntionDefine();
@@ -1323,10 +1304,9 @@ AST* Build::build_let()
     if (ISWS(Character)) {
         idname = word.value;
         relet->head.push_back(idname);
-        auto word = getWord();
-        if (NOTSIGN("(")) {
-            FATAL("let macro binding need a sign ( to belong !")
-        }
+        // 检查括号
+        Word word;
+        CHECKLPAREN("let macro binding need a sign ( to belong !")
         // 参数
         while (true) {
             word = getWord();
@@ -1373,11 +1353,8 @@ AST* Build::build_let()
         FATAL("let can't repeat binding '"+idname+"' !")
     }
     
-    word = getWord();
-    if (NOTSIGN("(")) {
-        FATAL("let binding need a sign ( to belong !")
-    }
-
+    // 检查括号
+    CHECKLPAREN("let binding need a sign ( to belong !")
 
     // 绑定体
     list<Word> bodys;
@@ -1565,12 +1542,11 @@ AST* Build::build_elmdef()
 /**
  * Multiple macro _ 占位符 重复宏
  */
-AST* Build::build_mcrmul()
+AST* Build::build_mcrfor()
 {
-    auto word = getWord();
-    if (NOTSIGN("(")) {
-        FATAL("multiple macro need a sign ( to belong !")
-    }
+    // 检查括号
+    Word word;
+    CHECKLPAREN("multiple macro need a sign ( to belong !")
 
     // 重复宏参数
     list<list<Word>> argvs;
@@ -1587,10 +1563,8 @@ AST* Build::build_mcrmul()
         argvs.push_back(item);
     }
     
-    word = getWord();
-    if (NOTSIGN("(")) {
-        FATAL("multiple macro need a sign ( to belong !")
-    }
+    // 检查括号
+    CHECKLPAREN("multiple macro need a sign ( to belong !")
 
     // 重复宏体
     list<Word> bodys;
@@ -1632,6 +1606,32 @@ AST* Build::build_mcrmul()
 
 
     // 重新生成
+    return build();
+
+}
+
+/**
+ *  macro if 条件宏展开
+ */
+AST* Build::build_mcrif()
+{
+    Word word;
+    auto word1 = getWord();
+    auto word2 = getWord();
+    
+    // 检查括号
+    CHECKLPAREN("condition macro need a sign ( to belong !")
+
+    // 宏体
+    list<Word> bodys;
+    cacheWordSegment(bodys);
+
+    // 判断条件是否一致
+    if (word1==word2) {
+        prepareWord(bodys);
+    }
+
+    // 重新解析
     return build();
 
 }

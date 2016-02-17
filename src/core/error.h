@@ -60,4 +60,4 @@ private:
 // ÆÕÍ¨´íÎó
 #define ERR(str) cerr<<str<<endl;
 // ÖÂÃü´íÎó
-#define FATAL(str) cerr<<endl<<endl<<str<<endl; exit(1);
+#define FATAL(str) cerr<<endl<<endl<<str<<endl; std::exit(1);
