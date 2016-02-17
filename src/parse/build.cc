@@ -67,6 +67,9 @@ void Build::prepareBuild(const list<AST*> & asts)
 }
 
 
+/********************************************************/
+
+
 /**
  * 启动分析
  */
@@ -238,6 +241,10 @@ AST* Build::build(bool spread)
 
 }
 
+
+/********************************************************/
+
+
 /**
  * 变量或类成员访问
  */
@@ -288,7 +295,6 @@ AST* Build::buildCoreDefine(const string & name)
     return nullptr;
 
 }
-
 
 /**
  * 解析模板函数
@@ -543,6 +549,8 @@ AST* Build::buildMacro(ElementLet* let, const string & name)
     return build();
 }
 
+
+/********************************************************/
 
 
 /**
@@ -1637,6 +1645,8 @@ AST* Build::build_mcrif()
 }
 
 
+/********************************************************/
+
 
 /**
  * 预测是否需要解开符号绑定
@@ -1703,7 +1713,6 @@ AST* Build::buildOperatorBind()
     // 不再次检测是否延展
     return build(false);
 }
-
 
 
 /**
@@ -1815,7 +1824,6 @@ list<Word> Build::spreadOperatorBind(list<Word>*pwds)
     // 符号绑定结束
     return results;
 }
-
 
 
 /**
