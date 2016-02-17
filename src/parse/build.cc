@@ -518,10 +518,12 @@ AST* Build::buildMacro(ElementLet* let, const string & name)
 
     // 展开宏体
     list<Word> bodys;
-    for (auto wd : let->bodywords) {
+    for (auto &wd : let->bodywords) {
         auto fd = pmstk.find(wd.value);
         if (fd != pmstk.end()) {
-            bodys.splice(bodys.end(), fd->second);
+            for (auto &w : fd->second) {
+                bodys.push_back(w);
+            }
         } else {
             bodys.push_back(wd);
         }
@@ -529,6 +531,16 @@ AST* Build::buildMacro(ElementLet* let, const string & name)
 
     // 预备
     prepareWord(bodys);
+    // 调试打印
+    DEBUG_WITH("letmacro_words", \
+        if(bodys.size()){ \
+        cout << "letmacro【"; \
+        for (auto &p : bodys) { \
+            cout << " " << p.value; \
+        } \
+        cout << "】" << endl; \
+        } \
+        )
 
     // 重新开始解析
     return build();
@@ -1188,7 +1200,7 @@ AST* Build::build_tpf()
     }
     
     // 解析函数体
-    cacheWordSegment(tpfdef->bodywords); // 缓存括号段内容
+    cacheWordSegment(tpfdef->bodywords, false); // 缓存括号段内容
     
     // 添加到分析栈
     stack->put(DEF_PREFIX_TPF + tpfName, new ElementTemplateFuntion(tpfdef));
@@ -1366,14 +1378,13 @@ AST* Build::build_let()
         FATAL("let binding need a sign ( to belong !")
     }
 
+
     // 绑定体
-    while (true) {
-        word = getWord();
-        if (ISSIGN(")")) {
-            break; // 体结束
-        }
-        relet->body.push_back(word.value);
-        let->bodywords.push_back(word);
+    list<Word> bodys;
+    cacheWordSegment(bodys);
+    for (auto &i : bodys) {
+        let->bodywords.push_back(i);
+        relet->body.push_back(i.value);
     }
 
     // 添加栈到绑定
@@ -1551,6 +1562,81 @@ AST* Build::build_elmdef()
     return new ASTExternalMemberFunctionDefine(ty, res);
 }
 
+/**
+ * Multiple macro _ 占位符 重复宏
+ */
+AST* Build::build_mcrmul()
+{
+    auto word = getWord();
+    if (NOTSIGN("(")) {
+        FATAL("multiple macro need a sign ( to belong !")
+    }
+
+    // 重复宏参数
+    list<list<Word>> argvs;
+    while (true) {
+        list<Word> item;
+        word = getWord();
+        if (ISSIGN(")")) {
+            break; // 参数结束
+        } else if (ISSIGN("(")) {
+            cacheWordSegment(item);
+        } else {
+            item.push_back(word);
+        }
+        argvs.push_back(item);
+    }
+    
+    word = getWord();
+    if (NOTSIGN("(")) {
+        FATAL("multiple macro need a sign ( to belong !")
+    }
+
+    // 重复宏体
+    list<Word> bodys;
+    while (true) {
+        word = getWord();
+        if (ISSIGN(")")) {
+            break; // 参数结束
+        }
+        bodys.push_back(word);
+    }
+    
+    // 解析生成
+    list<Word> prepares;
+    for (auto & a : argvs) {
+        for (auto & word : bodys) {
+            if (ISCHA("_")) {
+                for (auto &w : a) {
+                    prepares.push_back(w);
+                }
+            } else {
+                prepares.push_back(word);
+            }
+        }
+    }
+
+    // 预备
+    prepareWord(prepares);
+    
+    // 调试打印
+    DEBUG_WITH("mulmcr_words", \
+        if(prepares.size()){ \
+        cout << "mulmcr【"; \
+        for (auto &p : prepares) { \
+            cout << " " << p.value; \
+        } \
+        cout << "】" << endl; \
+        } \
+        )
+
+
+    // 重新生成
+    return build();
+
+}
+
+
 
 /**
  * 预测是否需要解开符号绑定
@@ -1568,7 +1654,7 @@ bool Build::forecastOperatorBind()
         cache.push_back(word);
         if (ISSIGN("(")) { // 子级
             if (fail) break;
-            cacheWordSegment(cache); // 缓存括号段内容
+            cacheWordSegment(cache, false); // 缓存括号段内容
             fail = true;
             continue;
         }
@@ -1645,7 +1731,7 @@ list<Word> Build::spreadOperatorBind(list<Word>*pwds)
         }
         cache.push_back(word);
         if (ISSIGN("(")) { // 子级
-            cacheWordSegment(cache); // 缓存括号段内容
+            cacheWordSegment(cache, false); // 缓存括号段内容
             if (cache.empty()) {
                 FATAL("Operator binding priority error !")
             }
@@ -1735,7 +1821,7 @@ list<Word> Build::spreadOperatorBind(list<Word>*pwds)
 /**
  * 缓存单词段（包含括号内部所有内容）
  */
-void Build::cacheWordSegment(list<Word>& cache)
+void Build::cacheWordSegment(list<Word>& cache, bool pure)
 {
     int down = 1;
     while (true) {
@@ -1747,6 +1833,9 @@ void Build::cacheWordSegment(list<Word>& cache)
         if (ISSIGN("(")) down++;
         if (ISSIGN(")")) down--;
         if (0 == down) break;
+    }
+    if (pure) {
+        cache.pop_back(); // 去掉尾部括号
     }
 }
 

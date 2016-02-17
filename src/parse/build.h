@@ -89,7 +89,7 @@ protected:
     TypeFunction* _functionType(bool declare=false);
 
     // 缓存单词段（包含括号内部所有内容）
-    void cacheWordSegment(list<Tokenizer::Word>&);
+    void cacheWordSegment(list<Tokenizer::Word>&, bool pure=true);
 
 
 protected:
