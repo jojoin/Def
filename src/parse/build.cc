@@ -811,6 +811,8 @@ AST* Build::build_type()
         Element* res = stack->find(word.value);
         if (ElementType* dco = dynamic_cast<ElementType*>(res)) {
             it = dco->type;
+        } else if(ISCHA("Quote")) { // 引用类型
+            it = new TypeQuote();
         } else {
             FATAL("Type declare format error: not find Type <"<<word.value<<"> !")
         }
@@ -1289,7 +1291,7 @@ AST* Build::build_while()
     // while 语句
     astwhile->body = build();
 
-    // 返回 if 节点
+    // 返回 if 节点 
     return astwhile;
 
 }
@@ -1470,6 +1472,14 @@ AST* Build::build_elmget()
     }
     ins->index = pos;
 
+    // 是否为取引用值
+    if (auto * qty = dynamic_cast<TypeQuote*>(scty->types[pos])) {
+        if (!qty->type) { // 初始化之前不能使用
+            FATAL("Can't use quote value "+scty->name+"."+word.value+" before initialize !")
+        }
+        return new ASTLoad(ins, qty); // 引用载入
+    }
+
     return ins;
 }
 
@@ -1506,8 +1516,20 @@ AST* Build::build_elmset()
     Type* putty = putv->getType();
     // 类型检查
     Type* pvty = scty->types[ins->index];
-    if (!putty->is(pvty)) {
-        FATAL("can't member assign <"+pvty->str()+"> by <"+putty->str()+">' !")
+    if (auto * qty = dynamic_cast<TypeQuote*>(pvty)) {
+        // 引用类型
+        if (qty->type && !putty->is(qty->type)) {
+            FATAL("can't quote member assign <"+pvty->getIdentify()+"> by <"+putty->getIdentify()+">' !")
+        }
+        // 第一次赋值固定类型
+        if (!qty->type) {
+            qty->type = putty;
+        }
+        // 取得引用
+        putv = new ASTQuote(putv, qty);
+
+    } else if (!putty->is(pvty)) {
+        FATAL("can't member assign <"+pvty->getIdentify()+"> by <"+putty->getIdentify()+">' !")
     }
 
     ins->value = putv;
@@ -1643,6 +1665,68 @@ AST* Build::build_mcrif()
     return build();
 
 }
+
+/**
+ *  macro cut 宏分段
+ * 【暂不可用！！！】
+ */
+AST* Build::build_mcrcut()
+{
+    Word word = getWord();
+
+    // cout << "：：：：：" << word.value << endl;
+    
+    // 必须为类型
+    if (NOTWS(Number)) {
+        FATAL("macro cut need a <Number> belong !")
+    }
+
+    size_t seg = Str::s2l(word.value);
+
+    // 括号
+    auto Lc = Word(State::Sign, "(");
+    auto Rc = Word(State::Sign, ")");
+    prepareWord(Lc); // (
+
+    size_t i(0);
+    while (true) {
+        word = getWord();
+        if (ISSIGN(")")) {
+            Rc = word;
+            break;
+        }
+        if (0==i%seg) {
+            prepareWord(Rc);
+            prepareWord(Lc);
+        }
+        prepareWord(word);
+        i++;
+    }
+    prepareWord(Rc); // )
+
+
+}
+
+/**
+ * link 得到变量的引用
+ *
+AST* Build::build_link()
+{
+    AST* value = build();
+    return new ASTQuote(value);
+}
+
+/**
+ * load 从引用得到变量
+ *
+AST* Build::build_load()
+{
+    AST* value = build();
+    return new ASTLoad(value);
+}
+
+*/
+
 
 
 /********************************************************/

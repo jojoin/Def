@@ -15,7 +15,7 @@ using namespace std;
 
 
 /**
- * è¯­æ³•åˆ†æå™?
+ * ·ÖÎöÆ÷
  */
 class Analysis : public Build
 {

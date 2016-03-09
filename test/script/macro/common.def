@@ -1,0 +1,41 @@
+;-
+    宏
+-;
+
+
+;; 带参数的宏定义
+let myadd(a b)(add add (a) b sub a b)
+
+;; 使用
+myadd 7 3
+myadd (add 7 9) 2
+
+
+;; 宏的条件与循环
+
+; for 循环， _ 下划线为循环参数占位符
+mcrfor(1 (add 1 2) 3)(add _ 1)
+
+; if 条件
+mcrif c v ( add 1 2 )
+
+
+;; 自定义 switch 控制流程
+
+let _switch_if(a b)(if a b else)
+
+let switch(cond default body)(
+	mcrif default true ( add 1 2 )
+	mcrfor(body)(_switch_if _ )
+	default
+)
+
+
+;; 使用 switch 控制流程
+
+switch 2 false (
+	(1 true)
+	(2 false)
+	(3 true)
+)
+

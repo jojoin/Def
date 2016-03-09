@@ -27,6 +27,9 @@
     T(String) \
 
 
+//    T(Quote) /* 引用 */ \
+
+
 
 
 namespace def {
@@ -78,6 +81,30 @@ DEF_AOTM_TYPE_LIST(AT)
 #undef AOTM_TYPE
 
 
+// 引用类型
+struct TypeQuote : Type
+{
+    // size_t len;
+    Type* type = nullptr; // 引用值的类型
+    virtual bool is(Type*t){
+        if (auto *ty = dynamic_cast<TypeQuote*>(t)) {
+            return ty->type->is(type); // 引用类型一致
+        }
+        return false;
+    }
+    virtual void set(Type* t) { // 增加 type
+        type = t;
+    }
+    virtual string str() {
+        if (type) {
+            return "~" + type->getIdentify();
+        } else {
+            return "~null";
+        }
+    }
+};
+
+
 // 扩展类型
 #define EXTEND_TYPE(N,P) \
 struct Type##N : P \
@@ -85,8 +112,6 @@ struct Type##N : P \
     virtual bool is(Type*t){ /* 扩展类型直接对比地址 */ \
         return !!( ((int)this)==((int)t) ); \
     }
-
-
 
 /* 数组类型
 struct TypeArray : Type

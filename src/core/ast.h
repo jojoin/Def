@@ -83,6 +83,28 @@ AST_CODE_HEAD(Constant)
 };
 
 
+// 引用值
+AST_CODE_HEAD(Quote)
+    Type* type;   // 引用类型
+    AST* value;   // 引用的值
+    ASTQuote(AST* v, Type* t)
+        : value(v)
+        , type(t)
+    {}
+};
+
+
+// 从引用载入值
+AST_CODE_HEAD(Load)
+    Type* type;   // 引用类型
+    AST* value;   // 引用的值
+    ASTLoad(AST* v, Type* t)
+        : value(v)
+        , type(t)
+    {}
+};
+
+
 
 // 函数返回值
 AST_CODE_HEAD(Ret)

@@ -114,6 +114,31 @@ FUNC_HEAD_GETTYPE(Constant)
 
 
 /**
+ * Quote
+ */
+FUNC_HEAD_PRINT(Quote)
+    cout << "quote: " << endl;
+    PRINT_ONE_CHILD(value)
+}
+FUNC_HEAD_GETTYPE(Quote)
+    return type;
+}
+
+
+/**
+ * Load
+ */
+FUNC_HEAD_PRINT(Load)
+    cout << "load: " << endl;
+    PRINT_ONE_CHILD(value)
+}
+FUNC_HEAD_GETTYPE(Load)
+    return ((TypeQuote*)type)->type;
+}
+
+
+
+/**
  * If
  */
 FUNC_HEAD_PRINT(If)

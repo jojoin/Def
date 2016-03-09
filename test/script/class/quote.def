@@ -1,0 +1,32 @@
+;-
+	类引用型布局
+-;
+
+
+;; 类成员包含引用类型
+type QNode (
+	Quote self
+	Quote other
+	Int num
+	fun QNode(Int n)(
+		set num n
+	)
+)
+
+
+;; 初始化
+var nd QNode 97
+var nd2 QNode 98
+
+;; 引用自己 和 其它节点
+elmset nd self nd
+elmset nd other nd2
+
+;; 获得自己 和 其它节点 （如未初始化会报错）
+var nd_self elmget nd self
+var nd_other elmget nd other
+
+;; 打印
+putchar elmget nd_self  num
+putchar elmget nd_other num
+

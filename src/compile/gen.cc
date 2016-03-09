@@ -102,7 +102,7 @@ Value* Gen::createLoad(Value* val)
         return stis->getValueOperand();
     }
 
-    // 其它节点
+    // 指针节点
     if( isa<PointerType>(ty) ) {
         // 需要从地址载入数据
         return builder.CreateLoad(val);
@@ -245,6 +245,11 @@ llvm::Type* Gen::fixType(def::core::Type* ty, vector<def::core::Type*>* append)
     } else if (ISTY(String)) {
         // return PointerType::get(builder.getInt8Ty(), 0);
         return builder.getInt8PtrTy();
+    }
+    
+    // 引用类型
+    if (ISTY(Quote)) {
+        return builder.getInt32Ty();
     }
 
     // 函数类型

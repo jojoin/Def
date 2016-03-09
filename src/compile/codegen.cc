@@ -60,6 +60,7 @@ Value* ASTConstant::codegen(Gen & gen)
 
     } else if (ISTY(String)) {
         return gen.builder.CreateGlobalStringPtr(value);
+
     }
 
     return nullptr;
@@ -67,6 +68,42 @@ Value* ASTConstant::codegen(Gen & gen)
 #undef ISTY
 
 }
+
+
+/**
+ * 获取 Quote 引用对象的 IR
+ */
+Value* ASTQuote::codegen(Gen & gen)
+{
+    // 引用类型用 int 32 储存
+    llvm::Type* vty = gen.fixType(type);
+    // 地址值
+    Value* v = gen.varyPointer(value);
+
+    // pointer 转 int
+    return gen.builder.CreatePtrToInt(v, vty);
+}
+
+
+/**
+ * 从引用载入对象
+ */
+Value* ASTLoad::codegen(Gen & gen)
+{
+    auto *qty = dynamic_cast<TypeQuote*>(type);
+    if (!qty) { // 载入必须为引用类型
+        FATAL("ASTLoad must be <TypeQuote*> !")
+    }
+    // 引用值的类型
+    llvm::Type* vty = gen.fixType(qty->type);
+    // 转换成指针类型
+    llvm::Type* vpty = PointerType::get(vty, 0);
+    // 地址值
+    Value* v = gen.createLoad(value);
+    // int 转 pointer 
+    return gen.builder.CreateIntToPtr(v, vpty);
+}
+
 
 /**
  * Group
