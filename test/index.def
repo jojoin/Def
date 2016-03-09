@@ -30,6 +30,11 @@ include "script/class/common.def"      ;
 include "script/class/structure.def"   ; 构造函数
 include "script/class/quote.def"   ; 构造函数
 
+;
+
+
+;include "script/class/quote.def"
+
 
 ;-
 
