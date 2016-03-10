@@ -251,6 +251,14 @@ llvm::Type* Gen::fixType(def::core::Type* ty, vector<def::core::Type*>* append)
     if (ISTY(Refer)) {
         return builder.getInt32Ty();
     }
+    
+    // 数组类型
+    if (ISTY(Array)) {
+        // 数组值的类型
+        llvm::Type* vty = fixType(obj->type);
+        // 转换成数组类型
+        return ArrayType::get(vty, obj->len);
+    }
 
     // 函数类型
     if (ISTY(Function)) {

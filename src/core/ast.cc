@@ -137,6 +137,60 @@ FUNC_HEAD_GETTYPE(Load)
 }
 
 
+/**
+ * ArrayConstruct
+ */
+FUNC_HEAD_PRINT(ArrayConstruct)
+    cout << "array construct: " << type->str() << endl;
+}
+FUNC_HEAD_GETTYPE(ArrayConstruct)
+    return type;
+}
+
+
+/**
+ * ArrayVisit
+ */
+FUNC_HEAD_PRINT(ArrayVisit)
+    string indent = ind;
+    ind = indent + INDLIN;
+    cout << "array visit: " << instance->getType()->str() << endl;
+    // instance
+    cout << indent+INDCON << "instance: " << endl;
+    PRINT_ONE_CHILD(instance)
+    // index
+    ind = indent + IND;
+    cout << indent+INDEND << "index: " << endl;
+    PRINT_CHILD_CHECK(index)
+}
+FUNC_HEAD_GETTYPE(ArrayVisit)
+    return ((TypeArray*)instance->getType())->type;
+}
+
+
+/**
+ * ArrayAssign
+ */
+FUNC_HEAD_PRINT(ArrayAssign)
+    string indent = ind;
+    ind = indent + INDLIN;
+    cout << "array assign: " << instance->getType()->str() << endl;
+    // instance
+    cout << indent+INDCON << "instance: " << endl;
+    PRINT_ONE_CHILD(instance)
+    // index
+    cout << indent+INDCON << "index: " << endl;
+    PRINT_CHILD_CHECK(index)
+    // value
+    ind = indent + IND;
+    cout << indent+INDEND << "value: " << endl;
+    PRINT_CHILD_CHECK(value)
+}
+FUNC_HEAD_GETTYPE(ArrayAssign)
+    return value->getType();
+}
+
+
 
 /**
  * If

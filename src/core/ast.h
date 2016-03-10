@@ -104,6 +104,38 @@ AST_CODE_HEAD(Load)
     {}
 };
 
+// 数组初始化
+AST_CODE_HEAD(ArrayConstruct)
+    TypeArray* type;   // 数组类型
+    ASTArrayConstruct(TypeArray* t)
+        : type(t)
+    {}
+};
+
+// 数组成员访问
+AST_CODE_HEAD(ArrayVisit)
+    AST* index;    // 子元素索引
+    AST* instance; // 数组实例
+    ASTArrayVisit(AST*v=nullptr, AST* i=nullptr)
+        : index(i)
+        , instance(v)
+    {}
+};
+
+// 数组成员赋值
+AST_CODE_HEAD(ArrayAssign)
+    AST* index; // 子元素索引
+    AST* instance; // 数组实例
+    AST* value; // 赋值
+    ASTArrayAssign(AST*m=nullptr, AST* i=nullptr, AST*c=nullptr)
+        : index(i)
+        , instance(m)
+        , value(c)
+    {}
+};
+
+
+
 
 
 // 函数返回值
@@ -251,7 +283,7 @@ AST_CODE_HEAD(MemberFunctionCall)
     {}
 };
 
-// 成员访问
+// 类成员访问
 AST_CODE_HEAD(MemberVisit)
     size_t index; // 子元素索引
     AST* instance; // 类实例
@@ -261,7 +293,7 @@ AST_CODE_HEAD(MemberVisit)
     {}
 };
 
-// 成员赋值
+// 类员赋值
 AST_CODE_HEAD(MemberAssign)
     size_t index; // 子元素索引
     AST* instance; // 类实例

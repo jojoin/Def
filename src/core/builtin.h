@@ -17,17 +17,21 @@
     D(var) /*变量定义*/ \
     D(set) /*变量赋值*/ \
     \
-    /*D(refer) 类型为引用*/ \
-    /*D(array) 类型为数组*/ \
     D(adt) /*适配器模式*/ \
+    \
+    D(refer) /*类型为引用*/ \
+    D(array) /*类型为数组*/ \
+    \
+    D(arrget) /*数组成员访问*/ \
+    D(arrset) /*数组成员赋值*/ \
     \
     D(if) /*if else*/ \
     D(while) /*while*/ \
     \
-    D(elmget) /*成员访问*/ \
-    D(elmset) /*成员赋值*/ \
-    D(elmivk) /*成员函数调用*/ \
-    D(elmdef) /*成员函数外部定义*/ \
+    D(elmget) /*类成员访问*/ \
+    D(elmset) /*类成员赋值*/ \
+    D(elmivk) /*类成员函数调用*/ \
+    D(elmdef) /*类成员函数外部定义*/ \
     \
     D(mcrif)  /*宏条件展开*/ \
     D(mcrfor) /*宏重复展开*/ \

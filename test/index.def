@@ -28,23 +28,52 @@ include "script/macro/stdtest.def"
 ;; 类
 include "script/class/common.def"      ; 
 include "script/class/structure.def"   ; 构造函数
-include "script/class/reference.def"   ; 构造函数
+include "script/class/reference.def"   ; 引用类型
 
 -;
 
 
 
-include "script/class/reference.def" 
+; include "script/class/reference.def" 
+
+
+;; 数组类型
+
+
+type Node(
+	refer Node self
+	Int num
+	fun Node(Int n)(
+		set num n
+	)
+)
+
+;; 对象引用自己
+var nd Node 97
+elmset nd self nd
+;putchar elmget elmget nd self num
+
+
+;; 数组
+var ary array Node 7
+
+arrset ary 3 nd
+
+var nd3 arrget ary 3
+
+putchar elmget nd3 num
 
 
 
 ;- 数组
-var ary Array 5
+
+var ary array refer Node
 
 arrget ary 3
 arrset ary 3 Node 3
 
 -;
+
 
 
 

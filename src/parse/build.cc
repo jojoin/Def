@@ -1684,7 +1684,7 @@ AST* Build::build_mcrcut()
 
     // cout << "：：：：：" << word.value << endl;
     
-    // 必须为类型
+    // 必须为数字
     if (NOTWS(Number)) {
         FATAL("macro cut need a <Number> belong !")
     }
@@ -1722,6 +1722,124 @@ AST* Build::build_adt()
 {
     return nullptr;
 }
+
+/**
+ * array 新建数组类型对象
+ */
+AST* Build::build_refer()
+{
+    // 只能在类成员或数组中使用引用类型
+    FATAL("only in class or array can use reference type !")
+}
+
+/**
+ * array 新建数组类型对象
+ */
+AST* Build::build_array()
+{
+    Word word = getWord();
+    
+    if (NOTWS(Character)) {
+        FATAL("array define need a legal type name to belong !")
+    }
+    
+    bool is_ref = false;
+    if(ISCHA(DEF_REFERENCE_TYPE_KEYWORW)) { // 如果为引用类型
+        is_ref = true;
+        word = getWord();
+    }
+
+    // 类型
+    Type *ty(nullptr);
+    
+    Element* res = stack->find(word.value);
+    if (ElementType* dco = dynamic_cast<ElementType*>(res)) {
+        ty = dco->type;
+        if(is_ref){
+            ty = new TypeRefer(ty);
+        }
+    } else {
+        FATAL("array define error: not find Type <"<<word.value<<"> !")
+    }
+
+    // 数组大小
+    word = getWord();
+    
+    // 必须为数字
+    if (NOTWS(Number)) {
+        FATAL("array define need a <Number> belong !")
+    }
+
+    size_t len = Str::s2l(word.value);
+
+    // 数组类型
+
+    auto *aryty = new TypeArray(ty, len);
+
+    // 返回数组构造
+    return new ASTArrayConstruct(aryty);
+
+}
+
+/**
+ * array 数组成员访问
+ */
+AST* Build::build_arrget()
+{
+    // 数组对象
+    AST *ary = build();
+
+    // 类型检测
+    if (!dynamic_cast<TypeArray*>(ary->getType())) {
+        FATAL("array visit must use to array type !")
+    }
+    
+    // 索引
+    AST *idx = build();
+
+    // 类型检测
+    if (!dynamic_cast<TypeInt*>(idx->getType())) {
+        FATAL("array visit must get a Number type index !")
+    }
+    
+    return new ASTArrayVisit(ary, idx);
+}
+
+/**
+ * array 数组成员赋值
+ */
+AST* Build::build_arrset()
+{
+    // 数组对象
+    AST *ary = build();
+
+    // 类型检测
+    TypeArray * arrty(nullptr);
+    if (! (arrty=dynamic_cast<TypeArray*>(ary->getType()))) {
+        FATAL("array assign must use to array type !")
+    }
+    
+    // 索引
+    AST *idx = build();
+
+    // 类型检测
+    if (!dynamic_cast<TypeInt*>(idx->getType())) {
+        FATAL("array assign must get a Number type index !")
+    }
+    
+    // 值
+    AST *value = build();
+    Type* vty = value->getType();
+
+    // 类型检测
+    if (! vty->is(arrty->type)) {
+        FATAL("can't quote member assign <"
+            +arrty->getIdentify()+"> by <"+vty->getIdentify()+">' !")
+    }
+    
+    return new ASTArrayAssign(ary, idx, value);
+}
+
 
 
 /**

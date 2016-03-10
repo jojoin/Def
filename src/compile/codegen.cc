@@ -106,6 +106,79 @@ Value* ASTLoad::codegen(Gen & gen)
 
 
 /**
+ * 数组对象构造
+ */
+Value* ASTArrayConstruct::codegen(Gen & gen)
+{
+    // 数组类型
+    llvm::Type* arrty = gen.fixType(type);
+
+    // 数组空间分配
+    return gen.builder.CreateAlloca(arrty);
+}
+
+
+/**
+ * 数组元素访问
+ */
+Value* ASTArrayVisit::codegen(Gen & gen)
+{
+    ArrayType *arrty = (ArrayType*)gen.fixType(
+        instance->getType()
+        );
+    
+    // 数组值
+    Value* arrval = instance->codegen(gen);
+
+    // 索引值
+    Value* inxval = gen.createLoad(index->codegen(gen));
+      // 数组元素指针
+    vector<Value*> idxlist;
+    idxlist.push_back(ConstantInt::get( gen.builder.getInt32Ty(), 0, true));
+    idxlist.push_back(inxval);
+
+    return gen.builder.CreateGEP(arrval, idxlist);
+
+    // 返回数组访问
+    // return gen.builder.CreateGEP(arrty, arrval, inxval);
+
+}
+
+
+/**
+ * 数组元素赋值
+ */
+Value* ASTArrayAssign::codegen(Gen & gen)
+{
+    ArrayType *arrty = (ArrayType*)gen.fixType(
+        instance->getType()
+        );
+    
+    // 数组值
+    Value* arrval = instance->codegen(gen);
+
+    // 索引值
+    Value* inxval = gen.createLoad(index->codegen(gen));
+
+    // 数组元素指针
+    vector<Value*> idxlist;
+    idxlist.push_back(ConstantInt::get( gen.builder.getInt32Ty(), 0, true));
+    idxlist.push_back(inxval);
+    Value* elmptr = gen.builder.CreateGEP(arrval, idxlist);
+    
+    // 赋值
+    Value* putval = gen.createLoad(value->codegen(gen));
+    
+    //return putval;
+
+    // 返回数组访问
+    return gen.builder.CreateStore(putval, elmptr);
+
+}
+
+
+
+/**
  * Group
  */
 Value* ASTGroup::codegen(Gen & gen)

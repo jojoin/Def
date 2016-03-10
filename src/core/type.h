@@ -126,6 +126,12 @@ struct TypeArray : Type
     virtual void set(Type* t) { // 增加 type
         type = t;
     }
+    virtual bool is(Type*t){
+        if (auto *ty = dynamic_cast<TypeArray*>(t)) {
+            return ty->type->is(type); // 数组类型一致
+        }
+        return false;
+    }
 };
 
 
