@@ -17,6 +17,10 @@
     D(var) /*变量定义*/ \
     D(set) /*变量赋值*/ \
     \
+    /*D(refer) 类型为引用*/ \
+    /*D(array) 类型为数组*/ \
+    D(adt) /*适配器模式*/ \
+    \
     D(if) /*if else*/ \
     D(while) /*while*/ \
     \

@@ -90,9 +90,9 @@ Value* ASTQuote::codegen(Gen & gen)
  */
 Value* ASTLoad::codegen(Gen & gen)
 {
-    auto *qty = dynamic_cast<TypeQuote*>(type);
+    auto *qty = dynamic_cast<TypeRefer*>(type);
     if (!qty) { // 载入必须为引用类型
-        FATAL("ASTLoad must be <TypeQuote*> !")
+        FATAL("ASTLoad must be <TypeReference*> !")
     }
     // 引用值的类型
     llvm::Type* vty = gen.fixType(qty->type);

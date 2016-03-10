@@ -82,12 +82,15 @@ DEF_AOTM_TYPE_LIST(AT)
 
 
 // 引用类型
-struct TypeQuote : Type
+struct TypeRefer : Type
 {
     // size_t len;
     Type* type = nullptr; // 引用值的类型
+    TypeRefer(Type*t)
+        : type(t)
+    {}
     virtual bool is(Type*t){
-        if (auto *ty = dynamic_cast<TypeQuote*>(t)) {
+        if (auto *ty = dynamic_cast<TypeRefer*>(t)) {
             return ty->type->is(type); // 引用类型一致
         }
         return false;
@@ -105,6 +108,28 @@ struct TypeQuote : Type
 };
 
 
+
+// 数组类型
+struct TypeArray : Type
+{
+    size_t len;
+    Type* type;
+    TypeArray(Type*t, size_t l)
+        : type(t)
+        , len(l)
+    {}
+    virtual string str() {
+        string s = "[" + Str::l2s(len) + "*";
+        if(type) s += type->getIdentify();
+        return s+"]";
+    }
+    virtual void set(Type* t) { // 增加 type
+        type = t;
+    }
+};
+
+
+
 // 扩展类型
 #define EXTEND_TYPE(N,P) \
 struct Type##N : P \
@@ -113,21 +138,6 @@ struct Type##N : P \
         return !!( ((int)this)==((int)t) ); \
     }
 
-/* 数组类型
-struct TypeArray : Type
-{
-    // size_t len;
-    Type* type;
-    virtual string str() {
-        string s = "[";// + Str::l2s(len) + "*";
-        s += type->str();
-        return s+"]";
-    }
-    virtual void set(Type* t) { // 增加 type
-        type = t;
-    }
-};
-*/
 
 // 结构类型
 EXTEND_TYPE(Struct, Type)

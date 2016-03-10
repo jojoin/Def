@@ -6,9 +6,9 @@ include "../macro/std.def"
 
 ;; 类成员包含引用类型
 type QNode (
-	Quote self
+	refer QNode self ; 引用成员
 	Int num
-	Quote other
+	refer QNode other ; 引用成员
 	fun QNode(Int n)(
 		set num n
 	)

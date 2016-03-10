@@ -788,8 +788,15 @@ AST* Build::build_type()
     stack = new_stk;
 
 
-#define TCADD(N) if(it) tyclass->add(N, it);
+#define TCADD(N) if(it){ \
+        if(is_qt){ \
+            it = new TypeRefer(it); \
+            is_qt = false; \
+        } \
+        tyclass->add(N, it); \
+    }
 
+    bool is_qt = false; // 标记下一个对象为引用类型
     while (1) { // 类型元素定义
         Type* it = nullptr;
         word = getWord();
@@ -811,8 +818,9 @@ AST* Build::build_type()
         Element* res = stack->find(word.value);
         if (ElementType* dco = dynamic_cast<ElementType*>(res)) {
             it = dco->type;
-        } else if(ISCHA("Quote")) { // 引用类型
-            it = new TypeQuote();
+        } else if(ISCHA(DEF_REFERENCE_TYPE_KEYWORW)) { // 引用类型
+            is_qt = true; 
+            continue;
         } else {
             FATAL("Type declare format error: not find Type <"<<word.value<<"> !")
         }
@@ -1473,7 +1481,7 @@ AST* Build::build_elmget()
     ins->index = pos;
 
     // 是否为取引用值
-    if (auto * qty = dynamic_cast<TypeQuote*>(scty->types[pos])) {
+    if (auto * qty = dynamic_cast<TypeRefer*>(scty->types[pos])) {
         if (!qty->type) { // 初始化之前不能使用
             FATAL("Can't use quote value "+scty->name+"."+word.value+" before initialize !")
         }
@@ -1516,7 +1524,7 @@ AST* Build::build_elmset()
     Type* putty = putv->getType();
     // 类型检查
     Type* pvty = scty->types[ins->index];
-    if (auto * qty = dynamic_cast<TypeQuote*>(pvty)) {
+    if (auto * qty = dynamic_cast<TypeRefer*>(pvty)) {
         // 引用类型
         if (qty->type && !putty->is(qty->type)) {
             FATAL("can't quote member assign <"+pvty->getIdentify()+"> by <"+putty->getIdentify()+">' !")
@@ -1706,6 +1714,15 @@ AST* Build::build_mcrcut()
 
 
 }
+
+/**
+ * adt 适配器模式函数定义、函数参数定义、成员函数调用
+ */
+AST* Build::build_adt()
+{
+    return nullptr;
+}
+
 
 /**
  * link 得到变量的引用

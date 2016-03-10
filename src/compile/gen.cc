@@ -248,7 +248,7 @@ llvm::Type* Gen::fixType(def::core::Type* ty, vector<def::core::Type*>* append)
     }
     
     // 引用类型
-    if (ISTY(Quote)) {
+    if (ISTY(Refer)) {
         return builder.getInt32Ty();
     }
 

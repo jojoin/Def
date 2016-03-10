@@ -133,7 +133,7 @@ FUNC_HEAD_PRINT(Load)
     PRINT_ONE_CHILD(value)
 }
 FUNC_HEAD_GETTYPE(Load)
-    return ((TypeQuote*)type)->type;
+    return ((TypeRefer*)type)->type;
 }
 
 
