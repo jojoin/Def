@@ -19,14 +19,14 @@
     \
     D(adt) /*适配器模式*/ \
     \
+    D(if) /*if else*/ \
+    D(while) /*while*/ \
+    \
     D(refer) /*类型为引用*/ \
     D(array) /*类型为数组*/ \
     \
     D(arrget) /*数组成员访问*/ \
     D(arrset) /*数组成员赋值*/ \
-    \
-    D(if) /*if else*/ \
-    D(while) /*while*/ \
     \
     D(elmget) /*类成员访问*/ \
     D(elmset) /*类成员赋值*/ \

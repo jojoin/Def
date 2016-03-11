@@ -87,10 +87,14 @@ protected:
     ASTFunctionCall* _functionCall(const string &, Stack*, bool up=true);
     // 从函数头（声明或定义）建立函数类型，declare=是否为声明格式
     TypeFunction* _functionType(bool declare=false);
+    
 
+// 功能函数
+protected:
     // 缓存单词段（包含括号内部所有内容）
     void cacheWordSegment(list<Tokenizer::Word>&, bool pure=true);
-
+    // 获得类型标注
+    Type* expectTypeState();
 
 protected:
 

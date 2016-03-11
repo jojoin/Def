@@ -30,15 +30,50 @@ include "script/class/common.def"      ;
 include "script/class/structure.def"   ; 构造函数
 include "script/class/reference.def"   ; 引用类型
 
+
 -;
+
 
 
 
 ; include "script/class/reference.def" 
 
 
+
+
 ;; 数组类型
 
+
+
+;打印字符数组
+
+
+let (ary[_i_]=v)( arrset ary _i_ v )
+
+var name array Char 7
+name[(add 2 4)] = 'y'
+name[5] = 'a'
+name[4]='n'
+name[3]='g'
+name[2]='j'
+name[1]='i'
+name[0]='e'
+
+
+var i 7
+
+while i (
+	set i sub i 1
+	putchar arrget name i
+)
+
+
+
+
+
+
+
+;; 含引用类成员
 
 type Node(
 	refer Node self
@@ -48,40 +83,28 @@ type Node(
 	)
 )
 
+
 ;; 对象引用自己
-var nd Node 97
-elmset nd self nd
-;putchar elmget elmget nd self num
+var rnd Node 99
+;elmset rnd self rnd
+;putchar elmget elmget rnd self num
 
+;
 
-;; 数组
+;; 普通数组
 var ary array Node 7
-
-arrset ary 3 nd
-
+arrset ary 3 rnd
 var nd3 arrget ary 3
-
 putchar elmget nd3 num
 
 
+;; 引用类型数组
+;var qay array refer Node 7
+;arrset qay 4 rnd
+;var nd4 arrget qay 4
+;putchar elmget nd4 num
 
-;- 数组
-
-var ary array refer Node
-
-arrget ary 3
-arrset ary 3 Node 3
-
--;
-
-
-
-
-
-
-
-
-
+;
 
 
 

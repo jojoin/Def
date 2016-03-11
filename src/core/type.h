@@ -99,11 +99,10 @@ struct TypeRefer : Type
         type = t;
     }
     virtual string str() {
-        if (type) {
-            return "~" + type->getIdentify();
-        } else {
-            return "~null";
-        }
+        return getIdentify();
+    }
+    virtual string getIdentify() { // 获得唯一标识
+        return "~" + type->getIdentify();
     }
 };
 
@@ -114,14 +113,18 @@ struct TypeArray : Type
 {
     size_t len;
     Type* type;
-    TypeArray(Type*t, size_t l)
+    TypeArray(Type*t, size_t l=0)
         : type(t)
         , len(l)
     {}
     virtual string str() {
-        string s = "[" + Str::l2s(len) + "*";
+        string s = "[";
+        if(len) s += Str::l2s(len) + "*";
         if(type) s += type->getIdentify();
         return s+"]";
+    }
+    virtual string getIdentify() { // 获得唯一标识
+        return "[" + type->getIdentify() + "]";
     }
     virtual void set(Type* t) { // 增加 type
         type = t;
@@ -172,7 +175,7 @@ EXTEND_TYPE(Struct, Type)
         }
         return s+"}";
     }
-    virtual void add(const string&n, Type* t) { // 增加 type
+    virtual void add(Type* t, const string&n="") { // 增加 type
         tabs.push_back(n);
         types.push_back(t);
     }

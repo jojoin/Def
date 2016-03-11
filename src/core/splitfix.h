@@ -13,6 +13,7 @@
 
 #define DEF_MEMFUNC_ISTC_PARAM_NAME "this" // 成员函数 类实例名称
 
-#define DEF_REFERENCE_TYPE_KEYWORW "refer" // 标记引用类型关键字
+#define DEF_TYPE_KEYWORW_REFERENCE "refer" // 标记引用类型关键字
+#define DEF_TYPE_KEYWORW_ARRAY "array" // 标记数组类型关键字
 
 

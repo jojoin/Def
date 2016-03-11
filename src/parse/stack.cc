@@ -66,7 +66,7 @@ void Stack::addBuiltinFunction(const string & identify)
         } else if (i==1) {
             fty->set(Type::get(it));
         } else {
-            fty->add("",Type::get(it));
+            fty->add(Type::get(it)); 
         }
         i++;
     }

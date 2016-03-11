@@ -164,7 +164,7 @@ FUNC_HEAD_PRINT(ArrayVisit)
     PRINT_CHILD_CHECK(index)
 }
 FUNC_HEAD_GETTYPE(ArrayVisit)
-    return ((TypeArray*)instance->getType())->type;
+    return ((TypeArray*)(instance->getType()))->type;
 }
 
 

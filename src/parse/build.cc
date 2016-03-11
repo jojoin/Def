@@ -321,7 +321,7 @@ AST* Build::buildTemplateFuntion(const string & name, ElementTemplateFuntion* tp
         AST* p = build();
         fncall->addparam(p);
         Type *ty = p->getType();
-        functy->add(pn, ty); // 参数类型
+        functy->add(ty, pn); // 参数类型
         new_stack.put(pn, new ElementVariable(ty)); // 加实参
     }
 
@@ -788,53 +788,39 @@ AST* Build::build_type()
     stack = new_stk;
 
 
-#define TCADD(N) if(it){ \
-        if(is_qt){ \
-            it = new TypeRefer(it); \
-            is_qt = false; \
-        } \
+#define TCADD(N) \
+    if(it){ \
         tyclass->add(N, it); \
+    } else { \
+        FATAL("Type declare format error: not find Type <"<<word.value<<"> !") \
     }
 
-    bool is_qt = false; // 标记下一个对象为引用类型
     while (1) { // 类型元素定义
-        Type* it = nullptr;
+        // 成员类型
+        Type *it = expectTypeState();
+        if(!it) {
+            word = getWord();
+            if (ISSIGN(")")) {
+                break; // 类型声明结束
+            }
+            if("fun"==word.value){
+                build_fun(); continue;
+            } else if ("dcl" == word.value) {
+                build_dcl(); continue;
+            }
+            FATAL("Type declare format error: not find Type <" << word.value << "> !")
+        }
+        // 匿名成员
+        while (true) {
+            if (Type *ty = expectTypeState()) {
+                tyclass->add(it); // 匿名
+                it = ty;
+            } else break;
+        }
+        // 成员名称
         word = getWord();
-        if (ISSIGN(")")) {
-            TCADD("")
-            break; // 类型声明结束
-        }
-        // 类函数定义
-        AST* fndef(nullptr);
-        if("fun"==word.value){
-            fndef = build_fun();
-        } else if ("dcl" == word.value) {
-            fndef = build_dcl();
-        }
-        if (fndef) {
-            continue; // 成员函数定义
-        }
-        // 类型标示
-        Element* res = stack->find(word.value);
-        if (ElementType* dco = dynamic_cast<ElementType*>(res)) {
-            it = dco->type;
-        } else if(ISCHA(DEF_REFERENCE_TYPE_KEYWORW)) { // 引用类型
-            is_qt = true; 
-            continue;
-        } else {
-            FATAL("Type declare format error: not find Type <"<<word.value<<"> !")
-        }
-        // 类型标记
-        word = getWord();
-        res = stack->find(word.value);
-        if (ElementType* dco = dynamic_cast<ElementType*>(res)) {
-            prepareWord(word); // 预备
-            TCADD("")
-        } else if(ISWS(Character)) {
-            TCADD(word.value)
-        } else {
-            FATAL("Type declare format error !")
-        }
+        // 添加成员
+        tyclass->add(it, word.value);
     }
 
 #undef TCADD
@@ -892,7 +878,7 @@ AST* Build::build_dcl()
         }
         Type *pty;  // 参数类型
         if (auto *ety = dynamic_cast<ElementType*>(stack->find(word.value))) {
-            functy->add("", ety->type);
+            functy->add(ety->type); // 匿名
         } else {
             FATAL("function declare parameter format is not valid !")
         }
@@ -994,10 +980,10 @@ AST* Build::build_fun()
             // 类成员函数，参数名称冲突
             FATAL("can't give a parameter name '" + pnm + "' in type member function !")
         }
-        functy->add(pnm, pty);
+        functy->add(pty, pnm);
         // 构造函数入栈
         if (status_construct) {
-            constructfuncty->add(pnm, pty);
+            constructfuncty->add(pty, pnm);
         }
     }
 
@@ -1743,8 +1729,9 @@ AST* Build::build_array()
         FATAL("array define need a legal type name to belong !")
     }
     
+    // 如果为引用类型
     bool is_ref = false;
-    if(ISCHA(DEF_REFERENCE_TYPE_KEYWORW)) { // 如果为引用类型
+    if(ISCHA(DEF_TYPE_KEYWORW_REFERENCE)) {
         is_ref = true;
         word = getWord();
     }
@@ -1790,7 +1777,8 @@ AST* Build::build_arrget()
     AST *ary = build();
 
     // 类型检测
-    if (!dynamic_cast<TypeArray*>(ary->getType())) {
+    TypeArray * arty(nullptr);
+    if ( ! (arty=dynamic_cast<TypeArray*>(ary->getType()))) {
         FATAL("array visit must use to array type !")
     }
     
@@ -1802,7 +1790,16 @@ AST* Build::build_arrget()
         FATAL("array visit must get a Number type index !")
     }
     
-    return new ASTArrayVisit(ary, idx);
+    // 数组元素访问
+    AST* visit = new ASTArrayVisit(ary, idx);
+
+    // 如果是引用类型
+    if (auto *refty = dynamic_cast<TypeRefer*>(arty->type)) {
+        // 载入数据
+        visit = new ASTLoad(visit, refty);
+    }
+
+    return visit;
 }
 
 /**
@@ -1814,8 +1811,8 @@ AST* Build::build_arrset()
     AST *ary = build();
 
     // 类型检测
-    TypeArray * arrty(nullptr);
-    if (! (arrty=dynamic_cast<TypeArray*>(ary->getType()))) {
+    TypeArray * arty(nullptr);
+    if (! (arty=dynamic_cast<TypeArray*>(ary->getType()))) {
         FATAL("array assign must use to array type !")
     }
     
@@ -1831,12 +1828,24 @@ AST* Build::build_arrset()
     AST *value = build();
     Type* vty = value->getType();
 
+
+    // 如果是引用类型
+    if (auto *refty = dynamic_cast<TypeRefer*>(arty->type)) {
+        // 取得引用地址值
+        Type* tarty = refty->type;
+        if (! vty->is(tarty)) {
+            FATAL("can't quote member assign <"
+                +tarty->getIdentify()+"> by <"+vty->getIdentify()+">' !")
+        }
+        value = new ASTQuote(value, refty);
+        
     // 类型检测
-    if (! vty->is(arrty->type)) {
+    } else if (! vty->is(arty->type)) {
         FATAL("can't quote member assign <"
-            +arrty->getIdentify()+"> by <"+vty->getIdentify()+">' !")
+            +arty->getIdentify()+"> by <"+vty->getIdentify()+">' !")
     }
     
+    // 返回数组元素赋值
     return new ASTArrayAssign(ary, idx, value);
 }
 
@@ -2045,6 +2054,9 @@ list<Word> Build::spreadOperatorBind(list<Word>*pwds)
 }
 
 
+/********************************************************/
+
+
 /**
  * 缓存单词段（包含括号内部所有内容）
  */
@@ -2067,6 +2079,64 @@ void Build::cacheWordSegment(list<Word>& cache, bool pure)
 }
 
 
+
+/**
+ * 获得类型标注
+ */
+def::core::Type* Build::expectTypeState()
+{
+    // 数组或引用类型标记
+    string mark = "";
+
+    list<Word> caches;
+
+    Word word;
+
+#define READWORD word = getWord(); caches.push_back(word);
+#define RETURNNULL prepareWord(caches); return nullptr;
+
+    // 检测类型标记
+    while (true) {
+        READWORD
+        if (NOTWS(Character)) {
+            RETURNNULL
+        }
+        if (ISCHA(DEF_TYPE_KEYWORW_REFERENCE)) {
+            mark += "r";
+        } else if (ISCHA(DEF_TYPE_KEYWORW_ARRAY)) {
+            mark += "a";
+        } else {
+            break;
+        }
+    }
+
+    // 查找类型
+    Type *ty(nullptr);
+    Element* res = stack->find(word.value);
+    if (ElementType* dco = dynamic_cast<ElementType*>(res)) {
+        ty = dco->type;
+    } else {
+        RETURNNULL
+    }
+
+    // 组合类型
+    int len = mark.size();
+    while (len--) {
+        char m = mark[len];
+        if (m=='a') {
+            ty = new TypeArray(ty);
+        } else if (m=='r') {
+            ty = new TypeRefer(ty);
+        }
+    }
+
+    return ty;
+
+
+#undef READWORD 
+#undef RETURNNULL 
+
+}
 
 
 /********************************************************/
@@ -2136,7 +2206,7 @@ ASTFunctionCall* Build::_functionCall(const string & fname, Stack* stack, bool u
         fncall->addparam(exp); // 加实参
         auto *pty = exp->getType();
         // 重载函数名
-        tmpfty->add("", pty);
+        tmpfty->add(pty); // 匿名
     }
 
     fncall->fndef = fndef; // elmfn->fndef;

@@ -55,7 +55,7 @@ Value* ASTConstant::codegen(Gen & gen)
     } else if (ISTY(Char)) {
         return ConstantInt::get(
             gen.builder.getInt32Ty(), 
-            value, 
+            (int)value[0], 
             false);
 
     } else if (ISTY(String)) {
@@ -268,9 +268,13 @@ Value* ASTFunctionCall::codegen(Gen & gen)
 
 
     // 内置函数
+    if (idname == "putchar" X "Int") {
+        idname = "putchar" X "Char"; // 统一输出 int 和 char
+    }
     if (
-        idname == "putchar" X "Int" ||
+        idname == "putchar" X "Char" ||
         idname == "abs" X "Int"
+        // ... 其它内置函数
     ) {
         
         Function *func = gen.module.getFunction(fname);
