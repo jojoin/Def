@@ -4,8 +4,7 @@
 
 ;; 测试单元
 
-
-;-
+;
 
 include "script/type.def"                 ; 类型
 include "script/variable.def"             ; 变量
@@ -30,7 +29,7 @@ include "script/class/common.def"      ;
 include "script/class/structure.def"   ; 构造函数
 include "script/class/reference.def"   ; 引用类型
 
--;
+;
 
 
 
@@ -43,10 +42,7 @@ include "script/class/reference.def"   ; 引用类型
 ;; 数组类型
 
 
-let (obj.k)( elmget obj k )
-let (obj.k=v)( elmset obj k v )
-let (ary[i]=v)( arrset ary i v )
-let (ary[i])( arrget ary i )
+include "script/macro/std.def"
 
 
 
@@ -84,14 +80,13 @@ fun putchar(array Char str)(
 putchar name
 
 
-;-
 
 
 
 
 ;; 含引用类成员
 
-type Node(
+type Node (
 	refer Node self
 	array 5 Int ns
 	refer array 10 Int rns
@@ -131,6 +126,10 @@ putchar a10s[2]
 ;qay[4] = rnd
 ;var nd4 qay[4]
 ;putchar nd4.num
+
+
+
+;-
 
 -;
 

@@ -112,12 +112,12 @@ size_t filterFunction::match(TypeFunction* fty)
             if (tmpname==mname) {
                 if(!unique) unique = p->fndef;
             }
-            // 检测数组类型参数是否合格（数组参数形参长度为0或与实参相等）
+            // 检测数组类型参数是否合格（数组参数实参长度大于形参长度）
             bool atyok = true;
             int i(0);
             for (auto ty : fty->types) {
                 if (auto *aty = dynamic_cast<TypeArray*>(p->fndef->ftype->types[i])) {
-                    if (aty->len != 0 && aty->len != ((TypeArray*)ty)->len) {
+                    if (aty->len > ((TypeArray*)ty)->len) {
                         atyok = false;
                     }
                 }

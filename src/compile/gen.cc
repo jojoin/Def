@@ -65,8 +65,8 @@ Value* Gen::varyPointer(Value* val)
     llvm::Type* ty = val->getType();
     
     // 结构或数组则取得地址
-    if (isa<StructType>(ty) ||
-        isa<ArrayType>(ty)
+    if (isa<PointerType>(ty) && 
+        (isa<StructType>(ty) || isa<ArrayType>(ty) )
     ) {
         vector<Value*> idxlist;
         idxlist.push_back(ConstantInt::get( builder.getInt32Ty(), 0, true));

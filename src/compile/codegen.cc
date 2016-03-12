@@ -322,17 +322,20 @@ Value* ASTFunctionCall::codegen(Gen & gen)
         auto *arty = dynamic_cast<TypeArray*>(pty);
         if (stty || arty) {
             pv = gen.varyPointer(p);
-            if (arty) { // 如果形参为数组且长度为0，则可传任意长度实参
+            if (arty) { // 如果实参为数组且长度大于形参，则转换实参类型
                 size_t pmidx = argvs.size();
                 auto *vsarty = dynamic_cast<TypeArray*>(
                     fndef->ftype->types[pmidx]);
-                if (vsarty->len == 0) {
-                    // 数组类型长度转换
+                // 数组类型长度转换
+                if (arty->len > vsarty->len) {
                     Value *vint = gen.builder.CreatePtrToInt(pv, gen.builder.getInt32Ty());
                     auto *pty = PointerType::get(
-                        ArrayType::get(gen.fixType(arty->type), 0), 0);
+                        ArrayType::get(gen.fixType(arty->type), vsarty->len), 0);
                     pv = gen.builder.CreateIntToPtr(vint, pty);
+                } else {
+                    FATAL("Function argument is an array，The actual length should be looger than the declare !");
                 }
+                
             }
         }else{
             pv = gen.createLoad(p);
