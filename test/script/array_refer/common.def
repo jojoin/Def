@@ -1,0 +1,21 @@
+;-
+    数组
+-;
+
+include "../type.def"
+include "../macro/std.def"
+
+
+;; 普通数组
+
+var ints array 3 Int
+
+;; 存入
+arrset ints 0 97
+ints[1] = 98
+ints[(add 1 1)] = 99
+
+;; 读取
+putchar arrget ints 1
+putchar ints[2]
+

@@ -6,6 +6,7 @@
 
 ;
 
+
 include "script/type.def"                 ; 类型
 include "script/variable.def"             ; 变量
 
@@ -29,109 +30,13 @@ include "script/class/common.def"      ;
 include "script/class/structure.def"   ; 构造函数
 include "script/class/reference.def"   ; 引用类型
 
-;
-
-
-
-
-; include "script/class/reference.def" 
-
-
-
-
-;; 数组类型
-
-
-include "script/macro/std.def"
-
-
-
-;  打印字符数组
-
-
-
-
-var name array 7 Char
-name[(add 2 4)] = 'y'
-name[5] = 'a'
-name[4]='n'
-name[3]='g'
-name[2]='j'
-name[1]='i'
-name[0]='e'
-
-
-var i 7
-
-while i (
-	set i sub i 1
-	putchar name[i]
-)
-
-
-fun putchar(array Char str)(
-	var i 7
-	while i (
-		set i sub i 1
-		putchar str[i]
-	)
-)
-
-putchar name
-
-
-
-
-
-
-;; 含引用类成员
-
-type Node (
-	refer Node self
-	array 5 Int ns
-	refer array 10 Int rns
-	Int num
-	fun Node(Int n)(
-		set num n
-	)
-)
-
-
-;; 对象引用自己
-var rnd Node 99
-;rnd.self = rnd
-var a10 array 10 Int
-a10[0] = 1
-a10[1] = 2
-a10[2] = 3
-rnd.rns = a10
-
-var a10s rnd.rns
-
-putchar a10s[2]
-
-;putchar rnd.self.num
+;; 数组和引用
+include "script/array_refer/common.def"
+include "script/array_refer/funargv.def"
+include "script/array_refer/inclass.def"
 
 ;
 
-;; 普通数组
-;var ary array 7 Node
-;ary[3] = rnd
-;var nd3 ary[3]
-;putchar nd3.num
-
-
-;; 引用类型数组
-;var qay array 7 refer Node
-;qay[4] = rnd
-;var nd4 qay[4]
-;putchar nd4.num
-
-
-
-;-
-
--;
 
 
 
@@ -140,6 +45,10 @@ putchar a10s[2]
 
 
 
+
+
+
+;;;;;;;;;;;;;   未确认语法  ;;;;;;;;;;;;
 
 
 ;-

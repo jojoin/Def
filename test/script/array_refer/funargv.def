@@ -1,0 +1,40 @@
+;-
+    数组作为函数参数
+-;
+
+
+include "../macro/std.def"
+
+
+
+;  打印字符数组
+
+var name array 7 Char
+name[(add 2 4)] = 'y'
+name[5] = 'a'
+name[4]='n'
+name[3]='g'
+name[2]='j'
+name[1]='i'
+name[0]='e'
+
+
+;; 传入参数打印数组元素
+;; 数组参数满足条件： 实参长度 大于 形参长度
+;; 形参长度为 0 或不设置  则可传任意长度数组
+
+; fun putchar(array 7 Char str Int len)(
+fun putchar(array Char str Int len)(
+    var i len
+    while i (
+        set i sub i 1
+        putchar str[i]
+    )
+)
+
+
+;; 传入数组和数组长度
+putchar name 7
+
+
+

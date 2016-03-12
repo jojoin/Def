@@ -315,7 +315,7 @@ Value* ASTFunctionCall::codegen(Gen & gen)
     }
     // 实际参数
     for (auto &p : params) {
-        // 转换结构或数组值参数为指针
+        // 转换结构或数组值参数为指针 
         Value *pv;
         def::core::Type *pty = p->getType();
         auto *stty = dynamic_cast<TypeStruct*>(pty);

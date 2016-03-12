@@ -1,0 +1,56 @@
+;-
+    引用与数组的复合类型
+-;
+
+
+include "../macro/std.def"
+
+
+;; 含引用类成员
+
+type MazyNode (
+    refer MazyNode self         ; 引用自己
+    refer Int rs            ; 引用成员
+    array 5 Int as          ; 数组成员
+    refer array 10 Int ras  ; 数组引用
+    array 10 refer Int ars  ; 引用数组
+    Int num
+    fun MazyNode(Int n)(
+        set num n
+        as[0] = add n 1
+        as[1] = add n 2
+        as[2] = add n 3
+    )
+)
+
+
+;; 对象引用自己
+
+var mznd MazyNode 99
+mznd.self = mznd
+
+
+;; 成员赋值与访问
+
+
+; 引用型类成员
+mznd.rs = 3
+putchar mznd.rs
+
+
+; 数组型类成员
+mznd.as[0] = 4
+putchar mznd.as[0]
+
+
+; 数组引用型类成员，创建数组成员，赋值给类引用成员
+var mznd_ras array 10 Int
+mznd_ras[0] = 1
+mznd.ras = mznd_ras
+mznd.ras[0] = 5
+putchar mznd.ras[0]
+
+
+; 引用数组型类成员
+mznd.ars[0] = 6
+putchar mznd.ars[0]

@@ -49,18 +49,10 @@ elmdef Complex (
         b=v
     )
     fun puts()(
-        putchar 10
-        putchar 45
-        putchar 45
-        putchar 45
-        putchar 10
+        ; putchar 10 putchar 45 putchar 45 putchar 45 putchar 10
         a:puts
         b:puts
-        putchar 10
-        putchar 45
-        putchar 45
-        putchar 45
-        putchar 10
+        ; putchar 10 putchar 45 putchar 45 putchar 45 putchar 10
 		ret this
     )
 	; ... 其它成员函数
