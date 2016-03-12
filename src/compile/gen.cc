@@ -63,12 +63,20 @@ Value* Gen::varyPointer(Value* val)
 {
     // Value *val = (Value *)v;
     llvm::Type* ty = val->getType();
-    // 结构类型的值，重新分配内存
-
-    if (! isa<PointerType>(ty) ){
+    
+    // 结构或数组则取得地址
+    if (isa<StructType>(ty) ||
+        isa<ArrayType>(ty)
+    ) {
+        vector<Value*> idxlist;
+        idxlist.push_back(ConstantInt::get( builder.getInt32Ty(), 0, true));
+        return builder.CreateGEP(ty, val, idxlist);
+    }
+    // 其它类型的值，重新分配内存
+    if (! isa<PointerType>(ty) ){ 
         Value *aoc = builder.CreateAlloca(ty);
         builder.CreateStore(val, aoc); // 拷贝
-        val = aoc;
+        return aoc;
     }
     
 
@@ -97,7 +105,7 @@ Value* Gen::createLoad(Value* val)
     llvm::Type *ty = val->getType();
 
     // Store 操作
-    if (isa<StoreInst>(val)) {
+    if ( isa<StoreInst>(val) ) {
         auto * stis = (StoreInst*)val;
         return stis->getValueOperand();
     }
@@ -276,8 +284,10 @@ llvm::Type* Gen::fixType(def::core::Type* ty, vector<def::core::Type*>* append)
         }
         for (auto &p : obj->types) {
             auto *pty = fixType(p);
-            // 类以指针传递，基本类型值传递
-            if (dynamic_cast<TypeStruct*>(p)) {
+            // 类和数组以指针传递，基本类型值传递
+            if (dynamic_cast<TypeStruct*>(p) ||
+                dynamic_cast<TypeArray*>(p) 
+                ) {
                 if (!isa<PointerType>(pty)) {
                     pty = PointerType::get(pty, 0);
                 }

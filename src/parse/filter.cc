@@ -101,17 +101,29 @@ size_t filterFunction::size()
 // 筛选并匹配 返回匹配数量
 size_t filterFunction::match(TypeFunction* fty) 
 {
+    bool is_empty_arr = 1;
     unique = nullptr; // 复位
     vector<ElementFunction*> new_funcs;
-    string tmpname = fty->getIdentify();
+    string tmpname = fty->getIdentify(false); // 非严格，允许数组大小不相等
     int tmplen = tmpname.size();
     for (auto &p : funcs) {
-        string mname = p->fndef->ftype->getIdentify();
+        string mname = p->fndef->ftype->getIdentify(false);
         if (tmpname == mname.substr(0, tmplen)) {
             if (tmpname==mname) {
                 if(!unique) unique = p->fndef;
             }
-            new_funcs.push_back(p);
+            // 检测数组类型参数是否合格（数组参数形参长度为0或与实参相等）
+            bool atyok = true;
+            int i(0);
+            for (auto ty : fty->types) {
+                if (auto *aty = dynamic_cast<TypeArray*>(p->fndef->ftype->types[i])) {
+                    if (aty->len != 0 && aty->len != ((TypeArray*)ty)->len) {
+                        atyok = false;
+                    }
+                }
+                i++;
+            }
+            if(atyok) new_funcs.push_back(p);
         }
     }
     funcs = new_funcs;

@@ -52,7 +52,7 @@ struct Type
         return nullptr;
     };
     virtual bool is(Type*t) = 0; // 判断两个对象是否相等
-    virtual string getIdentify() { // 获得唯一标识
+    virtual string getIdentify(bool strict=true) { // 获得唯一标识
         return str();
     }
 // static function
@@ -101,8 +101,8 @@ struct TypeRefer : Type
     virtual string str() {
         return getIdentify();
     }
-    virtual string getIdentify() { // 获得唯一标识
-        return "~" + type->getIdentify();
+    virtual string getIdentify(bool strict=true) { // 获得唯一标识
+        return "~" + type->getIdentify(strict);
     }
 };
 
@@ -118,13 +118,14 @@ struct TypeArray : Type
         , len(l)
     {}
     virtual string str() {
-        string s = "[";
-        if(len) s += Str::l2s(len) + "*";
-        if(type) s += type->getIdentify();
-        return s+"]";
+        return getIdentify();
     }
-    virtual string getIdentify() { // 获得唯一标识
-        return "[" + type->getIdentify() + "]";
+    virtual string getIdentify(bool strict=true) { 
+        // 获得唯一标识，strict 表示大小也必须相等
+        return "["
+            + (strict ? Str::l2s(len) + "*" : "")
+            + type->getIdentify(strict)
+            + "]";
     }
     virtual void set(Type* t) { // 增加 type
         type = t;
@@ -207,7 +208,7 @@ EXTEND_TYPE(Struct, Type)
         }
         return nullptr;
     };
-    virtual string getIdentify() { // 获得唯一标识
+    virtual string getIdentify(bool strict=true) { // 获得唯一标识
         if (idx == 0) {
             return name;
         }
@@ -241,10 +242,10 @@ EXTEND_TYPE(Function,TypeStruct)
         }
         return s+")";
     }
-    virtual string getIdentify() { // 获得唯一标识
+    virtual string getIdentify(bool strict=true) { // 获得唯一标识
         string identify(name);
         for(auto& it : types) {
-            identify += DEF_SPLITFIX_FUNCARGV+it->getIdentify();
+            identify += DEF_SPLITFIX_FUNCARGV+it->getIdentify(strict);
         }
         return identify;
     }

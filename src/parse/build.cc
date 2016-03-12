@@ -3,6 +3,8 @@
  */
 
 
+#include <stack>
+
 #include "build.h"
 #include "../core/error.h"
 
@@ -798,6 +800,9 @@ AST* Build::build_type()
     while (1) { // 类型元素定义
         // 成员类型
         Type *it = expectTypeState();
+        if (tyclass->is(it)) { // 类成员不能包含自己除非引用
+            FATAL("Type declare can't contains it self unless referenced !")
+        }
         if(!it) {
             word = getWord();
             if (ISSIGN(")")) {
@@ -958,26 +963,22 @@ AST* Build::build_fun()
 
     // 函数参数解析
     while (true) {
-        word = getWord();
-        if (ISSIGN(")")) {
-            break; // 函数参数列表结束
-        }
-        Type *pty;  // 参数类型
-        string pnm; // 参数名称
-        if (auto *ety = dynamic_cast<ElementType*>(
-            stack->find(word.value))) {
-            pty = ety->type;
-        }
-        else {
+        Type *pty = expectTypeState(); // 参数类型
+        if (!pty) {
+            word = getWord();
+            if (ISSIGN(")")) {
+                break; // 函数参数列表结束
+            }
             FATAL("Parameter format is not valid !")
         }
+        string pnm; // 参数名称
         word = getWord();
         if (NOTWS(Character)) {
             FATAL("function parameter need a legal name !")
         }
         pnm = word.value;
         if (stack->tydef && pnm == DEF_MEMFUNC_ISTC_PARAM_NAME) {
-            // 类成员函数，参数名称冲突
+            // 类成员函数，参数名称不能是 this 
             FATAL("can't give a parameter name '" + pnm + "' in type member function !")
         }
         functy->add(pty, pnm);
@@ -1724,7 +1725,15 @@ AST* Build::build_refer()
 AST* Build::build_array()
 {
     Word word = getWord();
+    // 数组大小 必须为数字
+    if (NOTWS(Number)) {
+        FATAL("array define need a <Number> belong !")
+    }
+    size_t len = Str::s2l(word.value);
     
+    // 元素类型
+    word = getWord();
+
     if (NOTWS(Character)) {
         FATAL("array define need a legal type name to belong !")
     }
@@ -1748,16 +1757,6 @@ AST* Build::build_array()
     } else {
         FATAL("array define error: not find Type <"<<word.value<<"> !")
     }
-
-    // 数组大小
-    word = getWord();
-    
-    // 必须为数字
-    if (NOTWS(Number)) {
-        FATAL("array define need a <Number> belong !")
-    }
-
-    size_t len = Str::s2l(word.value);
 
     // 数组类型
 
@@ -2087,6 +2086,7 @@ def::core::Type* Build::expectTypeState()
 {
     // 数组或引用类型标记
     string mark = "";
+    std::stack<int> array_sizes;
 
     list<Word> caches;
 
@@ -2105,6 +2105,13 @@ def::core::Type* Build::expectTypeState()
             mark += "r";
         } else if (ISCHA(DEF_TYPE_KEYWORW_ARRAY)) {
             mark += "a";
+            Word word = getWord();
+            if (ISWS(Number)) { // 是否给出数组大小
+                array_sizes.push(Str::s2l(word.value));
+            } else {
+                array_sizes.push(0);
+                prepareWord(word);
+            }
         } else {
             break;
         }
@@ -2124,7 +2131,8 @@ def::core::Type* Build::expectTypeState()
     while (len--) {
         char m = mark[len];
         if (m=='a') {
-            ty = new TypeArray(ty);
+            ty = new TypeArray(ty, array_sizes.top());
+            array_sizes.pop();
         } else if (m=='r') {
             ty = new TypeRefer(ty);
         }

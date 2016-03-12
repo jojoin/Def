@@ -30,7 +30,6 @@ include "script/class/common.def"      ;
 include "script/class/structure.def"   ; 构造函数
 include "script/class/reference.def"   ; 引用类型
 
-
 -;
 
 
@@ -44,13 +43,19 @@ include "script/class/reference.def"   ; 引用类型
 ;; 数组类型
 
 
+let (obj.k)( elmget obj k )
+let (obj.k=v)( elmset obj k v )
+let (ary[i]=v)( arrset ary i v )
+let (ary[i])( arrget ary i )
 
-;打印字符数组
 
 
-let (ary[_i_]=v)( arrset ary _i_ v )
+;  打印字符数组
 
-var name array Char 7
+
+
+
+var name array 7 Char
 name[(add 2 4)] = 'y'
 name[5] = 'a'
 name[4]='n'
@@ -64,11 +69,22 @@ var i 7
 
 while i (
 	set i sub i 1
-	putchar arrget name i
+	putchar name[i]
 )
 
 
+fun putchar(array Char str)(
+	var i 7
+	while i (
+		set i sub i 1
+		putchar str[i]
+	)
+)
 
+putchar name
+
+
+;-
 
 
 
@@ -77,6 +93,8 @@ while i (
 
 type Node(
 	refer Node self
+	array 5 Int ns
+	refer array 10 Int rns
 	Int num
 	fun Node(Int n)(
 		set num n
@@ -86,25 +104,35 @@ type Node(
 
 ;; 对象引用自己
 var rnd Node 99
-;elmset rnd self rnd
-;putchar elmget elmget rnd self num
+;rnd.self = rnd
+var a10 array 10 Int
+a10[0] = 1
+a10[1] = 2
+a10[2] = 3
+rnd.rns = a10
+
+var a10s rnd.rns
+
+putchar a10s[2]
+
+;putchar rnd.self.num
 
 ;
 
 ;; 普通数组
-var ary array Node 7
-arrset ary 3 rnd
-var nd3 arrget ary 3
-putchar elmget nd3 num
+;var ary array 7 Node
+;ary[3] = rnd
+;var nd3 ary[3]
+;putchar nd3.num
 
 
 ;; 引用类型数组
-;var qay array refer Node 7
-;arrset qay 4 rnd
-;var nd4 arrget qay 4
-;putchar elmget nd4 num
+;var qay array 7 refer Node
+;qay[4] = rnd
+;var nd4 qay[4]
+;putchar nd4.num
 
-;
+-;
 
 
 

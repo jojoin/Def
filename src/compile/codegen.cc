@@ -315,10 +315,25 @@ Value* ASTFunctionCall::codegen(Gen & gen)
     }
     // 实际参数
     for (auto &p : params) {
-        // 转换结构值参数为结构指针
+        // 转换结构或数组值参数为指针
         Value *pv;
-        if (dynamic_cast<TypeStruct*>(p->getType())) {
+        def::core::Type *pty = p->getType();
+        auto *stty = dynamic_cast<TypeStruct*>(pty);
+        auto *arty = dynamic_cast<TypeArray*>(pty);
+        if (stty || arty) {
             pv = gen.varyPointer(p);
+            if (arty) { // 如果形参为数组且长度为0，则可传任意长度实参
+                size_t pmidx = argvs.size();
+                auto *vsarty = dynamic_cast<TypeArray*>(
+                    fndef->ftype->types[pmidx]);
+                if (vsarty->len == 0) {
+                    // 数组类型长度转换
+                    Value *vint = gen.builder.CreatePtrToInt(pv, gen.builder.getInt32Ty());
+                    auto *pty = PointerType::get(
+                        ArrayType::get(gen.fixType(arty->type), 0), 0);
+                    pv = gen.builder.CreateIntToPtr(vint, pty);
+                }
+            }
         }else{
             pv = gen.createLoad(p);
         }
