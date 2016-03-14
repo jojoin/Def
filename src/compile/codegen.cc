@@ -69,7 +69,6 @@ Value* ASTConstant::codegen(Gen & gen)
 
 }
 
-
 /**
  * 获取 Quote 引用对象的 IR
  */
@@ -83,7 +82,6 @@ Value* ASTQuote::codegen(Gen & gen)
     // pointer 转 int
     return gen.builder.CreatePtrToInt(v, vty);
 }
-
 
 /**
  * 从引用载入对象
@@ -104,7 +102,6 @@ Value* ASTLoad::codegen(Gen & gen)
     return gen.builder.CreateIntToPtr(v, vpty);
 }
 
-
 /**
  * 数组对象构造
  */
@@ -116,7 +113,6 @@ Value* ASTArrayConstruct::codegen(Gen & gen)
     // 数组空间分配
     return gen.builder.CreateAlloca(arrty);
 }
-
 
 /**
  * 数组元素访问
@@ -143,7 +139,6 @@ Value* ASTArrayVisit::codegen(Gen & gen)
     // return gen.builder.CreateGEP(arrty, arrval, inxval);
 
 }
-
 
 /**
  * 数组元素赋值
@@ -175,8 +170,6 @@ Value* ASTArrayAssign::codegen(Gen & gen)
     return gen.builder.CreateStore(putval, elmptr);
 
 }
-
-
 
 /**
  * Group
@@ -212,7 +205,7 @@ Value* ASTFunctionCall::codegen(Gen & gen)
             v1, ConstantInt::get( gen.builder.getInt32Ty(), 0, true));
         return res;
     }
-    // 内置操作
+    // 内置操作 +
     if (idname=="add" X "Int" X "Int") {
         Value* v1 = gen.createLoad(params[0]);
         Value* v2 = gen.createLoad(params[1]);
@@ -226,6 +219,13 @@ Value* ASTFunctionCall::codegen(Gen & gen)
         Value* v1 = gen.createLoad(params[0]);
         Value* v2 = gen.createLoad(params[1]);
         Value* res = gen.builder.CreateSub(v1, v2);
+        return res;
+    }
+    // 内置操作 *
+    if (idname=="mul" X "Int" X "Int") {
+        Value* v1 = gen.createLoad(params[0]);
+        Value* v2 = gen.createLoad(params[1]);
+        Value* res = gen.builder.CreateMul(v1, v2);
         return res;
     }
     // 内置操作
@@ -258,6 +258,17 @@ Value* ASTFunctionCall::codegen(Gen & gen)
         );
         return gen.builder.CreateFPToSI(res, gen.builder.getInt32Ty());
     }
+
+    // 条件判断
+    if (idname=="eq" X "Int" X "Int") {
+        return gen.builder.CreateICmpEQ(
+            gen.createLoad(params[0]),
+            gen.createLoad(params[1])
+        );
+    }
+
+
+
 
     
 #ifdef DEBUG

@@ -4,7 +4,8 @@
 
 ;; 测试单元
 
-;
+
+;-
 
 
 include "script/type.def"                 ; 类型
@@ -35,17 +36,130 @@ include "script/array_refer/common.def"
 include "script/array_refer/funargv.def"
 include "script/array_refer/inclass.def"
 
+-;
+
+
+let (a==b)(eq a b)
+let (a*b)(mul a b)
+
+
+var q1 1
+var q2 2
+
+
+if q1*q2==q2 (
+	putchar 4
+) else (
+	putchar 98
+)
+
+
+
+
+
+
+;-
+
+
+
+
+
+
+; 模板接口
+type Base_T (
+	dcl str()
+)
+
+
+; 模板函数
+;tpl fun eat(Nil v Base_T b)(
+;	
+;)
 ;
 
 
+; 模板类，容器 Vector
+tpl(Base_T T) type Vector(
+	refer array 0 T vptr
+	Int max_length ; 空间大小
+	Int length ; 当前大小
+	; 构造
+	fun Vector()(
+		set vptr new array 7 T ; 首次分配空间
+	)
+	; 长度
+	fun Int size(T v)(
+		length
+	)
+	; 末尾添加元素
+	fun push(T v)(
+		if eq length max_length (
+			set max_length mul max_length 2 ; 空间大小倍增
+			var newvptr new array max_length T ; 分配新空间
+			var i length
+			while i ( ; 拷贝所有元素
+				arrset newvptr i arrget vptr i 
+				set i sub i 1
+			)
+			delete vptr ; 释放旧空间
+			set vptr newvptr
+		)
+		arrset vptr length v
+		set length add length 1
+	)
+	; 末尾弹出元素
+	fun pop()(
+		if length
+			set length sub length 1
+	)
+	; 访问末尾元素
+	fun last()(
+		var idx length
+		if idx 
+			set idx sub idx 1
+		arrget vptr idx
+	)
+	; 下标访问
+	fun T at(Int idx)(
+		if has_next (
+			ret elmivk next last
+		) else (
+			ret value ; 自己就是最后一个
+		)
+	)
+)
+
+; 模板类使用
+
+type Node (
+	Int num
+	fun Node(Int n)(
+		set num n
+	)
+	fun str()(
+		putchar num
+	)
+)
+
+var nodes Vector(Node)
+
+elmivk nodes push Node 97
+elmivk nodes push Node 98
+elmivk nodes push Node 99
+elmivk nodes push Node 100
+
+var elm1 elmivk at 0
+var elm2 elmivk at 0
+var elm3 elmivk at 0
+var elm4 elmivk at 0
+
+elmivk elm1 str
+elmivk elm2 str
+elmivk elm3 str
+elmivk elm4 str
 
 
-
-
-
-
-
-
+-;
 
 
 ;;;;;;;;;;;;;   未确认语法  ;;;;;;;;;;;;

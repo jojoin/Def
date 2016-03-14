@@ -48,8 +48,12 @@
     /* 内建函数 */ \
     B(bool, "Bool,Bool") \
     B(bool, "Bool,Int") \
+    /* 基本算法 */ \
     B(add, "Int,Int,Int") \
     B(sub, "Int,Int,Int") \
+    B(mul, "Int,Int,Int") \
+    /* 条件判断 */ \
+    B(eq, "Bool,Int,Int") \
     /* C 标准库函数 */ \
     /* math.h */ \
     C(abs, "Int,Int") \
@@ -62,3 +66,11 @@
     C(puts,    "Int,String") \
 
 
+/*
+    B(eq)  /*相等* / \
+    B(ne)  /*不等* / \
+    B(gt)  /*大于* / \
+    B(ge)  /*大于等于* / \
+    B(lt)  /*小于* / \
+    B(le)  /*小于等于* / \
+*/

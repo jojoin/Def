@@ -1703,14 +1703,6 @@ AST* Build::build_mcrcut()
 }
 
 /**
- * adt 适配器模式函数定义、函数参数定义、成员函数调用
- */
-AST* Build::build_adt()
-{
-    return nullptr;
-}
-
-/**
  * array 新建数组类型对象
  */
 AST* Build::build_refer()
@@ -1846,6 +1838,16 @@ AST* Build::build_arrset()
     
     // 返回数组元素赋值
     return new ASTArrayAssign(ary, idx, value);
+}
+
+
+/**
+ * adt 适配器模式
+ */
+AST* Build::build_adt()
+{
+    setModADT(true);
+    return build();
 }
 
 

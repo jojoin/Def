@@ -3,7 +3,7 @@
 ::   Debug   Release
 
 :: -d ast_tree,als_stack --print ir 
-I:\GitHub\Def\x64\Debug\def "index.def" --emit obj -o index.obj
+I:\GitHub\Def\x64\Debug\def "index.def" -d ast_tree,als_stack --print ir  --emit obj -o index.obj
 
 :: -d ast_tree,als_stack,tok_list
 :: -d prepare_words,binding_spread,mulmcr_words

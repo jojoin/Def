@@ -136,3 +136,22 @@ bool Service::checkType(Type* type, AST* ast)
     return type->is(ast->getType());
 }
 
+
+
+/**
+ * 检查并重设 adt 状态
+ */
+bool Service::checkModADT()
+{
+    bool sta = is_mod_adt;
+    is_mod_adt = false;
+    return sta;
+}
+
+/**
+ * 设置 adt 状态
+ */
+void Service::setModADT(bool s=true)
+{
+    is_mod_adt = s;
+}

@@ -45,10 +45,6 @@ public:
 protected:
     
     Build(Tokenizer * t);
-
-    // 上下文状态
-    // bool ctx_type = false;  // 类型定义
-    // bool ctx_fun  = false;  // 函数定义
     
 protected:
 

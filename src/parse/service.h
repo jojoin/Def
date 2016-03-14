@@ -64,6 +64,16 @@ public:
     // 是否为构造函数状态
     bool status_construct = false;
     
+    // 上下文状态
+    bool is_mod_adt = false;  // 是否为适配器模式
+
+public:
+    
+    void setModADT(bool); // 设置 adt 状态
+    bool checkModADT(); // 检查并重设 adt 状态
+    
+
+    
 public:
     // 缓存/预备的单词
     list<Tokenizer::Word> prepare_words; 
