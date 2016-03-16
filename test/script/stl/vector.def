@@ -3,6 +3,9 @@
 -;
 
 
+include "../macro/std.def"
+
+
 type Kid (
     Int c
     Int d
@@ -15,14 +18,14 @@ type Pitor (
 
 
 fun putchar(Kid k)(
-    putchar elmget k c
-    putchar elmget k d
+    putchar k.c
+    putchar k.d
 )
 
 
 fun putchar(Pitor p)(
-    putchar elmget p x
-    putchar elmget p y
+    putchar p.x
+    putchar p.y
 )
 
 
@@ -38,9 +41,9 @@ type mcrlnk StlVector T (
     Int length ; 当前大小
     ; 构造
     fun mcrlnk StlVector T()(
-        set length 0
-        set max_length 3 ; 首次申请空间大小
-        set vptr new array max_length T ; 首次分配空间
+        length = 0
+        max_length = 3 ; 首次申请空间大小
+        vptr = new array max_length T ; 首次分配空间
     )
     ; 长度
     fun Int size(T v)(
@@ -49,35 +52,35 @@ type mcrlnk StlVector T (
     ; 末尾添加元素
     fun push(T v)(
         if eq length max_length (
-            set max_length mul max_length 2 ; 空间大小倍增
-            var newvptr new array max_length T ; 分配新空间
-            var i length
+            max_length = mul max_length 2 ; 空间大小倍增
+            newvptr := new array max_length T ; 分配新空间
+            i := length
             while i ( ; 拷贝所有元素
-                set i sub i 1
-                arrset newvptr i arrget vptr i
+                i--
+                newvptr[i] = (vptr[i])
             )
             delete vptr ; 释放旧空间
-            set vptr newvptr
+            vptr = newvptr
         )
-        arrset vptr length v
-        set length add length 1
+        vptr[length] = v
+        length = (length + 1)
     )
     ; 末尾弹出元素
     fun pop()(
         if length
-            set length sub length 1
+            length = (length - 1)
         ret true
     )
     ; 访问末尾元素
     fun T last()(
-        var idx length
+        idx := length
         if idx 
-            set idx sub idx 1
-        arrget vptr idx
+            idx = (idx - 1)
+        vptr[idx]
     )
     ; 下标访问
     fun T at(Int idx)(
-        arrget vptr idx
+        vptr[idx]
     )
 )
 
@@ -93,36 +96,36 @@ STL_VECTOR Pitor
 
 ;; 容器初始化
 
-var veck StlVectorKid
-var vecp StlVectorPitor
+veck := StlVectorKid
+vecp := StlVectorPitor
 
 
 ;; 使用及访问
 
-elmivk vecp push Pitor 1 2
-putchar elmivk vecp at 0
+vecp:push Pitor 1 2
+putchar vecp:at 0
 
 
 ;; 添加元素到容器
 
-elmivk veck push Kid 97  98
-elmivk veck push Kid 99  100
-elmivk veck push Kid 101 102
-elmivk veck push Kid 103 104
-elmivk veck push Kid 105 106
-elmivk veck push Kid 107 108
-elmivk veck push Kid 109 110
+veck:push Kid 97  98
+veck:push Kid 99  100
+veck:push Kid 101 102
+veck:push Kid 103 104
+veck:push Kid 105 106
+veck:push Kid 107 108
+veck:push Kid 109 110
 
 
 ;; 打印所有元素
 
-putchar elmivk veck at 0
-putchar elmivk veck at 1
-putchar elmivk veck at 2
-putchar elmivk veck at 3
-putchar elmivk veck at 4
-putchar elmivk veck at 5
-putchar elmivk veck at 6
+putchar veck:at 0
+putchar veck:at 1
+putchar veck:at 2
+putchar veck:at 3
+putchar veck:at 4
+putchar veck:at 5
+putchar veck:at 6
 
 
 
