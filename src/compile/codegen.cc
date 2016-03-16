@@ -70,6 +70,93 @@ Value* ASTConstant::codegen(Gen & gen)
 }
 
 /**
+ * new 堆对象创建
+ */
+Value* ASTNew::codegen(Gen & gen)
+{
+    return obj->codegen(gen);
+}
+
+/**
+ * malloc 堆内存申请
+ */
+Value* ASTMalloc::codegen(Gen & gen)
+{
+    // 类型尺寸大小
+    size_t size = gen.getTypeBitSize(type);
+    Value *newsz(nullptr);
+    // FATAL(type->str() + " size " + Str::l2s(size))
+    if (auto*cons=dynamic_cast<ASTConstant*>(len)) { 
+        size = size * Str::s2l(cons->value);
+        newsz = ConstantInt::get(gen.builder.getInt32Ty(), size, true);
+    } else {
+        newsz = gen.builder.CreateMul(
+            ConstantInt::get(gen.builder.getInt32Ty(), size, true),
+            gen.createLoad(len)
+        );
+    }
+    // 申请内存空间
+    auto intty = def::core::Type::get("Int");
+    auto ftype = TypeFunction("malloc", intty);
+    ftype.add(intty);
+    Function *func = gen.getCLibFunc(ftype);
+    // 解析参数
+    std::vector<Value*> argvs;
+    argvs.push_back(gen.createLoad( newsz ));
+    // 新分配的内存地址
+    Value *vptr = gen.builder.CreateCall(func, argvs);
+    // 类型转换
+    // 引用值的类型
+    llvm::Type* vty = gen.fixType(type);
+    if (is_array) { // new array 堆数组空间
+        vty = ArrayType::get(vty, 0);
+    }
+    // 转换成指针类型
+    llvm::Type* vpty = PointerType::get(vty, 0);
+    // 地址值
+    Value* v = gen.createLoad(vptr);
+    // int 转 pointer 
+    return gen.builder.CreateIntToPtr(v, vpty);
+}
+
+/**
+ * delete 堆内存释放
+ */
+Value* ASTDelete::codegen(Gen & gen)
+{
+    /*
+    // 引用类型用 int 32 储存
+    llvm::Type* vty = gen.fixType(vptr->getType());
+    // 地址值
+    Value* v = gen.varyPointer(vptr);
+
+    // pointer 转 int
+    Value* adr = gen.builder.CreatePtrToInt(v, nullptr);
+    */
+
+    auto intty = def::core::Type::get("Int");
+    auto ftype = TypeFunction("free", Type::get("Nil"));
+    ftype.add(intty);
+    Function *func = gen.getCLibFunc(ftype);
+    // 解析参数
+    std::vector<Value*> argvs;
+    Value* vp = vptr->codegen(gen);
+    if (auto *ins=cast<IntToPtrInst>(vp)) {
+        vp = ins->getOperand(0);
+    } else {
+        FATAL("codegen delete error !")
+        // vp = gen.builder.CreatePtrToInt(vp, gen.fixType(vptr->getType()));
+    }
+    argvs.push_back(vp);
+    // 新分配的内存地址
+    /*vp->dump();
+    func->dump();*/
+    Value *freecall = gen.builder.CreateCall(func, argvs);
+
+    return freecall;
+}
+
+/**
  * 获取 Quote 引用对象的 IR
  */
 Value* ASTQuote::codegen(Gen & gen)
@@ -119,9 +206,11 @@ Value* ASTArrayConstruct::codegen(Gen & gen)
  */
 Value* ASTArrayVisit::codegen(Gen & gen)
 {
-    ArrayType *arrty = (ArrayType*)gen.fixType(
-        instance->getType()
-        );
+    def::core::Type* tarty = instance->getType();
+    if (auto*p=dynamic_cast<TypePointer*>(tarty)) {
+        tarty = p->type;
+    }
+    ArrayType *scty = (ArrayType*)gen.fixType(tarty);
     
     // 数组值
     Value* arrval = instance->codegen(gen);
@@ -145,9 +234,11 @@ Value* ASTArrayVisit::codegen(Gen & gen)
  */
 Value* ASTArrayAssign::codegen(Gen & gen)
 {
-    ArrayType *arrty = (ArrayType*)gen.fixType(
-        instance->getType()
-        );
+    def::core::Type* tarty = instance->getType();
+    if (auto*p=dynamic_cast<TypePointer*>(tarty)) {
+        tarty = p->type;
+    }
+    ArrayType *scty = (ArrayType*)gen.fixType(tarty);
     
     // 数组值
     Value* arrval = instance->codegen(gen);
@@ -288,14 +379,7 @@ Value* ASTFunctionCall::codegen(Gen & gen)
         // ... 其它内置函数
     ) {
         
-        Function *func = gen.module.getFunction(fname);
-        // Function *func = gen.getFunction(fname);
-        if (!func) {
-            FunctionType *fty = (FunctionType*)gen.fixBuiltinFunctionType( fndef->ftype );
-            func = Function::Create(fty, Function::ExternalLinkage, fname, &gen.module);
-            // gen.functions[fname] = func; // 缓存
-        }
-
+        Function *func = gen.getCLibFunc(*fndef->ftype);
 
         // 解析参数
         std::vector<Value*> argvs;
@@ -329,9 +413,12 @@ Value* ASTFunctionCall::codegen(Gen & gen)
         // 转换结构或数组值参数为指针 
         Value *pv;
         def::core::Type *pty = p->getType();
+        auto *ptty = dynamic_cast<TypePointer*>(pty);
         auto *stty = dynamic_cast<TypeStruct*>(pty);
         auto *arty = dynamic_cast<TypeArray*>(pty);
-        if (stty || arty) {
+        if(ptty){
+            pv = gen.varyPointer(p);
+        } else if (stty || arty) {
             pv = gen.varyPointer(p);
             if (arty) { // 如果实参为数组且长度大于形参，则转换实参类型
                 size_t pmidx = argvs.size();
@@ -348,7 +435,7 @@ Value* ASTFunctionCall::codegen(Gen & gen)
                 }
                 
             }
-        }else{
+        } else {
             pv = gen.createLoad(p);
         }
         argvs.push_back(pv);
@@ -452,19 +539,21 @@ Value* ASTMemberFunctionCall::codegen(Gen & gen)
  */
 Value* ASTMemberVisit::codegen(Gen & gen)
 {
-    StructType *scty = (StructType*)gen.fixType(
-        instance->getType()
-        );
+    def::core::Type* tarty = instance->getType();
+    if (auto*p=dynamic_cast<TypePointer*>(tarty)) {
+        tarty = p->type;
+    }
+    StructType *scty = (StructType*)gen.fixType(tarty);
 
     Value* structval = instance->codegen(gen);
 
     // 结构值（如函数返回值）
-    if (isa<CallInst>(structval)) {
+    if ( ! isa<PointerType>(structval->getType())) {
         return gen.builder.CreateExtractValue(structval, index);
-        // 结构值指针
     } else {
         return gen.builder.CreateStructGEP( scty, structval, index);
     }
+
 }
 
 /**
@@ -472,15 +561,17 @@ Value* ASTMemberVisit::codegen(Gen & gen)
  */
 Value* ASTMemberAssign::codegen(Gen & gen)
 {
-    StructType *scty = (StructType*)gen.fixType(
-        instance->getType()
-        );
-        
+    def::core::Type* tarty = instance->getType();
+    if (auto*p=dynamic_cast<TypePointer*>(tarty)) {
+        tarty = p->type;
+    }
+    StructType *scty = (StructType*)gen.fixType(tarty);
+   
     Value* structval = instance->codegen(gen);
     Value* putval = gen.createLoad(value); // argvs[1]->codegen(gen);
 
     // 结构值（如函数返回值）
-    if (isa<CallInst>(structval)) {
+    if ( ! isa<PointerType>(structval->getType())) {
         // Value *ptr = gen.builder.CreateExtractValue(structval, pos);
         return gen.builder.CreateInsertValue(putval, structval, index);
     } else { // 结构值指针
@@ -519,6 +610,9 @@ Value* ASTTypeConstruct::codegen(Gen & gen)
 Value* ASTVariableDefine::codegen(Gen & gen)
 {
     Value *val = value->codegen(gen);
+    if (value->getType()->isAtomType()) {
+        val = gen.createLoad(val); // 原子类型传值，类和数组传引用
+    }
     val = gen.varyPointer(val);
     gen.putValue(name, val); // 放入
     return val;
@@ -565,11 +659,28 @@ Value* ASTVariable::codegen(Gen & gen)
  */
 Value* ASTRet::codegen(Gen & gen)
 {
+    if (!value) {
+        return gen.builder.CreateRetVoid();
+    }
     // 函数返回
-    return gen.builder.CreateRet(
-        gen.createLoad(value)
-        // value->codegen(gen)
-    );
+    Value *retval(nullptr);
+    AST *ret(nullptr);
+    /*
+    if (auto*astv=dynamic_cast<ASTVariable*>(value)) {
+        ret = astv->origin;
+    } else {
+        ret = value;
+    }
+    // 返回堆上的指针对象
+    if (dynamic_cast<ASTNew*>(ret)) {
+    */
+    if (dynamic_cast<TypePointer*>(value->getType())) {
+        retval = value->codegen(gen);
+    } else {
+        retval = gen.createLoad(value);
+    }
+    // 返回
+    return gen.builder.CreateRet( retval );
 }
 
 /**

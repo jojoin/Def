@@ -59,6 +59,13 @@ public:
     // 比较函数返回值类型
     void verifyFunctionReturnType(Type*); 
     
+    // 合法的 struct array 对象
+    static TypeStruct* validTypeStruct(AST*);
+    static TypeArray* validTypeArray(AST*);
+    static Type* validType(AST*); // 合法的对象类型
+    static Type* validType(Type*); // 合法的对象类型
+
+
 public:
     
     // 是否为构造函数状态

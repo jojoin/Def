@@ -1,0 +1,134 @@
+;-
+    里程碑！vector 实现
+-;
+
+
+type Kid (
+    Int c
+    Int d
+)
+
+type Pitor (
+    Int x
+    Int y
+)
+
+
+fun putchar(Kid k)(
+    putchar elmget k c
+    putchar elmget k d
+)
+
+
+fun putchar(Pitor p)(
+    putchar elmget p x
+    putchar elmget p y
+)
+
+
+
+;;;;;; 标准模板 vector 宏定义
+
+
+let STL_VECTOR(T)(
+
+type mcrlnk StlVector T (
+    refer array T vptr
+    Int max_length ; 空间大小
+    Int length ; 当前大小
+    ; 构造
+    fun mcrlnk StlVector T()(
+        set length 0
+        set max_length 3 ; 首次申请空间大小
+        set vptr new array max_length T ; 首次分配空间
+    )
+    ; 长度
+    fun Int size(T v)(
+        length
+    )
+    ; 末尾添加元素
+    fun push(T v)(
+        ;putchar v
+        if eq length max_length (
+            set max_length mul max_length 2 ; 空间大小倍增
+            var newvptr new array max_length T ; 分配新空间
+            var i length
+            while i ( ; 拷贝所有元素
+                set i sub i 1
+                arrset newvptr i arrget vptr i 
+                ;putchar elmget arrget vptr i d
+                ;putchar elmget arrget vptr i c
+            )
+            ;putchar '|'
+            delete vptr ; 释放旧空间
+            set vptr newvptr
+        )
+        arrset vptr length v
+        set length add length 1
+    )
+    ; 末尾弹出元素
+    fun pop()(
+        if length
+            set length sub length 1
+        ret true
+    )
+    ; 访问末尾元素
+    fun T last()(
+        var idx length
+        if idx 
+            set idx sub idx 1
+        arrget vptr idx
+    )
+    ; 下标访问
+    fun T at(Int idx)(
+        arrget vptr idx
+    )
+)
+
+)
+
+
+
+;; 模板调用生成容器
+
+STL_VECTOR Kid
+STL_VECTOR Pitor
+
+
+;; 容器初始化
+
+var veck StlVectorKid
+var vecp StlVectorPitor
+
+
+;; 使用及访问
+
+elmivk vecp push Pitor 1 2
+putchar elmivk vecp at 0
+
+
+;; 添加元素到容器
+
+elmivk veck push Kid 97  98
+elmivk veck push Kid 99  100
+elmivk veck push Kid 101 102
+elmivk veck push Kid 103 104
+elmivk veck push Kid 105 106
+elmivk veck push Kid 107 108
+elmivk veck push Kid 109 110
+
+
+;; 打印所有元素
+
+putchar elmivk veck at 0
+putchar elmivk veck at 1
+putchar elmivk veck at 2
+putchar elmivk veck at 3
+putchar elmivk veck at 4
+putchar elmivk veck at 5
+putchar elmivk veck at 6
+
+
+
+
+

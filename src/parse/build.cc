@@ -193,7 +193,7 @@ AST* Build::build(bool spread)
         // 类型构造 ？
         if (auto gr = dynamic_cast<ElementType*>(res)) {
 
-            return buildConstruct(gr, chara);
+            return buildConstruct((TypeStruct*)gr->type, chara);
         }
 
         // 函数调用 ？
@@ -242,7 +242,7 @@ AST* Build::build(bool spread)
 
 
 }
-
+    
 
 /********************************************************/
 
@@ -253,7 +253,9 @@ AST* Build::build(bool spread)
 AST* Build::buildVaribale(Element* elm, const string & name)
 {
     if (auto gr = dynamic_cast<ElementVariable*>(elm)) {
-        return new ASTVariable( name, gr->type );
+        auto *val = new ASTVariable( name, gr->type );
+        val->origin = gr->origin;
+        return val;
     }
 
     // 是否为类成员访问
@@ -273,6 +275,13 @@ AST* Build::buildVaribale(Element* elm, const string & name)
                 // 返回类成员访问
                 AST* elmget = new ASTMemberVisit(instance, i);
                 stack->fndef->is_static_member = false; // 有成员函数
+                // 是否为取引用值
+                if (auto * qty = dynamic_cast<TypeRefer*>(stack->tydef->type->types[i])) {
+                    if (!qty->type) { // 初始化之前不能使用
+                        FATAL("Can't use quote value before initialize !")
+                    }
+                    return new ASTLoad(elmget, qty); // 引用载入
+                }
                 return elmget;
             }
             i++;
@@ -339,22 +348,16 @@ AST* Build::buildTemplateFuntion(const string & name, ElementTemplateFuntion* tp
     if(NOTSIGN(")")){
         FATAL("Error format function body !)")
     } 
+    
+    // 加上 Body
+    fndef->body = body;
 
-    // 添加新函数
-    Type* tyret(nullptr);
-    size_t bodylen = body->childs.size();
-    if(bodylen>0){
-        // 获取函数体最后一句为返回类型
-        tyret = body->childs.back()->getType();
-    }
+    // 自动添加返回值语句， 检查返回值类型一致性
+    Type* tyret = _autoAddFuncRet(fndef);
 
-    // 检查返回值类型一致性
-    verifyFunctionReturnType(tyret);
-
-    if ( ! functy->ret) {
-        cout << "! functy->ret" << endl;
-        functy->ret = Type::get("Nil");
-    }
+    // 设置可能标记的返回值
+    functy->ret = tyret;
+    fndef->ftype = functy;
 
     // 复位旧栈帧
     stack = old_stack;
@@ -365,12 +368,6 @@ AST* Build::buildTemplateFuntion(const string & name, ElementTemplateFuntion* tp
         cout << endl << "====== end ======" << endl << endl; \
         )
 
-
-    // 设置可能标记的返回值
-    functy->ret = tyret;
-    fndef->ftype = functy;
-    // 加上 Body
-    fndef->body = body;
 
     // 复位旧栈帧
     stack = old_stack;
@@ -385,12 +382,12 @@ AST* Build::buildTemplateFuntion(const string & name, ElementTemplateFuntion* tp
 /**
  * 变量构造函数调用
  */
-AST* Build::buildConstruct(ElementType* ety, const string & name)
+AST* Build::buildConstruct(TypeStruct* tyclass, const string & name, AST* vptr)
 {
     // 构造函数名称
     string fname = DEF_PREFIX_CSTC + name;
 
-    auto *tyclass = (TypeStruct*)ety->type;
+    // auto *tyclass = (TypeStruct*)ety->type;
     // 查找是否存在构造函数
     auto fd = stack->find(fname);
 
@@ -405,7 +402,7 @@ AST* Build::buildConstruct(ElementType* ety, const string & name)
     }
 
     // 调用构造函数
-    auto *val = new ASTTypeConstruct(tyclass, true); // 空构造
+    auto *val = vptr ? vptr : new ASTTypeConstruct(tyclass, true); // 空构造
 
     // 类型内部栈
     auto target_stack = type_member_stack[tyclass];
@@ -649,12 +646,8 @@ AST* Build::build_include()
  * 初始化变量
  */
 AST* Build::build_var()
-{
-    Word word = getWord();
-
-    if (NOTWS(Character)) {
-        FATAL("var define need a legal name to belong !")
-    }
+{    
+    Word word = expectIdName("var define need a legal name to belong !");
 
     string name = word.value;
 
@@ -669,7 +662,13 @@ AST* Build::build_var()
     auto vardef = new ASTVariableDefine( name, value );
 
     // 添加变量到栈
-    stack->put(name, new ElementVariable(value->getType()));
+    auto *var = new ElementVariable(value->getType());
+    if (auto*astv=dynamic_cast<ASTVariable*>(value)) {
+        var->origin = astv->origin;
+    } else {
+        var->origin = value;
+    }
+    stack->put(name, var);
 
     return vardef;
 }
@@ -702,15 +701,30 @@ AST* Build::build_set()
                 stack->fndef->is_static_member = false; // 有成员函数
                 return instance;
             }
-            Type* elmty = stack->tydef->type->elmget(name);
+            Type* elmty = validType(stack->tydef->type->elmget(name));
             if (elmty) { // 找到成员
                 AST* value = build();
+                // 引用类型
+                auto * qty = dynamic_cast<TypeRefer*>(elmty);
                 // 类型检查
-                if ( ! value->getType()->is(elmty)) {
+                auto* chty = elmty;
+                if (qty) {
+                    chty = qty->type;
+                }
+                if ( ! validType(value->getType())->is(chty)) {
                     FATAL("member assign type not match !")
                 }
                 stack->fndef->is_static_member = false; // 有成员函数
                 // 返回类成员赋值
+                Type *elmty = stack->tydef->type->elmget(name);
+                // 是否为存引用值
+                if (qty) {
+                    if (!qty->type) { // 初始化之前不能使用
+                        FATAL("Can't use quote value before initialize !")
+                    }
+                    value = new ASTQuote(value, qty); // 引用载入
+                }
+                // 返回访问
                 return new ASTMemberAssign(
                     instance,
                     stack->tydef->type->elmpos(name),
@@ -751,14 +765,16 @@ AST* Build::build_type()
     if (stack->tydef) { // 嵌套定义
         FATAL("can't define type in type define !")
     }
-    
+    /*
     Word word = getWord();
-
     if (NOTWS(Character)) {
         FATAL("type define need a legal name to belong !")
     }
-
     string typeName = fixNamespace( word.value );
+    */
+
+    Word word = expectIdName("type define need a legal name to belong !" );
+    string typeName = word.value;
 
     // 查询类型是否定义
     if (auto *fd = dynamic_cast<ElementType*>(stack->find(typeName,false))) {
@@ -766,6 +782,7 @@ AST* Build::build_type()
     }
 
     // 检查括号
+    ;
     CHECKLPAREN("namespace define need a sign ( to belong !")
 
     // 新建类型
@@ -848,10 +865,7 @@ AST* Build::build_type()
  */
 AST* Build::build_dcl()
 {
-    Word word = getWord();
-    if (NOTWS(Character)) {
-        FATAL("function declare need a type name to belong !")
-    }
+    Word word = expectIdName("function declare need a type name to belong !");
 
     // 函数返回值类型
     Type *rty;
@@ -908,13 +922,11 @@ AST* Build::build_dcl()
  */
 AST* Build::build_fun()
 {
-    auto word = getWord();
-    if (NOTWS(Character)) {
-        FATAL("function define need a type name to belong !")
-    }
+
+    Word word = expectIdName("function define need a type name to belong !");
 
     // 函数返回值类型
-    Type *rty(nullptr); // nullptr 时需要推断类型
+    Type *retty(nullptr); // nullptr 时需要推断类型
     
     // 是否为类型构造函数
     if(stack->tydef
@@ -934,7 +946,7 @@ AST* Build::build_fun()
     if (!status_construct) {
         Element* elmret = stack->find(word.value);
         if (auto *ety = dynamic_cast<ElementType*>(elmret)) {
-            rty = ety->type;
+            retty = ety->type;
         }
         else {
             prepareWord(word);
@@ -1004,10 +1016,6 @@ AST* Build::build_fun()
         fndef = new ASTFunctionDefine(functy);
     }
 
-    // 设置可能标记的返回值
-    functy->ret = rty;
-    fndef->ftype = functy;
-
     // 创建新分析栈
     Stack* old_stack = stack;
     Stack new_stack(stack);
@@ -1042,56 +1050,39 @@ AST* Build::build_fun()
     // 单语句
     } else {
         body = new ASTGroup();
-        body->add( build() );
+        body->add(build());
     }
-
     
+    // 加上 Body
+    fndef->body = body;
+    // 是否为构造函数
+    fndef->is_construct = status_construct;
+
+    // 返回值验证与推断，自动添加返回值语句
+    retty = _autoAddFuncRet(fndef);
+
+    // 设置可能标记的返回值
     /*
-    // 构造函数加上类实例返回值
-    if (status_construct) {
-        status_construct = false;
-        prepareWord(Word(State::Character,"this"));
-        prepareWord(Word(State::Character,"ret"));
-        body->add( build() );
-        status_construct = true;
-    }*/
-
+    if (auto*astv=dynamic_cast<ASTVariable*>(cur_fun_ret)) {
+        cur_fun_ret = astv->origin;
+    }
+    // 返回堆内存创建的对象
+    if (dynamic_cast<ASTNew*>(cur_fun_ret)) {
+        retty = new TypePointer(retty);
+    }
+    */
+    functy->ret = retty;
+    fndef->ftype = functy;
     
-    if ( ! status_construct) {
-        // 返回值验证与推断
-        size_t len = body->childs.size();
-        Type *lastChildTy(nullptr);
-        while (len--) {
-            AST* li = body->childs[len];
-            if (li->isValue()) {
-                lastChildTy = li->getType();
-                break;
-            }
-        }
-        if ( ! lastChildTy) {
-            lastChildTy = Type::get("Nil");
-        }
-        // 检查返回值类型一致性
-        verifyFunctionReturnType(lastChildTy);
-    }
-
-    if ( ! functy->ret) {
-        // cout << "! functy->ret" << endl;
-        functy->ret = Type::get("Nil");
-    }
-
     // 复位旧栈帧
     stack = old_stack;
     // 打印语法分析栈
     DEBUG_WITH("als_stack", \
-        cout << endl << endl << "==== Analysis stack ( function "+funcname+" ) ===" << endl << endl; \
+        cout << endl << endl << "==== Analysis stack ( function " + funcname + " ) ===" << endl << endl; \
         new_stack.print(); \
         cout << endl << "====== end ======" << endl << endl; \
-        )
+    )
 
-
-    // 加上 Body
-    fndef->body = body;
 
     // 构造函数入栈
     if (status_construct) {
@@ -1116,9 +1107,6 @@ AST* Build::build_fun()
 
     // 否则添加新函数
     } else {
-        // 是否为构造函数
-        fndef->is_construct = status_construct;
-        fndef->is_construct = status_construct;
         stack->addFunction(fndef);
     }
 
@@ -1140,8 +1128,10 @@ AST* Build::build_fun()
 AST* Build::build_ret()
 {
     AST *ret = build();
+    Type* rty = ret->getType();
     // 验证返回值
-    verifyFunctionReturnType( ret->getType() );
+    verifyFunctionReturnType( rty );
+    // cur_fun_ret = ret;
     return new ASTRet(ret);
 }
 
@@ -1150,12 +1140,8 @@ AST* Build::build_ret()
  */
 AST* Build::build_tpf()
 {
-    Word word = getWord();
-
-    if (NOTWS(Character)) {
-        FATAL("template function define need a legal name to belong !")
-    }
-
+    Word word = expectIdName("template function define need a legal name to belong !");
+    
     string tpfName = word.value; // fixNamespace(word.value);
     if (stack->find(DEF_PREFIX_TPF + tpfName,false)) {
         FATAL("template function duplicate definition '"+tpfName+"' !");
@@ -1403,7 +1389,7 @@ AST* Build::build_elmivk()
             FATAL("elmivk must belong a struct value !")
         }
         // val->print();
-        tyclass  = dynamic_cast<TypeStruct*>(val->getType());
+        tyclass  = validTypeStruct(val);
     }
 
     if( ! tyclass){
@@ -1446,7 +1432,7 @@ AST* Build::build_elmget()
     auto *ins = new ASTMemberVisit();
 
     AST* sctval = build();
-    auto* scty = dynamic_cast<TypeStruct*>(sctval->getType());
+    auto* scty = validTypeStruct(sctval);
     if( ! scty ){
         FATAL("elmget must eat a Struct value !")
     }
@@ -1486,9 +1472,9 @@ AST* Build::build_elmset()
     auto *ins = new ASTMemberAssign();
 
     AST* sctval = build();
-    auto* scty = dynamic_cast<TypeStruct*>(sctval->getType());
+    auto* scty = validTypeStruct(sctval);
     if( ! scty ){
-        FATAL("elmget must eat a Struct value !")
+        FATAL("elmset must eat a Struct value !")
     }
 
     ins->instance = sctval;
@@ -1703,6 +1689,20 @@ AST* Build::build_mcrcut()
 }
 
 /**
+ *  macro link 宏连接两个词
+ */
+AST* Build::build_mcrlnk()
+{
+    Word word1 = getWord();
+    Word word2 = getWord();
+    word1.value += word2.value;
+    prepareWord(word1);
+
+    return build();
+}
+
+
+/**
  * array 新建数组类型对象
  */
 AST* Build::build_refer()
@@ -1769,7 +1769,7 @@ AST* Build::build_arrget()
 
     // 类型检测
     TypeArray * arty(nullptr);
-    if ( ! (arty=dynamic_cast<TypeArray*>(ary->getType()))) {
+    if ( ! (arty=validTypeArray(ary))) {
         FATAL("array visit must use to array type !")
     }
     
@@ -1803,7 +1803,7 @@ AST* Build::build_arrset()
 
     // 类型检测
     TypeArray * arty(nullptr);
-    if (! (arty=dynamic_cast<TypeArray*>(ary->getType()))) {
+    if (! (arty=validTypeArray(ary))) {
         FATAL("array assign must use to array type !")
     }
     
@@ -1840,7 +1840,6 @@ AST* Build::build_arrset()
     return new ASTArrayAssign(ary, idx, value);
 }
 
-
 /**
  * adt 适配器模式
  */
@@ -1849,6 +1848,72 @@ AST* Build::build_adt()
     setModADT(true);
     return build();
 }
+
+/**
+ * new 堆内存申请
+ */
+AST* Build::build_new()
+{
+    Word word = getWord();
+    
+    AST* new_len(nullptr);
+    Type* intty = Type::get("Int");
+
+    // 如果是申请数组
+    if (ISCHA(DEF_TYPE_KEYWORW_ARRAY)) {
+        new_len = build();
+        if ( ! new_len->getType()->is(intty)) {
+            FATAL("new array length must be a Int type !")
+        }
+        Type* scty = expectTypeState();
+        // 申请内存
+        auto *vptr = new ASTMalloc(scty, new_len);
+        vptr->is_array = true;
+        // 返回
+        return new ASTNew(vptr);
+    }
+     
+    // 普通对象空间 
+    new_len = new ASTConstant(intty, "1");
+   
+    // 类型
+    // word = getWord();
+    ElementType* ety(nullptr);
+    if (NOTWS(Character) || !(ety=dynamic_cast<ElementType*>(stack->find(word.value, true)))) {
+        FATAL("new format error !" + Str::l2s((int)ety))
+    }
+    
+    TypeStruct* scty(nullptr);
+    if (! (scty=dynamic_cast<TypeStruct*>(ety->type))) {
+        FATAL("new object type error !")
+    }
+    // 申请内存
+    AST * vptr = new ASTMalloc(scty, new_len);
+
+    // 调用构造函数
+    AST * cons = buildConstruct(scty, scty->name, vptr);
+
+    // 返回
+    return new ASTNew(cons);
+}
+
+/**
+ * delete 堆内存释放
+ */
+AST* Build::build_delete()
+{
+    AST *del = build();
+    Type *ty = del->getType();
+
+    if (auto*ld=dynamic_cast<ASTLoad*>(del)) {
+    } else if ( ! dynamic_cast<TypePointer*>(del->getType())) {
+        FATAL("Can't delete a no new object !")
+    }
+        // del = new ASTQuote(del, ty);
+
+    return new ASTDelete(del);
+}
+
 
 
 
@@ -2079,8 +2144,6 @@ void Build::cacheWordSegment(list<Word>& cache, bool pure)
     }
 }
 
-
-
 /**
  * 获得类型标注
  */
@@ -2148,6 +2211,28 @@ def::core::Type* Build::expectTypeState()
 
 }
 
+/**
+ * 获得有效的标示符名称
+ */
+Word Build::expectIdName(const string & error)
+{
+    Word word = getWord();
+    
+    if (NOTWS(Character)) {
+        FATAL(error)
+    }
+
+    if (word.value == "mcrlnk") {
+        Word word1 = getWord();
+        Word word2 = getWord();
+        word1.value += word2.value;
+        return word1;
+    }
+
+    return word;
+}
+
+
 
 /********************************************************/
 
@@ -2214,7 +2299,7 @@ ASTFunctionCall* Build::_functionCall(const string & fname, Stack* stack, bool u
         }
         cachebuilds.push_back(exp);
         fncall->addparam(exp); // 加实参
-        auto *pty = exp->getType();
+        auto *pty = validType(exp); // 合法的参数类型
         // 重载函数名
         tmpfty->add(pty); // 匿名
     }
@@ -2225,3 +2310,53 @@ ASTFunctionCall* Build::_functionCall(const string & fname, Stack* stack, bool u
     delete tmpfty;
     return fncall;
 }
+
+/**
+ * 自动添加返回值
+ */
+def::core::Type* Build::_autoAddFuncRet(ASTFunctionDefine* fndef)
+{
+
+    // 检查返回值类型一致性
+#define RETUTN verifyFunctionReturnType(tyret); return tyret;
+
+    Type* tyret = Type::get("Nil");
+    // 构造函数无返回值
+    if (fndef->is_construct) {
+        RETUTN
+    }
+    // 非空
+    size_t len = fndef->body->childs.size();
+    while (len--) {
+        AST *last = fndef->body->childs[len];
+        if ( !last->isCodegen()) {
+            continue; // 
+        }
+        if (last->isValue()) {
+            tyret = last->getType();
+            // 自动加上 ret 语句
+            if ( ! dynamic_cast<ASTRet*>(last)) {
+                // cur_fun_ret = last; // 返回节点
+                fndef->body->childs[len] = new ASTRet(last);
+            }
+            RETUTN
+        }
+        break;
+    }
+
+    // 添加 void 返回值
+    fndef->body->add(new ASTRet(nullptr));
+    // 检查返回值类型一致性
+    RETUTN
+#undef RETUTN
+}
+
+
+
+
+
+
+
+
+
+

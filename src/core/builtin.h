@@ -19,6 +19,9 @@
     \
     D(adt) /*适配器模式*/ \
     \
+    D(new) /*内存申请*/ \
+    D(delete) /*内存释放*/ \
+    \
     D(if) /*if else*/ \
     D(while) /*while*/ \
     \
@@ -36,6 +39,7 @@
     D(mcrif)  /*宏条件展开*/ \
     D(mcrfor) /*宏重复展开*/ \
     D(mcrcut) /*宏分段切开*/ \
+    D(mcrlnk) /*宏连接两个词*/ \
     
 
     // \

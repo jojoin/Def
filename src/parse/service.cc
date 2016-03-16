@@ -29,6 +29,48 @@ Service::Service(Tokenizer * t)
 }
     
 
+/**
+ * 合法的 struct array 对象
+ */
+TypeStruct* Service::validTypeStruct(AST* val)
+{
+    Type* tar = val->getType();
+    if (auto*p=dynamic_cast<TypePointer*>(tar)) {
+        tar = p->type;
+    }
+    return dynamic_cast<TypeStruct*>(tar);
+}
+
+TypeArray* Service::validTypeArray(AST* val)
+{
+    Type* tar = val->getType();
+    if (auto*p=dynamic_cast<TypePointer*>(tar)) {
+        tar = p->type;
+    }
+    return dynamic_cast<TypeArray*>(tar);
+}
+    
+// 合法的对象类型
+Type* Service::validType(AST* val)
+{
+    Type* tar = validTypeStruct(val);
+    if (tar) {
+        return tar;
+    }
+    tar = validTypeArray(val);
+    if (tar) {
+        return tar;
+    }
+    return val->getType();
+}
+Type* Service::validType(Type* ty) {
+    if (auto*p = dynamic_cast<TypePointer*>(ty)) {
+        return p->type;
+    }
+    return ty;
+}
+
+
 
 /**
  * 比较函数返回值类型
@@ -39,8 +81,8 @@ void Service::verifyFunctionReturnType(Type* ret)
     if ( ! fndef) {
         FATAL("Non existence function cannot return value !")
     }
-    if (ret && status_construct) { // 构造函数不能有返回值
-        FATAL("class construct function cannot have any return value !")
+    if (status_construct && ret && !dynamic_cast<TypeNil*>(ret)) { // 构造函数不能有返回值
+        FATAL("class construct function cannot have any return "+ret->str()+" value !")
     }
     if ( ret && ! fndef->ftype->ret) {
         fndef->ftype->ret = ret;

@@ -46,6 +46,6 @@ type Position(
 )
 
 ;; 其它类型调用
-putchar add p1 p2
-putchar add p1 Position 5 7 9
+;putchar add p1 p2
+;putchar add p1 Position 5 7 9
 

@@ -5,6 +5,7 @@
 
 #include "./ast.h"
 #include "../parse/stack.h"
+#include "../parse/service.h"
 #include "./error.h"
 
 
@@ -77,11 +78,16 @@ FUNC_HEAD_PRINT(Let)
  * Ret
  */
 FUNC_HEAD_PRINT(Ret)
-    cout << "return: " << endl;
-    PRINT_ONE_CHILD(value)
+    cout << "return";
+    if (value) {
+        cout << ":" << endl;
+        PRINT_ONE_CHILD(value)
+    } else {
+        cout << " void" << endl;
+    }
 }
 FUNC_HEAD_GETTYPE(Ret)
-    return value->getType();
+    return value ? value->getType() : Type::get("Nil");
 }
 
 
@@ -110,6 +116,46 @@ FUNC_HEAD_PRINT(Constant)
 }
 FUNC_HEAD_GETTYPE(Constant)
     return type;
+}
+
+
+/**
+ * Malloc
+ */
+FUNC_HEAD_PRINT(Malloc)
+    cout << "malloc <" << type->getIdentify() + "> length: " << endl;
+    PRINT_ONE_CHILD(len)
+}
+FUNC_HEAD_GETTYPE(Malloc)
+    if (is_array) {
+        return TypePointer::get(TypeArray::get(type));
+    } else {
+        return TypePointer::get(type);
+    }
+}
+
+
+/**
+ * New
+ */
+FUNC_HEAD_PRINT(New)
+    cout << "new: " << endl;
+    PRINT_ONE_CHILD(obj)
+}
+FUNC_HEAD_GETTYPE(New)
+    return obj->getType();
+}
+
+
+/**
+ * Delete
+ */
+FUNC_HEAD_PRINT(Delete)
+    cout << "delete: " << endl;
+    PRINT_ONE_CHILD(vptr)
+}
+FUNC_HEAD_GETTYPE(Delete)
+    return Type::get("Nil");
 }
 
 
@@ -164,7 +210,10 @@ FUNC_HEAD_PRINT(ArrayVisit)
     PRINT_CHILD_CHECK(index)
 }
 FUNC_HEAD_GETTYPE(ArrayVisit)
-    return ((TypeArray*)(instance->getType()))->type;
+    if (auto scty = Service::validTypeArray(instance)) {
+        return scty->type;
+    }
+    FATAL("cannot getType() , ArrayVisit instance is not a array type !")
 }
 
 
@@ -236,7 +285,7 @@ FUNC_HEAD_PRINT(While)
     PRINT_CHILD_CHECK(body)
 }
 FUNC_HEAD_GETTYPE(While)
-    return body->getType();
+    return Type::get("Nil");// body->getType();
 }
 
 
@@ -264,7 +313,7 @@ FUNC_HEAD_PRINT(MemberVisit)
     PRINT_ONE_CHILD(instance)
 }
 FUNC_HEAD_GETTYPE(MemberVisit)
-    if (auto scty = dynamic_cast<TypeStruct*>(instance->getType())) {
+    if (auto scty = Service::validTypeStruct(instance)) {
         return scty->types[index];
     }
     FATAL("cannot getType() , MemberVisit instance is not a class type !")
@@ -316,7 +365,7 @@ FUNC_HEAD_PRINT(MemberFunctionCall)
 FUNC_HEAD_GETTYPE(MemberFunctionCall)
     // 如果是构造函数
     if (call->fndef->is_construct) {
-        return call->fndef->belong->type;
+        return value->getType();
     }
     return call->getType();
 }

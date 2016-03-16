@@ -3,7 +3,7 @@
 ::   Debug   Release
 
 :: -d ast_tree,als_stack --print ir 
-I:\GitHub\Def\x64\Debug\def "index.def" -d ast_tree,als_stack --print ir  --emit obj -o index.obj
+I:\GitHub\Def\x64\Debug\def "index.def" -d ast_tree,als_stack  --print ir  --emit obj -o index.obj
 
 :: -d ast_tree,als_stack,tok_list
 :: -d prepare_words,binding_spread,mulmcr_words
@@ -21,8 +21,8 @@ I:\GitHub\Def\x64\Debug\def "index.def" -d ast_tree,als_stack --print ir  --emit
 gcc index.obj "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\lib\chkstk.obj" -o index.exe
 
 
-:: echo --------
+echo --------
 index.exe
-:: echo;
-:: echo;
+echo.
+echo --------
 

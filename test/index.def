@@ -5,7 +5,7 @@
 ;; 测试单元
 
 
-;-
+;
 
 
 include "script/type.def"                 ; 类型
@@ -36,8 +36,18 @@ include "script/array_refer/common.def"
 include "script/array_refer/funargv.def"
 include "script/array_refer/inclass.def"
 
--;
+;; 标准模板库
+include "script/stl/vector.def"
 
+
+
+;
+
+
+
+
+
+;-
 
 let (a==b)(eq a b)
 let (a*b)(mul a b)
@@ -52,6 +62,64 @@ if q1*q2==q2 (
 ) else (
 	putchar 98
 )
+
+
+-;
+
+
+
+;-
+
+type Node (
+	refer Int a
+	Int b
+	Kid k
+	fun Node(Int n)(
+		;set a n
+		set b n
+		elmset k c n
+		elmset k d n
+	)
+)
+
+fun getNewNode()(
+	;new Node 99
+	var n1 new Node 99
+	elmset n1 b 97
+	var n2 n1
+	var n3 n2
+	ret n3
+)
+
+fun getNode()(
+	var n1 getNewNode
+	elmset n1 b 97
+	var n2 n1
+	var n3 n2
+	ret n3
+)
+
+fun putcharNode(Node n)(
+	putchar elmget n b
+)
+
+;var nnn new Node 97
+;var nnn getNode
+;putcharNode nnn
+;putchar elmget nnn b
+
+
+-;
+
+
+
+
+;var arr new array 7 Kid
+
+;delete arr
+
+
+
 
 
 

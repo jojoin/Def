@@ -42,5 +42,10 @@ Type* Type::get(const string & name)
 // 静态初始化
 map<string, Type*> Type::types;
 
+// 静态初始化
+map<int, TypeArray*> TypeArray::typtrs;
+map<int, TypeRefer*> TypeRefer::typtrs;
+map<int, TypePointer*> TypePointer::typtrs;
+
 
 long TypeStruct::auto_idx = 0;

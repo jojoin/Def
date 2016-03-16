@@ -47,8 +47,10 @@ protected:
     Build(Tokenizer * t);
     
 protected:
-
+    
     list<AST*> prepare_builds; // 缓存的节点
+
+    // AST* cur_fun_ret = nullptr; // 当前函数返回值节点
 
     void prepareBuild(AST*);
     void prepareBuild(const list<AST*> &);
@@ -66,7 +68,7 @@ protected:
     // 变量或类成员访问
     AST* buildVaribale(Element*, const string &n="");
     // 变量构造函数调用
-    AST* buildConstruct(ElementType*, const string &n="");
+    AST* buildConstruct(TypeStruct*, const string &n="", AST* v=nullptr);
     AST* buildMacro(ElementLet*, const string &);
 
 protected:
@@ -83,6 +85,8 @@ protected:
     ASTFunctionCall* _functionCall(const string &, Stack*, bool up=true);
     // 从函数头（声明或定义）建立函数类型，declare=是否为声明格式
     TypeFunction* _functionType(bool declare=false);
+    // 自动添加返回值
+    Type* _autoAddFuncRet(ASTFunctionDefine*);
     
 
 // 功能函数
@@ -91,6 +95,8 @@ protected:
     void cacheWordSegment(list<Tokenizer::Word>&, bool pure=true);
     // 获得类型标注
     Type* expectTypeState();
+    // 获得有效的标示符名称
+    Tokenizer::Word expectIdName(const string &);
 
 protected:
 

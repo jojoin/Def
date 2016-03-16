@@ -65,16 +65,22 @@ public:
     llvm::Type* fixBuiltinFunctionType(def::core::TypeFunction*);
 
     // 通用处理
-    Value* createLoad(AST*);
-    Value* createLoad(Value*);
     Value* varyPointer(AST*); // 将 AST 处理成可以作为函数参数使用
     Value* varyPointer(Value*);
+    Value* createLoad(AST*);
+    Value* createLoad(Value*);
 
     Function* createFunction(AST*);    
 
     // 变量操作
     Value* getValue(const string &);
     Value* putValue(const string &, Value*); // 返回旧变量
+    
+    // 获取变量内存宽度
+    int getTypeBitSize(def::core::Type*);
+
+    // 获取 C 库函数
+    Function * getCLibFunc(def::core::TypeFunction);
 
 
 public:

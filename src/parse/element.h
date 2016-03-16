@@ -31,6 +31,7 @@ struct Element##T : Element \
     virtual string str(); \
 
 ELEMENT_HEAD(Variable, Type, type) // 变量
+    AST* origin = nullptr;
 };
 ELEMENT_HEAD(Type, Type, type) // 类型名
 };

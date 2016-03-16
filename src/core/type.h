@@ -52,6 +52,7 @@ struct Type
         return nullptr;
     };
     virtual bool is(Type*t) = 0; // 判断两个对象是否相等
+    virtual bool isAtomType() { return true; }; // 是否为原子类型
     virtual string getIdentify(bool strict=true) { // 获得唯一标识
         return str();
     }
@@ -63,7 +64,7 @@ struct Type
 
 
 // 原子类型
-#define AOTM_TYPE(N) \
+#define ATOM_TYPE(N) \
 struct Type##N : Type \
 { \
     virtual string str() { \
@@ -74,16 +75,71 @@ struct Type##N : Type \
     } \
 };
 
-#define AT(T) AOTM_TYPE(T)
+#define AT(T) ATOM_TYPE(T)
 DEF_AOTM_TYPE_LIST(AT)
 #undef AT
 
 #undef AOTM_TYPE
 
 
+
+// 扩展类型
+#define NOATOM_TYPE(N) \
+struct Type##N : Type \
+{ \
+    virtual bool isAtomType() { return false; }; 
+
+
+
+#define TYPE_POND(T) \
+    /* 指针类型池 */ \
+    static map<int, Type##T*> typtrs; \
+    static Type##T* get(Type*t) { \
+        int adr = (int)t; \
+        auto it = typtrs.find(adr); \
+        if (it != typtrs.end()) { \
+            return it->second; \
+        } else { \
+            auto tar = new Type##T(t); \
+            typtrs.insert(pair<int,Type##T*>(adr,tar)); \
+            return tar; \
+        } \
+    } \
+
+
+
+
+
+
+// 指针类型
+// 仅供内部编译器实现使用
+// 表现从堆上分配的对象
+NOATOM_TYPE(Pointer)
+    Type* type = nullptr; // 引用值的类型
+    TypePointer(Type*t)
+        : type(t)
+    {}
+    virtual string str() {
+        return getIdentify();
+    }
+    virtual string getIdentify(bool strict=true) { // 获得唯一标识
+        return "*" + type->getIdentify(strict);
+    }
+    virtual bool is(Type*t){
+        if (auto *ty = dynamic_cast<TypePointer*>(t)) {
+            return type->is(ty->type); // 指向类型一致
+        }
+        return false;
+    }
+    // 类型池
+    TYPE_POND(Pointer)
+};
+
+
+
+
 // 引用类型
-struct TypeRefer : Type
-{
+NOATOM_TYPE(Refer)
     // size_t len;
     Type* type = nullptr; // 引用值的类型
     TypeRefer(Type*t)
@@ -104,13 +160,14 @@ struct TypeRefer : Type
     virtual string getIdentify(bool strict=true) { // 获得唯一标识
         return "~" + type->getIdentify(strict);
     }
+    // 类型池
+    TYPE_POND(Refer)
 };
 
 
 
 // 数组类型
-struct TypeArray : Type
-{
+NOATOM_TYPE(Array)
     size_t len;
     Type* type;
     TypeArray(Type*t, size_t l=0)
@@ -123,7 +180,7 @@ struct TypeArray : Type
     virtual string getIdentify(bool strict=true) { 
         // 获得唯一标识，strict 表示大小也必须相等
         return "["
-            + (strict ? Str::l2s(len) + "*" : "")
+            + (strict ? Str::l2s(len) + "x" : "")
             + type->getIdentify(strict)
             + "]";
     }
@@ -136,8 +193,9 @@ struct TypeArray : Type
         }
         return false;
     }
+    // 类型池
+    TYPE_POND(Array)
 };
-
 
 
 // 扩展类型
@@ -156,6 +214,7 @@ EXTEND_TYPE(Struct, Type)
     string name; // 类名称
     vector<string> tabs; // 子类标识符
     vector<Type*> types; // 子类列表
+    bool is_pointer = false; // 是否是堆分配的指针
     TypeStruct(const string&n)
         : name(n) {
         // cout << "TypeStruct(const string&n)"<< n << endl;

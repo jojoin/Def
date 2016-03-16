@@ -72,6 +72,13 @@ Value* Gen::varyPointer(Value* val)
         idxlist.push_back(ConstantInt::get( builder.getInt32Ty(), 0, true));
         return builder.CreateGEP(ty, val, idxlist);
     }
+
+    // int 转 ptr
+    if(isa<IntToPtrInst>(val)
+        ){
+        // return val;
+    }
+
     // 其它类型的值，重新分配内存
     if (! isa<PointerType>(ty) ){ 
         Value *aoc = builder.CreateAlloca(ty);
@@ -119,6 +126,7 @@ Value* Gen::createLoad(Value* val)
     return val;
 
 }
+
 
 
 /**
@@ -197,13 +205,11 @@ Function* Gen::createFunction(AST* p)
     builder.SetInsertPoint(new_block);
     Value* last(nullptr);
     AST* tail(nullptr);
+    size_t len = call->fndef->body->childs.size();
     for (auto &li : call->fndef->body->childs) {
         if (Value* v = li->codegen(*this)) {
             last = v;
             tail = li;
-            //if (isa<ReturnInst>(last)) {
-                // break;
-            //}
         }
     }
 
@@ -211,12 +217,9 @@ Function* Gen::createFunction(AST* p)
     if (! last || call->fndef->is_construct) {
         builder.CreateRetVoid();
     }else if ( ! isa<ReturnInst>(last)) {
-        // 函数体最后一句自动成为返回值，返回值必须 Load
-        // cout << "! isa<ReturnInst>(last)" << endl;
-        // builder.CreateRet(last);
-        builder.CreateRet(
-           createLoad(last)
-        );
+        // 函数体最后一句自动成为返回值，除了指针，返回值必须 Load
+        FATAL("function need a return value !")
+        // createRet(last);
     }else {
     }
 
@@ -253,6 +256,11 @@ llvm::Type* Gen::fixType(def::core::Type* ty, vector<def::core::Type*>* append)
     } else if (ISTY(String)) {
         // return PointerType::get(builder.getInt8Ty(), 0);
         return builder.getInt8PtrTy();
+    }
+    
+    // 指针类型
+    if (ISTY(Pointer)) {
+        return PointerType::get(fixType(obj->type), 0);
     }
     
     // 引用类型
@@ -360,4 +368,39 @@ llvm::Type* Gen::fixBuiltinFunctionType(def::core::TypeFunction* fty)
         rty = PointerType::get(rty, 0);
     }*/
     return FunctionType::get(rty, ptys, false);
+}
+
+
+
+// 获取变量内存宽度
+int Gen::getTypeBitSize(def::core::Type* type)
+{
+    if (auto* scty = dynamic_cast<TypeStruct*>(type)) {
+        size_t sz = 0;
+        for (auto ty : scty->types) {
+            sz += getTypeBitSize(ty);
+        }
+        return sz;
+    }
+
+    // 其它原始类型
+    auto* vty = fixType(type);
+    // 类型尺寸大小
+    return vty->getScalarSizeInBits();
+}
+
+
+
+// 获取 C 库函数
+Function* Gen::getCLibFunc(def::core::TypeFunction ftype)
+{
+    string fname = ftype.name;
+    Function *func = module.getFunction(fname);
+    if (!func) {
+        FunctionType *fty = (FunctionType*)fixBuiltinFunctionType( &ftype );
+        func = Function::Create(fty, Function::ExternalLinkage, fname, &module);
+        // gen.functions[fname] = func; // 缓存
+    }
+
+    return func;
 }

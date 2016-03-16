@@ -44,6 +44,7 @@ struct AST
     };
     // 是否为 value 值（除了函数、类型的声明、定义等）
     virtual bool isValue() { return false; }; 
+    virtual bool isCodegen() { return false; };
 };
 
 
@@ -62,18 +63,23 @@ struct AST##N : AST \
 AST_HEAD(N) \
     virtual llvm::Value* codegen(Gen &); \
     virtual def::core::Type* getType(); \
+    virtual bool isCodegen() { return true; }; \
+
+
+#define AST_VALUE_CODE_HEAD(N) \
+AST_CODE_HEAD(N) \
     virtual bool isValue() { return true; }; \
 
 
 // 块
-AST_CODE_HEAD(Group)
+AST_VALUE_CODE_HEAD(Group)
     vector<AST*> childs; // 列表
     void add(AST*a); // 添加子句
 };
 
 
 // 常量
-AST_CODE_HEAD(Constant)
+AST_VALUE_CODE_HEAD(Constant)
     Type* type; // 常量类型
     string value; // 常量字面值
     ASTConstant(Type*t, const string&v)
@@ -83,8 +89,38 @@ AST_CODE_HEAD(Constant)
 };
 
 
+// 堆内存申请
+AST_VALUE_CODE_HEAD(Malloc)
+    Type* type;   // 申请类型
+    AST* len;   // 申请长度
+    bool is_array = false; //是否为数组
+    ASTMalloc(Type* t, AST* l)
+        : len(l)
+        , type(t)
+    {}
+};
+
+// 创建堆对象
+AST_VALUE_CODE_HEAD(New)
+    AST* obj;
+    ASTNew(AST* c)
+        : obj(c)
+    {}
+    
+};
+
+
+// 堆内存释放
+AST_VALUE_CODE_HEAD(Delete)
+    AST* vptr;   // 引用的值
+    ASTDelete(AST* v)
+        : vptr(v)
+    {}
+};
+
+
 // 引用值
-AST_CODE_HEAD(Quote)
+AST_VALUE_CODE_HEAD(Quote)
     Type* type;   // 引用类型
     AST* value;   // 引用的值
     ASTQuote(AST* v, Type* t)
@@ -95,7 +131,7 @@ AST_CODE_HEAD(Quote)
 
 
 // 从引用载入值
-AST_CODE_HEAD(Load)
+AST_VALUE_CODE_HEAD(Load)
     Type* type;   // 引用类型
     AST* value;   // 引用的值
     ASTLoad(AST* v, Type* t)
@@ -105,7 +141,7 @@ AST_CODE_HEAD(Load)
 };
 
 // 数组初始化
-AST_CODE_HEAD(ArrayConstruct)
+AST_VALUE_CODE_HEAD(ArrayConstruct)
     TypeArray* type;   // 数组类型
     ASTArrayConstruct(TypeArray* t)
         : type(t)
@@ -113,7 +149,7 @@ AST_CODE_HEAD(ArrayConstruct)
 };
 
 // 数组成员访问
-AST_CODE_HEAD(ArrayVisit)
+AST_VALUE_CODE_HEAD(ArrayVisit)
     AST* index;    // 子元素索引
     AST* instance; // 数组实例
     ASTArrayVisit(AST*v=nullptr, AST* i=nullptr)
@@ -123,7 +159,7 @@ AST_CODE_HEAD(ArrayVisit)
 };
 
 // 数组成员赋值
-AST_CODE_HEAD(ArrayAssign)
+AST_VALUE_CODE_HEAD(ArrayAssign)
     AST* index; // 子元素索引
     AST* instance; // 数组实例
     AST* value; // 赋值
@@ -135,11 +171,8 @@ AST_CODE_HEAD(ArrayAssign)
 };
 
 
-
-
-
 // 函数返回值
-AST_CODE_HEAD(Ret)
+AST_VALUE_CODE_HEAD(Ret)
     AST* value;
     ASTRet(AST*v)
         : value(v)
@@ -156,6 +189,13 @@ AST_CODE_HEAD(If)
     ASTIf(AST*c)
         : cond(c)
     {}
+    virtual bool isValue() { 
+        if (pelse && pthen && 
+            pthen->getType()->is(pelse->getType())) {
+            return true;
+        }
+        return false;
+    }; 
 };
 
 
@@ -166,6 +206,9 @@ AST_CODE_HEAD(While)
     ASTWhile(AST*c)
         : cond(c)
     {}
+    virtual bool isValue() { 
+        return false;
+    }; 
 };
 
 
@@ -191,7 +234,7 @@ AST_HEAD(ExternalMemberFunctionDefine)
 
 
 // 类型构造
-AST_CODE_HEAD(TypeConstruct)
+AST_VALUE_CODE_HEAD(TypeConstruct)
     TypeStruct* type;
     vector<AST*> childs; //
     bool bare = false; // 空构造
@@ -204,9 +247,10 @@ AST_CODE_HEAD(TypeConstruct)
 
 
 // 变量
-AST_CODE_HEAD(Variable)
+AST_VALUE_CODE_HEAD(Variable)
     string name; // 名称
     Type* type;  // 类型
+    AST* origin;  // 起源节点
     ASTVariable(const string&n, Type*t)
         : name(n)
         , type(t)
@@ -215,7 +259,7 @@ AST_CODE_HEAD(Variable)
 
 
 // 变量定义
-AST_CODE_HEAD(VariableDefine)
+AST_VALUE_CODE_HEAD(VariableDefine)
     string name;
     AST* value; // 
     ASTVariableDefine(const string &n = "", AST*v = nullptr)
@@ -226,7 +270,7 @@ AST_CODE_HEAD(VariableDefine)
 
 
 // 变量赋值
-AST_CODE_HEAD(VariableAssign)
+AST_VALUE_CODE_HEAD(VariableAssign)
     string name;
     AST* value; // 
     ASTVariableAssign(const string &n = "", AST*v = nullptr)
@@ -264,7 +308,7 @@ AST_HEAD(FunctionDefine)
 };
 
 // 函数调用
-AST_CODE_HEAD(FunctionCall)
+AST_VALUE_CODE_HEAD(FunctionCall)
     ASTFunctionDefine* fndef; // 函数定义
     vector<AST*> params; // 实参值表
     ASTFunctionCall(ASTFunctionDefine*fd=nullptr)
@@ -274,7 +318,7 @@ AST_CODE_HEAD(FunctionCall)
 };
 
 // 成员函数调用
-AST_CODE_HEAD(MemberFunctionCall)
+AST_VALUE_CODE_HEAD(MemberFunctionCall)
     ASTFunctionCall* call; // 函数定义
     AST* value; // 类实例
     ASTMemberFunctionCall(AST*v=nullptr, ASTFunctionCall*c=nullptr)
@@ -284,7 +328,7 @@ AST_CODE_HEAD(MemberFunctionCall)
 };
 
 // 类成员访问
-AST_CODE_HEAD(MemberVisit)
+AST_VALUE_CODE_HEAD(MemberVisit)
     size_t index; // 子元素索引
     AST* instance; // 类实例
     ASTMemberVisit(AST*v=nullptr, size_t i=0)
@@ -294,7 +338,7 @@ AST_CODE_HEAD(MemberVisit)
 };
 
 // 类员赋值
-AST_CODE_HEAD(MemberAssign)
+AST_VALUE_CODE_HEAD(MemberAssign)
     size_t index; // 子元素索引
     AST* instance; // 类实例
     AST* value; // 赋值
