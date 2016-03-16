@@ -48,18 +48,14 @@ type mcrlnk StlVector T (
     )
     ; 末尾添加元素
     fun push(T v)(
-        ;putchar v
         if eq length max_length (
             set max_length mul max_length 2 ; 空间大小倍增
             var newvptr new array max_length T ; 分配新空间
             var i length
             while i ( ; 拷贝所有元素
                 set i sub i 1
-                arrset newvptr i arrget vptr i 
-                ;putchar elmget arrget vptr i d
-                ;putchar elmget arrget vptr i c
+                arrset newvptr i arrget vptr i
             )
-            ;putchar '|'
             delete vptr ; 释放旧空间
             set vptr newvptr
         )
