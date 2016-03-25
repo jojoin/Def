@@ -34,7 +34,7 @@ include "script/class/copy.def"        ; 对象拷贝
 
 ;; 数组和引用
 include "script/array_refer/common.def"
-include "script/array_refer/funargv.def"
+include "script/array_refer/infun.def"
 include "script/array_refer/inclass.def"
 
 ;; 标准模板库
@@ -44,7 +44,83 @@ include "script/stl/vector.def"
 ;
 
 
+;-
 
+
+;; 匿名结构（便于函数返回多个值）
+
+fun retTuple(Int a Int b)(
+	var x add a 1
+	var y add b 97
+	ret tuple (
+		x
+		y
+	)
+)
+
+
+;; 返回结构
+
+var tup retTuple 1 1
+
+-;
+
+
+;-
+
+
+;; interface 接口
+
+type Interface (
+	; 相等
+	dcl Bool eq(Interface)
+)
+
+
+;; 普通类
+
+type Point (
+	Int x
+	Int y
+)
+
+
+
+;; 带参数的类模板
+
+tpty TplClass (T) (
+	Int num
+	T value
+	; 构造函数
+	fun TplClass(Int n)(
+		set num n
+	)
+	fun TplClass(T v)(
+		set value v
+	)
+	; 成员函数
+	fun getNum()(
+		ret num
+	)
+)
+
+
+;; 类模板实例化
+
+
+;; 实例化调用
+TplClass Point
+
+
+;; 新类型使用
+
+var tplp TplClassPoint Point 97 98
+
+putchar elmget tplp num
+putchar elmivk tplp getNum
+
+
+-;
 
 
 

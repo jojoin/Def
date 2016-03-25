@@ -1,7 +1,8 @@
 #pragma once
 
 
-#define DEF_PREFIX_TPF "tpf@" // 模板函数分析栈名称前缀
+#define DEF_PREFIX_TPF "tpf@" // 函数模板分析栈名称前缀
+#define DEF_PREFIX_TPFTY "tpty@" // 类模板分析栈名称前缀
 #define DEF_PREFIX_CSTC  "alloca@" // 构造函数前缀
 
 // 函数名称不同类型间隔字符

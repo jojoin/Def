@@ -1194,6 +1194,22 @@ AST* Build::build_tpf()
 }
 
 /**
+ * tpty 类模板
+ */
+AST* Build::build_tpty()
+{
+    // 类模板名称
+    Word word = expectIdName("template type define need a legal name to belong !");
+    string tpty_name = word.value; // fixNamespace(word.value);
+    
+    // 检查括号
+    CHECKLPAREN("template type define need a sign ( to belong !")
+
+
+
+}
+
+/**
  * if 条件分支
  */
 AST* Build::build_if()

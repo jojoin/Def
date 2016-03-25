@@ -360,13 +360,23 @@ AST_VALUE_CODE_HEAD(MemberAssign)
 };
 
 
-
-// 模板函数定义
+// 函数模板定义
 AST_HEAD(TemplateFuntionDefine)
     string name;
     vector<string> params;
     list<Tokenizer::Word> bodywords; // 函数体单词表
     ASTTemplateFuntionDefine()
+    {}
+    void addword(string);
+};
+
+
+// 类模板定义
+AST_HEAD(TemplateTypeDefine)
+    string name;
+    vector<string> params;
+    list<Tokenizer::Word> bodywords; // 函数体单词表
+    ASTTemplateTypeDefine()
     {}
     void addword(string);
 };
