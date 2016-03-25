@@ -393,7 +393,9 @@ AST* Build::buildConstruct(TypeStruct* tyclass, const string & name, AST* vptr)
 
     // 无构造函数时
     if (!fd) {
+
         auto *cst = new ASTTypeConstruct(tyclass);
+        cst->instance = vptr; // 堆内存
         int plen = tyclass->len();
         while (plen--) { // 添加类型构造参数
             cst->add(build());
@@ -401,7 +403,7 @@ AST* Build::buildConstruct(TypeStruct* tyclass, const string & name, AST* vptr)
         return cst;
     }
 
-    // 调用构造函数
+    // 使用已分配的内存 或 调用空构造函数
     auto *val = vptr ? vptr : new ASTTypeConstruct(tyclass, true); // 空构造
 
     // 类型内部栈
@@ -960,11 +962,17 @@ AST* Build::build_fun()
 
         // 括号验证
         Word word;
-        CHECKLPAREN("function  define need a sign ( to belong !")
+        CHECKLPAREN("function define need a sign ( to belong !")
     }
 
     // 新建函数类型
     string funcname = word.value;
+    // 如果是类型析构函数
+    bool is_delete = stack->tydef && funcname == "delete";
+    if(is_delete){
+        funcname = "~delete";
+    }
+
     string cstc_funcname = funcname;
     if (status_construct) {
         cstc_funcname = DEF_PREFIX_CSTC + funcname;
@@ -998,6 +1006,11 @@ AST* Build::build_fun()
         if (status_construct) {
             constructfuncty->add(pty, pnm);
         }
+    }
+
+    // 析构函数 不能有参数
+    if(is_delete && functy->types.size()){
+        FATAL("Destructors cannot have parameters !")
     }
 
     // 函数是否已经声明
@@ -1701,7 +1714,6 @@ AST* Build::build_mcrlnk()
     return build();
 }
 
-
 /**
  * array 新建数组类型对象
  */
@@ -1905,6 +1917,9 @@ AST* Build::build_delete()
     AST *del = build();
     Type *ty = del->getType();
 
+    // del->print();
+    // cout << del->getType()->str() << endl;
+
     if (auto*ld=dynamic_cast<ASTLoad*>(del)) {
     } else if ( ! dynamic_cast<TypePointer*>(del->getType())) {
         FATAL("Can't delete a no new object !")
@@ -1912,6 +1927,22 @@ AST* Build::build_delete()
         // del = new ASTQuote(del, ty);
 
     return new ASTDelete(del);
+}
+
+/**
+ * copy 拷贝对象
+ */
+AST* Build::build_copy()
+{
+    AST *obj = build();
+    
+    // 类型检测
+    if (!dynamic_cast<TypeStruct*>(obj->getType())) {
+        FATAL("copy must use to a Class type !")
+    }
+
+    // 拷贝
+    return new ASTCopy(obj);
 }
 
 

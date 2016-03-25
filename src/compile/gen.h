@@ -76,6 +76,9 @@ public:
     Value* getValue(const string &);
     Value* putValue(const string &, Value*); // 返回旧变量
     
+    // 获取子元素指针选择器
+    vector<Value*> getGEPidxary(int=0,int=-1);
+
     // 获取变量内存宽度
     int getTypeBitSize(def::core::Type*);
 

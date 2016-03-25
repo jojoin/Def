@@ -37,16 +37,20 @@ let STL_VECTOR(T)(
 
 type mcrlnk StlVector T (
     refer array T vptr
-    Int max_length ; 空间大小
+    Int max_length ; 总空间大小
     Int length ; 当前大小
     ; 构造
-    fun mcrlnk StlVector T()(
+    fun mcrlnk StlVector T(Int sz)(
         length = 0
-        max_length = 3 ; 首次申请空间大小
+        max_length = sz ; 首次申请空间大小
         vptr = new array max_length T ; 首次分配空间
     )
+    ; 析构函数(栈不支持)
+    fun delete()(
+        delete vptr
+    )
     ; 长度
-    fun Int size(T v)(
+    fun Int size()(
         length
     )
     ; 末尾添加元素
@@ -96,14 +100,21 @@ STL_VECTOR Pitor
 
 ;; 容器初始化
 
-veck := StlVectorKid
-vecp := StlVectorPitor
+veck := StlVectorKid 7
+vecp := StlVectorPitor 13
 
 
 ;; 使用及访问
 
-vecp:push Pitor 1 2
+vecp:push Pitor 48 49
 putchar vecp:at 0
+
+; 调用析构函数
+
+var nnn new Kid 1 2
+delete nnn
+
+
 
 
 ;; 添加元素到容器
@@ -119,14 +130,19 @@ veck:push Kid 109 110
 
 ;; 打印所有元素
 
-putchar veck:at 0
-putchar veck:at 1
-putchar veck:at 2
-putchar veck:at 3
-putchar veck:at 4
-putchar veck:at 5
-putchar veck:at 6
 
+vecksz := (veck:size)
+vecki := 0
+
+while eq vecki vecksz (
+    putchar veck:at vecki
+    vecki++
+)
+
+while vecksz (
+    vecksz--
+    putchar veck:at vecksz
+)
 
 
 

@@ -9,7 +9,7 @@ include "../macro/std.def"
 ;; 含引用类成员
 
 type MazyNode (
-    refer MazyNode self         ; 引用自己
+    refer MazyNode self     ; 引用自己
     refer Int rs            ; 引用成员
     array 5 Int as          ; 数组成员
     refer array 10 Int ras  ; 数组引用

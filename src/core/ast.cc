@@ -160,6 +160,18 @@ FUNC_HEAD_GETTYPE(Delete)
 
 
 /**
+ * Copy
+ */
+FUNC_HEAD_PRINT(Copy)
+    cout << "Copy: " << endl;
+    PRINT_ONE_CHILD(value)
+}
+FUNC_HEAD_GETTYPE(Copy)
+    return value->getType();
+}
+
+
+/**
  * Quote
  */
 FUNC_HEAD_PRINT(Quote)
@@ -346,7 +358,7 @@ FUNC_HEAD_GETTYPE(MemberAssign)
  * MemberFunctionCall
  */
 FUNC_HEAD_PRINT(MemberFunctionCall)
-    if (!value) { // 静态成员函数调用
+    if (!instance) { // 静态成员函数调用
         cout << "static member function call: " << endl;
         PRINT_ONE_CHILD(call)
         return;
@@ -356,7 +368,7 @@ FUNC_HEAD_PRINT(MemberFunctionCall)
     ind = indent + INDLIN;
     // instance
     cout << indent+INDCON << "instance: " << endl;
-    PRINT_ONE_CHILD(value)
+    PRINT_ONE_CHILD(instance)
     // call
     ind = indent + IND;
     cout << indent+INDEND << "call: " << endl;
@@ -365,7 +377,7 @@ FUNC_HEAD_PRINT(MemberFunctionCall)
 FUNC_HEAD_GETTYPE(MemberFunctionCall)
     // 如果是构造函数
     if (call->fndef->is_construct) {
-        return value->getType();
+        return instance->getType();
     }
     return call->getType();
 }
@@ -448,6 +460,9 @@ FUNC_HEAD_PRINT(TypeConstruct)
     PRINT_CHILDS(childs)
 }
 FUNC_HEAD_GETTYPE(TypeConstruct)
+    if( instance ){ // 已分配内存
+        return instance->getType();
+    }
     return type;
 }
 

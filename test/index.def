@@ -7,7 +7,7 @@
 
 ;
 
-
+;; 类型
 include "script/type.def"                 ; 类型
 include "script/variable.def"             ; 变量
 
@@ -30,6 +30,7 @@ include "script/macro/stdtest.def"
 include "script/class/common.def"      ; 
 include "script/class/structure.def"   ; 构造函数
 include "script/class/reference.def"   ; 引用类型
+include "script/class/copy.def"        ; 对象拷贝
 
 ;; 数组和引用
 include "script/array_refer/common.def"
@@ -40,8 +41,9 @@ include "script/array_refer/inclass.def"
 include "script/stl/vector.def"
 
 
-
 ;
+
+
 
 
 
@@ -69,6 +71,14 @@ if q1*q2==q2 (
 
 
 ;-
+
+
+type Kid (
+    Int c
+    Int d
+)
+
+
 
 type Node (
 	refer Int a
@@ -104,22 +114,31 @@ fun putcharNode(Node n)(
 )
 
 ;var nnn new Node 97
-;var nnn getNode
-;putcharNode nnn
-;putchar elmget nnn b
+var nnn getNode
+putcharNode nnn
+putchar elmget nnn b
+
+
+
+;var kkk new Kid 1 2
+;delete kkk
+
+
+
+
+
+var arr new array 7 Kid
+var kkk new Kid 1 2
+
+delete arr
+delete kkk
+
+elmget kkk c
+
+
 
 
 -;
-
-
-
-
-;var arr new array 7 Kid
-
-;delete arr
-
-
-
 
 
 

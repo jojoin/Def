@@ -32,7 +32,7 @@ Type* Type::get(const string & name)
     } else if (name=="String") {
         tp = new TypeString();
     }
-    // »º´æ
+    // »º´æ 
     if (tp) {
         types[name] = tp;
     }

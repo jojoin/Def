@@ -119,6 +119,15 @@ AST_VALUE_CODE_HEAD(Delete)
 };
 
 
+// 对象拷贝
+AST_VALUE_CODE_HEAD(Copy)
+    AST* value;   // 拷贝的值
+    ASTCopy(AST* v)
+        : value(v)
+    {}
+};
+
+
 // 引用值
 AST_VALUE_CODE_HEAD(Quote)
     Type* type;   // 引用类型
@@ -237,6 +246,7 @@ AST_HEAD(ExternalMemberFunctionDefine)
 AST_VALUE_CODE_HEAD(TypeConstruct)
     TypeStruct* type;
     vector<AST*> childs; //
+    AST *instance = nullptr; // 已近在别处(堆)分配的内存
     bool bare = false; // 空构造
     ASTTypeConstruct(TypeStruct*t=nullptr, bool b=false)
         : type(t)
@@ -320,10 +330,10 @@ AST_VALUE_CODE_HEAD(FunctionCall)
 // 成员函数调用
 AST_VALUE_CODE_HEAD(MemberFunctionCall)
     ASTFunctionCall* call; // 函数定义
-    AST* value; // 类实例
+    AST* instance; // 类实例
     ASTMemberFunctionCall(AST*v=nullptr, ASTFunctionCall*c=nullptr)
         : call(c)
-        , value(v)
+        , instance(v)
     {}
 };
 

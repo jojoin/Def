@@ -1,0 +1,21 @@
+;-
+    构造函数
+-;
+
+include "../type.def"
+include "../macro/std.def"
+
+
+
+;; 创建对象
+cp1 := Point 97 98
+
+
+;; 拷贝对象
+cp2 := copy cp1
+
+
+;; 打印
+putchar cp2.x
+putchar cp2.y
+

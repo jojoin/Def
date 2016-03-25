@@ -15,6 +15,14 @@ using namespace def::compile;
 using namespace def::parse;
 
 
+// 获取子元素指针选择器
+vector<Value*> Gen::getGEPidxary(int i1, int i2)
+{
+    vector<Value*> idxlist;
+    if(i1>=0) idxlist.push_back(ConstantInt::get( builder.getInt32Ty(), i1, true));
+    if(i2>=0) idxlist.push_back(ConstantInt::get( builder.getInt32Ty(), i2, true));
+    return idxlist;
+}
 
 /**
  * 获取变量
@@ -24,8 +32,8 @@ Value* Gen::getValue(const string & name)
     auto rel = values.find(name);
     if (rel != values.end()) {
         return rel->second;
-        // FATAL("codegen: Cannot find variable '"+name+"' !")
     }
+    // FATAL("codegen: Cannot find variable '"+name+"' !")
     return nullptr;
 }
 
@@ -68,26 +76,43 @@ Value* Gen::varyPointer(Value* val)
     if (isa<PointerType>(ty) && 
         (isa<StructType>(ty) || isa<ArrayType>(ty) )
     ) {
-        vector<Value*> idxlist;
-        idxlist.push_back(ConstantInt::get( builder.getInt32Ty(), 0, true));
-        return builder.CreateGEP(ty, val, idxlist);
+        return builder.CreateGEP(ty, val, getGEPidxary(0));
     }
 
     // int 转 ptr
     if(isa<IntToPtrInst>(val)
         ){
-        // return val;
+        return val;
+    }
+    
+    // Alloca 分配内存
+    if( isa<AllocaInst>(val) ){
+        return val;
+    }
+
+    // Load 载入内存
+    if( isa<LoadInst>(val) ){
+        auto * ldis = (LoadInst*)val;
+        return ldis->getPointerOperand();
+    }
+
+    // Store 写出内存
+    if ( isa<StoreInst>(val) ){
+        auto * stis = (StoreInst*)val;
+        return stis->getPointerOperand();
+    }
+
+    // 指针
+    if ( isa<PointerType>(ty) ){ 
+        return val;
     }
 
     // 其它类型的值，重新分配内存
-    if (! isa<PointerType>(ty) ){ 
-        Value *aoc = builder.CreateAlloca(ty);
-        builder.CreateStore(val, aoc); // 拷贝
-        return aoc;
-    }
+    Value *aoc = builder.CreateAlloca(ty);
+    builder.CreateStore(val, aoc); // 拷贝
+    return aoc;
     
 
-    return val;
 
 }
 
@@ -111,10 +136,12 @@ Value* Gen::createLoad(Value* val)
     // Value *val = (Value*)v;
     llvm::Type *ty = val->getType();
 
-    // Store 操作
+    // Store 操作（必须从地址读出，避免条件分支变量超出作用域！）
     if ( isa<StoreInst>(val) ) {
         auto * stis = (StoreInst*)val;
-        return stis->getValueOperand();
+        // return stis->getValueOperand();
+        val = stis->getPointerOperand();
+        return builder.CreateLoad(val);
     }
 
     // 指针节点

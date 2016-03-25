@@ -21,6 +21,7 @@
     \
     D(new) /*内存申请*/ \
     D(delete) /*内存释放*/ \
+    D(copy) /*拷贝对象*/ \
     \
     D(if) /*if else*/ \
     D(while) /*while*/ \

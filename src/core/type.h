@@ -52,7 +52,7 @@ struct Type
         return nullptr;
     };
     virtual bool is(Type*t) = 0; // 判断两个对象是否相等
-    virtual bool isAtomType() { return true; }; // 是否为原子类型
+    virtual bool isAtomType() = 0; // 是否为原子类型
     virtual string getIdentify(bool strict=true) { // 获得唯一标识
         return str();
     }
@@ -67,6 +67,7 @@ struct Type
 #define ATOM_TYPE(N) \
 struct Type##N : Type \
 { \
+    virtual bool isAtomType(){ return true; } \
     virtual string str() { \
         return #N; \
     } \
@@ -202,6 +203,7 @@ NOATOM_TYPE(Array)
 #define EXTEND_TYPE(N,P) \
 struct Type##N : P \
 { \
+    virtual bool isAtomType() { return false; }; \
     virtual bool is(Type*t){ /* 扩展类型直接对比地址 */ \
         return !!( ((int)this)==((int)t) ); \
     }
@@ -214,7 +216,6 @@ EXTEND_TYPE(Struct, Type)
     string name; // 类名称
     vector<string> tabs; // 子类标识符
     vector<Type*> types; // 子类列表
-    bool is_pointer = false; // 是否是堆分配的指针
     TypeStruct(const string&n)
         : name(n) {
         // cout << "TypeStruct(const string&n)"<< n << endl;

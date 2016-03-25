@@ -24,7 +24,7 @@ let (a:f)    (elmivk a f)
 let (a::)    (elmdef a)
 
 ;; 数组操作
-let (ary[i]=v)  ( arrset ary i v )
 let (ary[i])    ( arrget ary i )
+let (ary[i]=v)  ( arrset ary i v )
 
 

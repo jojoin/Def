@@ -11,7 +11,8 @@ var wcd 128
 ;; 循环 单句
 while wcd 
 	set wcd sub wcd 2
-	
+
+
 set wcd 127
 
 
@@ -20,3 +21,4 @@ while wcd (
 	putchar wcd
 	set wcd sub wcd 1
 )
+

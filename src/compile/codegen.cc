@@ -157,6 +157,27 @@ Value* ASTDelete::codegen(Gen & gen)
 }
 
 /**
+ * copy 拷贝对象
+ */
+Value* ASTCopy::codegen(Gen & gen)
+{
+    // 类型
+    StructType *scty = (StructType*)gen.fixType( value->getType() );
+
+    // 分配内存
+    Value *structval = gen.builder.CreateAlloca(scty);
+
+    // 拷贝内存
+    Value *val = gen.createLoad( value );
+    // Value *ptr = gen.builder.CreateGEP(scty, structval, gen.getGEPidxary(0));
+    gen.builder.CreateStore(val, structval);
+
+    // 返回新地址
+    return structval;
+
+}
+
+/**
  * 获取 Quote 引用对象的 IR
  */
 Value* ASTQuote::codegen(Gen & gen)
@@ -218,14 +239,12 @@ Value* ASTArrayVisit::codegen(Gen & gen)
     // 索引值
     Value* inxval = gen.createLoad(index->codegen(gen));
       // 数组元素指针
-    vector<Value*> idxlist;
-    idxlist.push_back(ConstantInt::get( gen.builder.getInt32Ty(), 0, true));
+    vector<Value*> idxlist = gen.getGEPidxary(0);
     idxlist.push_back(inxval);
-
+    
+    // 返回数组访问
     return gen.builder.CreateGEP(arrval, idxlist);
 
-    // 返回数组访问
-    // return gen.builder.CreateGEP(arrty, arrval, inxval);
 
 }
 
@@ -247,8 +266,7 @@ Value* ASTArrayAssign::codegen(Gen & gen)
     Value* inxval = gen.createLoad(index->codegen(gen));
 
     // 数组元素指针
-    vector<Value*> idxlist;
-    idxlist.push_back(ConstantInt::get( gen.builder.getInt32Ty(), 0, true));
+    vector<Value*> idxlist = gen.getGEPidxary(0);
     idxlist.push_back(inxval);
     Value* elmptr = gen.builder.CreateGEP(arrval, idxlist);
     
@@ -495,7 +513,7 @@ Value* ASTMemberFunctionCall::codegen(Gen & gen)
 
     // 类实例（非静态）
     if( ! call->fndef->is_static_member ){
-        Value *pv = gen.varyPointer(value);
+        Value *pv = gen.varyPointer(instance);
         argvs.push_back(pv);
         // pv->dump();
     }
@@ -504,10 +522,10 @@ Value* ASTMemberFunctionCall::codegen(Gen & gen)
     for (auto &p : call->params) {
         // 转换结构值参数为结构指针
         Value *pv;
-        if (dynamic_cast<TypeStruct*>(p->getType())) {
-            pv = gen.varyPointer(p);
-        }else{
+        if (p->getType()->isAtomType()) {
             pv = gen.createLoad(p);
+        }else{
+            pv = gen.varyPointer(p);
         }
         argvs.push_back(pv);
         // pv->dump();
@@ -529,7 +547,8 @@ Value* ASTMemberFunctionCall::codegen(Gen & gen)
         return argvs[0]; // 返回类实例指针
     }
 
-    Value *retptr = gen.builder.CreateCall(func, argvs, "mfc.tmp");
+    // 普通成员函数
+    Value *retptr = gen.builder.CreateCall(func, argvs);
     
     return retptr;
 }
@@ -588,7 +607,9 @@ Value* ASTTypeConstruct::codegen(Gen & gen)
     // 创建函数
     StructType *scty = (StructType*)gen.fixType( type );
 
-    AllocaInst *structval = gen.builder.CreateAlloca(scty);
+    Value *structval = instance // 已经分配了内存
+        ? instance->codegen(gen)
+        : gen.builder.CreateAlloca(scty);
     
     if (! bare ) { // 不是空构造
         int len = childs.size();
@@ -610,9 +631,11 @@ Value* ASTTypeConstruct::codegen(Gen & gen)
 Value* ASTVariableDefine::codegen(Gen & gen)
 {
     Value *val = value->codegen(gen);
-    if (value->getType()->isAtomType()) {
+    /*if (value->getType()->isAtomType()) {
         val = gen.createLoad(val); // 原子类型传值，类和数组传引用
-    }
+    } else{
+        val = gen.varyPointer(val);
+    }*/
     val = gen.varyPointer(val);
     gen.putValue(name, val); // 放入
     return val;
@@ -623,21 +646,17 @@ Value* ASTVariableDefine::codegen(Gen & gen)
  */
 Value* ASTVariableAssign::codegen(Gen & gen)
 {
-    // Value *val = value->codegen(gen);
     
     Value *val = value->codegen(gen);
-
 
     Value *old = gen.getValue(name);
     old = gen.varyPointer(old);
 
     // 赋值
-    gen.builder.CreateStore(val, old);
+    Value * sto = gen.builder.CreateStore(val, old);
 
-    // 放入
-    gen.putValue(name, old); 
-
-    // gen.putValue(name, val); 
+    // 放入（必须为 Store 节点！）
+    gen.putValue(name, sto);
 
     return val;
 }
