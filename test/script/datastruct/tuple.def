@@ -1,0 +1,37 @@
+;-
+	元组
+-;
+
+
+
+include "../type.def"
+include "../macro/std.def"
+
+
+
+
+;; 匿名结构，元组（便于函数返回多个值）
+
+fun getTuple(Int a Int b)(
+	var x add a 97
+	var y add b 98
+	var p Point 100 101
+	ret tuple ( ; 包含任意个数的元组
+		x
+		y
+		p
+	)
+)
+
+
+;; 使用返回元组
+
+var tup getTuple 1 1
+
+putchar tup.0
+putchar tup.1
+
+; 2 后面必须留有空格或加括号，否则会被当做小数解析错误
+putchar tup.2 .x
+putchar (tup.2).y
+

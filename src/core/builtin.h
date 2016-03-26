@@ -27,9 +27,9 @@
     D(if) /*if else*/ \
     D(while) /*while*/ \
     \
-    D(refer) /*类型为引用*/ \
-    D(array) /*类型为数组*/ \
-    /*D(struct) 类型为元组*/ \
+    D(refer) /*引用类型*/ \
+    D(array) /*数组类型*/ \
+    D(tuple) /*元组类型*/ \
     \
     D(arrget) /*数组成员访问*/ \
     D(arrset) /*数组成员赋值*/ \

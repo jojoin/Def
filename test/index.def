@@ -32,10 +32,11 @@ include "script/class/structure.def"   ; 构造函数
 include "script/class/reference.def"   ; 引用类型
 include "script/class/copy.def"        ; 对象拷贝
 
-;; 数组和引用
-include "script/array_refer/common.def"
-include "script/array_refer/infun.def"
-include "script/array_refer/inclass.def"
+;; 数据结构
+include "script/datastruct/common.def"
+include "script/datastruct/infun.def"
+include "script/datastruct/inclass.def"
+include "script/datastruct/tuple.def"    ; 元组
 
 ;; 标准模板库
 include "script/stl/vector.def"
@@ -44,26 +45,12 @@ include "script/stl/vector.def"
 ;
 
 
-;-
+;
 
 
-;; 匿名结构（便于函数返回多个值）
-
-fun retTuple(Int a Int b)(
-	var x add a 1
-	var y add b 97
-	ret tuple (
-		x
-		y
-	)
-)
 
 
-;; 返回结构
-
-var tup retTuple 1 1
-
--;
+;
 
 
 ;-

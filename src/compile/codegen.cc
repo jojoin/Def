@@ -564,14 +564,19 @@ Value* ASTMemberVisit::codegen(Gen & gen)
     }
     StructType *scty = (StructType*)gen.fixType(tarty);
 
+    Value* structval = gen.varyPointer(instance);
+    return gen.builder.CreateStructGEP(scty, structval, index);
+    
+    /*
     Value* structval = instance->codegen(gen);
 
     // 结构值（如函数返回值）
-    if ( ! isa<PointerType>(structval->getType())) {
-        return gen.builder.CreateExtractValue(structval, index);
-    } else {
+    if ( isa<PointerType>(scty) ) {
         return gen.builder.CreateStructGEP( scty, structval, index);
+    } else {
+        return gen.builder.CreateExtractValue(structval, index);
     }
+    */
 
 }
 
@@ -586,9 +591,14 @@ Value* ASTMemberAssign::codegen(Gen & gen)
     }
     StructType *scty = (StructType*)gen.fixType(tarty);
    
-    Value* structval = instance->codegen(gen);
+    // Value* structval = instance->codegen(gen);
     Value* putval = gen.createLoad(value); // argvs[1]->codegen(gen);
-
+    
+    Value* structval = gen.varyPointer(instance);
+    Value* ptr = gen.builder.CreateStructGEP( scty, structval, index);
+    return gen.builder.CreateStore(putval, ptr);
+    
+    /*
     // 结构值（如函数返回值）
     if ( ! isa<PointerType>(structval->getType())) {
         // Value *ptr = gen.builder.CreateExtractValue(structval, pos);
@@ -597,6 +607,7 @@ Value* ASTMemberAssign::codegen(Gen & gen)
         Value* ptr = gen.builder.CreateStructGEP( scty, structval, index);
         return gen.builder.CreateStore(putval, ptr);
     }
+    */
 }
 
 /**

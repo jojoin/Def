@@ -1788,6 +1788,38 @@ AST* Build::build_array()
 }
 
 /**
+ * tuple 新建元组类型对象
+ */
+AST* Build::build_tuple()
+{
+    Word word; //
+    
+    // 检查括号
+    CHECKLPAREN("tuple define need a sign ( to belong !")
+        
+    // 新建元组类型（匿名）
+    auto *tupty = new TypeStruct("");
+    auto *tupval = new ASTTypeConstruct(tupty);
+
+    // 元组元素
+    while(true){
+        AST* li = build();
+        if (nullptr==li) {
+            break;
+        }
+        tupval->add(li);
+        tupty->add(li->getType());
+    }
+    
+    // 检查括号
+    CHECKRPAREN("tuple define need a sign ) to belong !")
+        
+    // 返回元组值
+    return tupval;
+
+}
+
+/**
  * array 数组成员访问
  */
 AST* Build::build_arrget()

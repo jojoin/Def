@@ -203,10 +203,7 @@ NOATOM_TYPE(Array)
 #define EXTEND_TYPE(N,P) \
 struct Type##N : P \
 { \
-    virtual bool isAtomType() { return false; }; \
-    virtual bool is(Type*t){ /* 扩展类型直接对比地址 */ \
-        return !!( ((int)this)==((int)t) ); \
-    }
+    virtual bool isAtomType() { return false; };
 
 
 // 结构类型
@@ -222,6 +219,25 @@ EXTEND_TYPE(Struct, Type)
     }
     void increment() {
         idx = ++auto_idx;
+    }
+    virtual bool is(Type*t){ // 扩展类型直接对比地址
+        if(name!=""){
+            return !!( ((int)this)==((int)t) );
+        }
+        if(auto*sctty=dynamic_cast<TypeStruct*>(t)){
+            size_t len = types.size();
+            size_t len1 = sctty->types.size();
+            if(len!=len1){
+                return false;
+            }
+            while(len--){
+                if(!types[len]->is(sctty->types[len])){
+                    return false;
+                }
+            }
+            return true; // 元素个数相等，每个元素相等
+        }
+        return false;
     }
     virtual string str() {
         string s = name+"{";
@@ -269,7 +285,14 @@ EXTEND_TYPE(Struct, Type)
         return nullptr;
     };
     virtual string getIdentify(bool strict=true) { // 获得唯一标识
-        if (idx == 0) {
+        if(name == ""){ // 匿名结构
+            string idf = "";
+            for(auto t : types){
+                idf += "." + t->getIdentify();
+            }
+            return idf;
+        }
+        if(idx == 0){
             return name;
         }
         return name + "." + Str::l2s(idx);
@@ -285,6 +308,9 @@ EXTEND_TYPE(Function,TypeStruct)
         : TypeStruct(n)
         , ret(t)
     {}
+    virtual bool is(Type*t){ // 扩展类型直接对比地址
+        return !!( ((int)this)==((int)t) );
+    }
     virtual void set(Type* t) { // 设置返回值 type
         ret = t;
     }
