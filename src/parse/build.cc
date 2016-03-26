@@ -1471,6 +1471,9 @@ AST* Build::build_elmget()
     auto word = getWord();
     int pos;
     if (ISWS(Number)) {
+        if(Tokenizer::isfloat(word.value)){
+            FATAL("elmget index can't be a float !")
+        }
         pos = Str::s2l(word.value);
     } else {
         pos = scty->elmpos(word.value);
