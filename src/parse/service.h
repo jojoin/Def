@@ -45,7 +45,6 @@ public:
     void prepareWord(const Tokenizer::Word &); // 预备
     void prepareWord(list<Tokenizer::Word>); // 拷贝预备
 
-
 public: // 功能型函数
     
     static bool checkType(Type*, AST*); // 类型判断
@@ -70,6 +69,9 @@ public:
     
     // 是否为构造函数状态
     bool status_construct = false;
+    // 模板解析状态
+    string tpl_fun_name = ""; // 模板函数解析名称
+    string tpl_ty_name = ""; // 模板类解析名称
     
     // 上下文状态
     bool is_mod_adt = false;  // 是否为适配器模式
@@ -79,6 +81,7 @@ public:
     void setModADT(bool); // 设置 adt 状态
     bool checkModADT(); // 检查并重设 adt 状态
     
+
 
     
 public:

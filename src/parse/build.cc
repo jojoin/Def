@@ -192,20 +192,23 @@ AST* Build::build(bool spread)
         
         // 类型构造 ？
         if (auto gr = dynamic_cast<ElementType*>(res)) {
-
-            return buildConstruct((TypeStruct*)gr->type, chara);
+            return buildConstruct((TypeStruct*)gr->type);
         }
 
         // 函数调用 ？
         if (auto gr = dynamic_cast<ElementGroup*>(res)) {
-            
             auto fncall = _functionCall(chara ,stack);
             if (fncall) {
                 return fncall;
             }
         }
+        
+        // 类模板调用？
+        if(auto gr = dynamic_cast<ElementTemplateType*>(res)){
+            return buildTemplateType(chara, gr);
+        }
 
-        // 模板函数调用？
+        // 函数模板调用？
         res = stack->find(DEF_PREFIX_TPF+chara, true);
         if (res) {
             return buildTemplateFuntion(chara, (ElementTemplateFuntion*)res);
@@ -380,10 +383,24 @@ AST* Build::buildTemplateFuntion(const string & name, ElementTemplateFuntion* tp
 }
 
 /**
+ * 解析模板类
+ */
+AST* Build::buildTemplateType(const string & name, ElementTemplateType* tpty)
+{
+    // 获取类型
+    TypeStruct* claty = _templateType(tpty->tptydef);
+
+    // 类型初始化
+    return buildConstruct(claty);
+}
+
+/**
  * 变量构造函数调用
  */
-AST* Build::buildConstruct(TypeStruct* tyclass, const string & name, AST* vptr)
+AST* Build::buildConstruct(TypeStruct* tyclass, AST* vptr)
 {
+    string name = tyclass->name;
+
     // 构造函数名称
     string fname = DEF_PREFIX_CSTC + name;
 
@@ -522,14 +539,18 @@ AST* Build::buildMacro(ElementLet* let, const string & name)
 
     // 展开宏体
     list<Word> bodys;
-    for (auto &wd : let->bodywords) {
-        auto fd = pmstk.find(wd.value);
+    for (auto &word : let->bodywords) {
+        if(NOTWS(Character)){
+            bodys.push_back(word);
+            continue;
+        }
+        auto fd = pmstk.find(word.value);
         if (fd != pmstk.end()) {
             for (auto &w : fd->second) {
                 bodys.push_back(w);
             }
         } else {
-            bodys.push_back(wd);
+            bodys.push_back(word);
         }
     }
 
@@ -863,6 +884,29 @@ AST* Build::build_type()
 }
 
 /**
+ * tydef 类型重命名
+ */
+AST* Build::build_tydef()
+{
+    // 类型名称
+    Word word = expectIdName("type rename need a legal name to belong !" );
+    string typeName = word.value;
+
+    // 解析类型
+    Type *ty = expectTypeState();
+    if(!ty){
+        FATAL("type rename need a legal type to belong !")
+    }
+
+    // 添加进分析栈
+    auto *elmty = new ElementType(ty);
+    stack->put(typeName, elmty);
+
+    // 返回类型重命名
+    return new ASTTypeRename(ty, typeName);
+}
+
+/**
  * dcl 声明函数
  */
 AST* Build::build_dcl()
@@ -930,14 +974,19 @@ AST* Build::build_fun()
     // 函数返回值类型
     Type *retty(nullptr); // nullptr 时需要推断类型
     
+    // 函数名称
+    string funcname = word.value;
+
     // 是否为类型构造函数
-    if(stack->tydef
-        && word.value==stack->tydef->type->name)
+    if(stack->tydef && (
+        funcname == tpl_ty_name ||
+        funcname == stack->tydef->type->name))
     {
         auto word = getWord();
         if(ISSIGN("(")){
             // 类型中与类型同名且无返回值的为构造函数
             status_construct = true;
+            funcname = stack->tydef->type->name;
         } else {
             prepareWord(word);
         }
@@ -959,14 +1008,14 @@ AST* Build::build_fun()
         if (NOTWS(Character)) {
             FATAL("function define need a legal name !")
         }
+        funcname = word.value; // 函数名
 
         // 括号验证
-        Word word;
         CHECKLPAREN("function define need a sign ( to belong !")
     }
 
     // 新建函数类型
-    string funcname = word.value;
+    // string funcname = word.value;
     // 如果是类型析构函数
     bool is_delete = stack->tydef && funcname == "delete";
     if(is_delete){
@@ -1198,15 +1247,36 @@ AST* Build::build_tpf()
  */
 AST* Build::build_tpty()
 {
+    // 类模板
+    auto *tptydef = new ASTTemplateTypeDefine();
+    
     // 类模板名称
     Word word = expectIdName("template type define need a legal name to belong !");
-    string tpty_name = word.value; // fixNamespace(word.value);
+    tptydef->name = word.value; // fixNamespace(word.value);
     
     // 检查括号
     CHECKLPAREN("template type define need a sign ( to belong !")
 
+    // 解析模板参数
+    while(true){
+        word = getWord();
+        if(ISSIGN(")")){
+            break;
+        }
+        tptydef->params.push_back(word.value);
+    }
+    
+    // 检查括号
+    CHECKLPAREN("template type define need a sign ( to belong !")
+    
+    // 解析模板实体
+    cacheWordSegment(tptydef->bodywords, false);
 
+    // 添加到分析栈
+    stack->put(tptydef->name, new ElementTemplateType(tptydef));
 
+    // 返回类模板
+    return tptydef;
 }
 
 /**
@@ -1954,7 +2024,7 @@ AST* Build::build_new()
     AST * vptr = new ASTMalloc(scty, new_len);
 
     // 调用构造函数
-    AST * cons = buildConstruct(scty, scty->name, vptr);
+    AST * cons = buildConstruct(scty, vptr);
 
     // 返回
     return new ASTNew(cons);
@@ -2267,8 +2337,12 @@ def::core::Type* Build::expectTypeState()
     // 查找类型
     Type *ty(nullptr);
     Element* res = stack->find(word.value);
-    if (ElementType* dco = dynamic_cast<ElementType*>(res)) {
+    // 普通类型
+    if (auto *dco = dynamic_cast<ElementType*>(res)) {
         ty = dco->type;
+    // 模板类型
+    } else if (auto *ttd = dynamic_cast<ElementTemplateType*>(res)) {
+        ty = _templateType(ttd->tptydef);
     } else {
         RETURNNULL
     }
@@ -2313,7 +2387,6 @@ Word Build::expectIdName(const string & error)
 
     return word;
 }
-
 
 
 /********************************************************/
@@ -2434,6 +2507,78 @@ def::core::Type* Build::_autoAddFuncRet(ASTFunctionDefine* fndef)
 }
 
 
+/**
+ * 解析模板得到新的类型
+ */
+TypeStruct* Build::_templateType(ASTTemplateTypeDefine* tptydef)
+{
+    // 新类型
+    // TypeStruct* typety = new TypeStruct(name);
+    
+    // 创建新类型
+    // auto *tydef = new ASTTypeDefine();
+
+    // auto * tptydef = tpty->tptydef;
+    
+    // 类型名称生成
+    string tptyname("");
+
+    // 获取类模板实参
+    // size_t arglen = tptydef->params.size();
+    // 参数
+    map<string, Word> args;
+    for(auto k : tptydef->params){
+        auto word = getWord();
+        // 检查是否为类型
+        if(auto*elm=dynamic_cast<ElementType*>(stack->find(word.value))){
+            args[k] = word;
+            tptyname += "," + elm->type->getIdentify(); // 名称
+        } else{
+            FATAL("Type template call need a valid type name !")
+        }
+    }
+    tptyname[0] = '<';
+    tptyname = tptydef->name + tptyname + ">";
+
+    // 是否有生成的类型
+    if(auto *elmty = dynamic_cast<ElementType*>(stack->find(tptyname))){
+        // 无需重新生成
+        return (TypeStruct*)elmty->type;
+    }
+    
+
+    // 解析类模板正文，实参替换
+    list<Word> body;
+    body.push_back(Word(Tokenizer::State::Character,tptyname));
+    body.push_back(Word(Tokenizer::State::Sign,"("));
+    for (auto &word : tptydef->bodywords) {
+        if(NOTWS(Character)){
+            body.push_back(word);
+            continue;
+        }
+        auto fd = args.find(word.value);
+        if (fd == args.end()) {
+            body.push_back(word);
+            continue;
+        }
+        // 替换
+        body.push_back(fd->second);
+    }
+
+    // 预备
+    prepareWord(body);
+    
+
+    // 设定模板状态
+    tpl_ty_name = tptydef->name;
+    // 创建新类型
+    auto *tydef = (ASTTypeDefine*)build_type();
+    // 清除状态
+    tpl_ty_name = tptydef->name;
+
+    // 返回类型
+    return tydef->type;
+}
 
 
 

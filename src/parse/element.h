@@ -37,7 +37,9 @@ ELEMENT_HEAD(Type, Type, type) // 类型名
 };
 ELEMENT_HEAD(Function, ASTFunctionDefine, fndef) // 函数名 
 };
-ELEMENT_HEAD(TemplateFuntion, ASTTemplateFuntionDefine, tpfdef) // 模板推断函数
+ELEMENT_HEAD(TemplateFuntion, ASTTemplateFuntionDefine, tpfdef) // 函数模板
+};
+ELEMENT_HEAD(TemplateType, ASTTemplateTypeDefine, tptydef) // 类模板
 };
 struct ElementLet : Element // let 符号绑定
 {

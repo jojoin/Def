@@ -230,6 +230,17 @@ AST_HEAD(TypeDefine)
 };
 
 
+// 类型重命名
+AST_HEAD(TypeRename)
+    string name;
+    Type* type;
+    ASTTypeRename(Type*t=nullptr, const string & n="")
+    : type(t)
+    , name(n)
+    {}
+};
+
+
 // 外部成员函数定义
 AST_HEAD(ExternalMemberFunctionDefine)
     TypeStruct* type;

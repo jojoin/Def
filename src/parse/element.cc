@@ -49,6 +49,11 @@ FUNC_HEAD_STR(TemplateFuntion)
 }
 
 
+FUNC_HEAD_STR(TemplateType)
+    return "<template type>";
+}
+
+
 FUNC_HEAD_STR(Group)
     string s("<group> ");
     for (auto &li : elms) {

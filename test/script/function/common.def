@@ -33,6 +33,7 @@ fun Point add(Point p Int x Int y)
 )
 
 
+
 ;; 函数调用
 add p1 5 10
 

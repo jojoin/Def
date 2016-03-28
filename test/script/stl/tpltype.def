@@ -1,0 +1,71 @@
+;-
+    类模板
+-;
+
+
+include "../type.def"
+
+
+
+;; 带参数的类模板
+
+tpty TplClass (T I) (
+	I num
+	T value
+	; 构造函数
+	fun TplClass(I n)(
+		set num n
+	)
+	fun TplClass(T v)(
+		set value v
+		set num 100
+	)
+	; 成员函数
+	fun getNum()(
+		ret num
+	)
+)
+
+
+;; 类型重命名
+tydef Pt Point
+tydef TCPI TplClass Pt Int 
+
+
+;; 新类型使用
+; var tplp TplClass Pt Int Pt 97 98
+var tplp TCPI Pt 97 98
+
+
+;; 打印
+putchar elmget tplp num
+putchar elmivk tplp getNum
+
+
+;; 模板类作为函数参数
+; fun putchar(TplClass Pt Int tp)(
+fun putchar(TCPI tp)(
+	putchar elmget tp num
+	putchar elmivk tp getNum
+)
+
+putchar tplp
+
+
+;; 模板类作为类成员
+
+type TplTyElm (
+	TplClass Pt Int p
+	fun puts()(
+		putchar p
+	)
+)
+
+;; 初始化
+var ttep TplTyElm tplp
+
+;; 打印
+elmivk ttep puts
+
++ tpty 类模板
++ tydef 类型重命名

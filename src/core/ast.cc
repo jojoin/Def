@@ -450,6 +450,14 @@ FUNC_HEAD_PRINT(TypeDefine)
 
 
 /**
+ * TypeRename
+ */
+FUNC_HEAD_PRINT(TypeRename)
+    cout << "type rename: " << name << " = " << type->getIdentify() << endl;
+}
+
+
+/**
  * TypeConstruct
  */
 void ASTTypeConstruct::add(AST*a) { // Ìí¼Ó²ÎÊý
@@ -511,6 +519,31 @@ void ASTTemplateFuntionDefine::addword(string n)
 }
 FUNC_HEAD_PRINT(TemplateFuntionDefine)
     cout << "template function define: " 
+        << name << "(";
+    bool fx = false;
+    for (auto &it : params) {
+        if(fx) cout << " ";
+        fx = true;
+        cout << it;
+    }
+    cout << ")" << endl;
+    cout << ind+IND;
+    for (auto &it : bodywords) {
+        cout << it.str() << " ";
+    }
+    cout << endl;
+}
+
+
+/**
+ * TemplateTypeDefine
+ */
+void ASTTemplateTypeDefine::addword(string n)
+{
+    params.push_back(n);
+}
+FUNC_HEAD_PRINT(TemplateTypeDefine)
+    cout << "template type define: " 
         << name << "(";
     bool fx = false;
     for (auto &it : params) {

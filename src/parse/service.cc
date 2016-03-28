@@ -27,7 +27,7 @@ Service::Service(Tokenizer * t)
     // 初始化分析栈
     stack = new Stack(nullptr);
 }
-    
+
 
 /**
  * 合法的 struct array 对象

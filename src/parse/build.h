@@ -28,9 +28,6 @@ using namespace def::core;
 using namespace def::util;
 
 
-
-
-
 /**
  * Def ast 生成器
  */
@@ -61,14 +58,15 @@ protected:
     ASTGroup* buildGroup();
     // 函数调用
     // AST* buildFunctionCall(const string &, ElementGroup*, bool istpf=false);
-    // 解析模板函数
+    // 解析函数模板和类模板
     AST* buildTemplateFuntion(const string &, ElementTemplateFuntion*);
+    AST* buildTemplateType(const string &, ElementTemplateType*);
     // 核心定义处理
     AST* buildCoreDefine(const string &);
     // 变量或类成员访问
     AST* buildVaribale(Element*, const string &n="");
     // 变量构造函数调用
-    AST* buildConstruct(TypeStruct*, const string &n="", AST* v=nullptr);
+    AST* buildConstruct(TypeStruct*, AST* v=nullptr);
     AST* buildMacro(ElementLet*, const string &);
 
 protected:
@@ -81,12 +79,17 @@ protected:
     
 protected:
 
+protected:
+
     // 建立函数调用，up=是否向上查找
     ASTFunctionCall* _functionCall(const string &, Stack*, bool up=true);
     // 从函数头（声明或定义）建立函数类型，declare=是否为声明格式
     TypeFunction* _functionType(bool declare=false);
     // 自动添加返回值
     Type* _autoAddFuncRet(ASTFunctionDefine*);
+    // 解析模板得到新的类型
+    TypeStruct* _templateType(ASTTemplateTypeDefine*);
+
     
 
 // 功能函数
@@ -97,6 +100,8 @@ protected:
     Type* expectTypeState();
     // 获得有效的标示符名称
     Tokenizer::Word expectIdName(const string &);
+    // 用参数展开宏体
+    // void expandMacro(list<Tokenizer::Word>, map<string, Tokenizer::Word>);
 
 protected:
 
