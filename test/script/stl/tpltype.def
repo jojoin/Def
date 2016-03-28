@@ -30,15 +30,17 @@ tpty TplClass (T I) (
 ;; 类型重命名
 tydef Pt Point
 tydef TCPI TplClass Pt Int 
+tydef TCMI TplClass MyInt Int 
 
 
 ;; 新类型使用
 ; var tplp TplClass Pt Int Pt 97 98
 var tplp TCPI Pt 97 98
+var tpli TCMI MyInt 97 98
 
 
 ;; 打印
-putchar elmget tplp num
+putchar elmget tpli num
 putchar elmivk tplp getNum
 
 
@@ -67,5 +69,5 @@ var ttep TplTyElm tplp
 ;; 打印
 elmivk ttep puts
 
-+ tpty 类模板
-+ tydef 类型重命名
+
+

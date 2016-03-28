@@ -10,7 +10,7 @@ type MyInt (
 
 
 ;; 匿名成员
-type Tuple (
+type Anony (
 	Int
 	MyInt mi
 )

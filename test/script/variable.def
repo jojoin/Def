@@ -10,8 +10,8 @@ include "type.def"
 var myi MyInt 1
 
 
-;; Tuple
-var tp Tuple 1 myi
+;; Anony
+var tp Anony 1 myi
 
 
 ;; Point

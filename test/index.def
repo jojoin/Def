@@ -5,7 +5,7 @@
 ;; 测试单元
 
 
-;-
+;
 
 ;; 类型
 include "script/type.def"                 ; 类型
@@ -42,15 +42,26 @@ include "script/datastruct/tuple.def"    ; 元组
 include "script/stl/vector.def"
 include "script/stl/tpltype.def"   ; 类模板
 
--;
+;
 
 
 
-include "script/stl/tpltype.def"   ; 类模板
 
 
-;; 类型重命名
-; tydef mIS map Int Point 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
