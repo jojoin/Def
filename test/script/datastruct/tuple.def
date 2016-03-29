@@ -16,11 +16,13 @@ fun getTuple(Int a Int b)(
 	var x add a 97
 	var y add b 98
 	var p Point 100 101
-	ret tuple ( ; 包含任意个数的元组
+	var tup tuple ( ; 包含任意个数的元组
 		x
-		y
+		x
 		p
 	)
+	elmset tup 1 y ; 元组元素赋值
+	ret tup ; 函数返回元组
 )
 
 
@@ -34,4 +36,35 @@ putchar tup.1
 ; 2 后面必须留有空格或加括号，否则会被当做小数解析错误
 putchar tup.2 .x
 putchar (tup.2).y
+
+
+
+;;;;;;;;; 元组解包宏 ;;;;;;;;;;
+
+
+
+;; 宏定义  _v 为值   _i 为循环索引
+
+let upk(names val)(
+	mcrfor(names)( var _v elmget val _i )
+)
+
+
+;; 使用解包宏
+
+upk (upk_a upk_b upk_c) tup
+
+
+;- 重载函数 打印 Point
+fun putchar(Point p)(
+	putchar elmget p x
+	putchar elmget p y
+)-;
+
+
+;; 使用解出的数据
+
+putchar upk_a
+putchar upk_b
+; putchar upk_c ; 打印 Point
 

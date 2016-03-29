@@ -1,0 +1,82 @@
+;-
+    基于类模板的 vector
+-;
+
+
+include "../type.def"
+include "../macro/std.def"
+
+
+;; vector 实现
+
+tpty Vector(T)(
+    refer array T vptr
+    Int max_length        ; 总空间大小
+    Int length            ; 当前大小
+    ; 构造
+    fun Vector(Int sz)(
+        length = 0
+        max_length = sz                 ; 首次申请空间大小
+        vptr = new array max_length T   ; 首次分配空间
+    )
+    ; 长度
+    fun Int size()(
+        length
+    )
+    ; 末尾添加元素
+    fun push(T v)(
+        if eq length max_length (
+            max_length = mul max_length 2 ; 空间大小倍增
+            newvptr := new array max_length T ; 分配新空间
+            i := length
+            while i ( ; 拷贝所有元素
+                i--
+                newvptr[i] = (vptr[i])
+            )
+            delete vptr ; 释放旧空间
+            vptr = newvptr
+        )
+        vptr[length] = v
+        length = (length + 1)
+    )
+    ; 末尾弹出元素
+    fun pop()(
+        if length
+            length = (length - 1)
+        ret true
+    )
+    ; 访问末尾元素
+    fun T last()(
+        idx := length
+        if idx 
+            idx = (idx - 1)
+        vptr[idx]
+    )
+    ; 下标访问
+    fun T at(Int idx)(
+        vptr[idx]
+    )
+)
+
+
+
+;; 类模板使用
+
+
+tpvecp := Vector Point 7
+tpvecm := Vector MyInt 13
+
+
+;; 类实例使用
+
+
+tpvecp:push Point 49 50
+var tpvp1 tpvecp:at 0
+
+putchar tpvp1.x
+putchar tpvp1.y
+
+
+
+
+

@@ -7,6 +7,7 @@
 
 ;
 
+
 ;; 类型
 include "script/type.def"                 ; 类型
 include "script/variable.def"             ; 变量
@@ -39,21 +40,14 @@ include "script/datastruct/inclass.def"
 include "script/datastruct/tuple.def"    ; 元组
 
 ;; 标准模板库
-include "script/stl/vector.def"
-include "script/stl/tpltype.def"   ; 类模板
+include "script/stl/vector1.def"    ; 基于宏的 vector
+include "script/stl/vector2.def"    ; 基于类模板的 vector
+include "script/stl/tpltype.def"    ; 类模板，类型重命名
 
 ;
 
 
-
-
-
-
-
-
-
-
-
+;include "script/datastruct/tuple.def"    ; 元组
 
 
 

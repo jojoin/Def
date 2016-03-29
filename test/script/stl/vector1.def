@@ -1,5 +1,5 @@
 ;-
-    里程碑！vector 实现
+    基于宏 vector 实现
 -;
 
 
@@ -45,7 +45,7 @@ type mcrlnk StlVector T (
         max_length = sz ; 首次申请空间大小
         vptr = new array max_length T ; 首次分配空间
     )
-    ; 析构函数(栈不支持)
+    ; 析构函数(暂不支持)
     fun delete()(
         delete vptr
     )

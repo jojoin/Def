@@ -1691,16 +1691,20 @@ AST* Build::build_mcrfor()
     
     // 解析生成
     list<Word> prepares;
+    size_t i(0);
     for (auto & a : argvs) {
         for (auto & word : bodys) {
-            if (ISCHA("_")) {
-                for (auto &w : a) {
+            if (ISCHA("_v")) { // 值
+                for(auto &w : a){
                     prepares.push_back(w);
                 }
+            } else if (ISCHA("_i")){ // 索引
+                prepares.push_back(Word(Tokenizer::State::Number,Str::l2s(i)));
             } else {
                 prepares.push_back(word);
             }
         }
+        i++;
     }
 
     // 预备

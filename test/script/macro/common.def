@@ -13,8 +13,8 @@ myadd (add 7 9) 2
 
 ;; 宏的条件与循环
 
-; for 循环， _ 下划线为循环参数占位符
-mcrfor(1 (add 1 2) 3)(add _ 1)
+; for 循环， _v 为循环参数占位符  _i 为循环索引占位符，从0开始
+mcrfor(1 (add 1 2) 3)(add _v 1)
 
 ; if 条件
 mcrif c v ( add 1 2 )
@@ -26,7 +26,7 @@ let _switch_if(a b)(if a b else)
 
 let switch(cond default body)(
 	mcrif default true ( add 1 2 )
-	mcrfor(body)(_switch_if _ )
+	mcrfor(body)(_switch_if _v )
 	default
 )
 
