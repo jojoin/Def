@@ -1,0 +1,80 @@
+
+
+/**
+ * 首页
+ */
+
+
+#forkme {
+  display: block; position: absolute; top: 0; right: 0;
+}
+
+#forkme img {
+  cursor: pointer;
+}
+
+
+#banner{
+    display: block;
+    padding: 15px 0;
+    background: #f0f0f0;
+}
+
+#banner .intro {
+    display: block; float: left;
+    width: 46%;
+}
+#banner .intro p {
+    display: block;
+    padding: 10px 0;
+    font-size: 14px;
+    color: #555;
+}
+#banner .intro p b{
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+}
+#banner .intro .motto {
+    margin: 10px 0;
+    font-size: 18px;
+    line-height: 18px;
+    padding-left: 16px;
+    border-left: 2px #aaa solid;
+}
+
+#banner .code {
+    display: block; float: right;
+    width: 47%; padding: 10px 1.5%;
+    min-height: 246px;
+    background: #fff;
+    white-space: pre-wrap;
+}
+#banner .code>div ,
+#banner .code>div * {
+    color: #888;
+    font-size: 16px;
+    line-height: 18px;
+    font-family: Consolas, "Liberation Mono", Courier, monospace;
+}
+#banner .code span{ color: #bbb; font-size: 14px; }
+#banner .code b{ color: #619ED6; }
+#banner .code i{ color: #619ED6; font-size: 14px; }
+#banner .code u{ color: #1BA143; }
+#banner .code n{ color: #AC1A01; }
+#banner .code v{ color: #CF8F2D; }
+
+#banner .code>div{ display: none; float: left; }
+#banner .code>div.n0{ display: block; }
+
+
+#weibo {
+    display: block;  float: right;
+    width: 35%;
+}
+
+#uyan {
+    display: block;  float: left;
+    width: 60%;
+}
+
