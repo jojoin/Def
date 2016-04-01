@@ -115,55 +115,6 @@ a:link,a:visited,a:active,a:hover{ color: #0077AA; text-decoration:none; cursor:
 
 
 
-
-
-
-
-
-
-code{
-  display: inline;
-  padding: 1px 5px;
-  font-size: 13px;
-  color: #555;
-  background: #f3f3f3;
-  border-radius: 3px;
-  /* border: 1px solid #ddd; */
-  font-family: Consolas, "Liberation Mono", Courier, monospace;
-}
-
-code.block{
-  display: block;
-  white-space: pre-wrap;
-  tab-size: 4;
-  font-size: 14px;
-  padding: 10px 16px;
-  margin: 12px 0;
-  border-radius: 5px;
-  border: none;
-}
-
-
-
-code *{
-  font-family: "Consolas";
-  font-size: 14px;
-}
-
-
-code dfn{ color: #6699FF; font-style: italic; font-weight: bold; display: inline; } /*关键字*/
-code i{ color: #8484C6; } /*系统函数*/
-code em{ color: #999900; } /*系统变量*/
-code b{ color: #AC4E40; } /*数字*/
-code u{ color: #1B9F43; }    /*字符串*/
-code span{ color: #999988; font-style: italic; } /*注释*/
-
-
-
-
-
-
-
 /*  footer  */
 
 #footer .quickgo *{

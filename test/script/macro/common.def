@@ -25,17 +25,17 @@ mcrif c v ( add 1 2 )
 let _switch_if(a b)(if a b else)
 
 let switch(cond default body)(
-	mcrif default true ( add 1 2 )
-	mcrfor(body)(_switch_if _v )
-	default
+    mcrif default true ( add 1 2 )
+    mcrfor(body)(_switch_if _v )
+    default
 )
 
 
 ;; 使用 switch 控制流程
 
 switch 2 false (
-	(1 true)
-	(2 false)
-	(3 true)
+    (1 true)
+    (2 false)
+    (3 true)
 )
 

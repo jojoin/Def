@@ -10,16 +10,16 @@ include "../variable.def"
 ;; 嵌套定义 修改外层变量
 fun wrap(Int n)(
     
-	var k 35
+    var k 35
 
     fun addn()(
         putchar n
         putchar k
-		set n add n 1
+        set n add n 1
         set k add k 1
     )
 
-    addn
+    addn ; 嵌套函数调用
     addn
     addn
     addn

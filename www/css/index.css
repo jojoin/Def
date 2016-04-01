@@ -43,38 +43,63 @@
     border-left: 2px #aaa solid;
 }
 
-#banner .code {
-    display: block; float: right;
-    width: 47%; padding: 10px 1.5%;
-    min-height: 246px;
-    background: #fff;
-    white-space: pre-wrap;
-}
-#banner .code>div ,
-#banner .code>div * {
-    color: #888;
-    font-size: 16px;
-    line-height: 18px;
-    font-family: Consolas, "Liberation Mono", Courier, monospace;
-}
-#banner .code span{ color: #bbb; font-size: 14px; }
-#banner .code b{ color: #619ED6; }
-#banner .code i{ color: #619ED6; font-size: 14px; }
-#banner .code u{ color: #1BA143; }
-#banner .code n{ color: #AC1A01; }
-#banner .code v{ color: #CF8F2D; }
-
-#banner .code>div{ display: none; float: left; }
-#banner .code>div.n0{ display: block; }
-
 
 #weibo {
     display: block;  float: right;
     width: 35%;
 }
 
-#uyan {
+#content {
     display: block;  float: left;
     width: 60%;
 }
 
+#content p,
+#content p *{
+    margin-bottom: 18px;
+    font-size: 15px;
+    line-height: 22px;
+}
+#content p code{
+    padding: 8px 14px;
+}
+
+
+#codesample {
+    display: block; float: right;
+    width: 47%; padding: 10px 1.5%;
+    min-height: 246px;
+    background: #fff;
+    white-space: pre-wrap;
+}
+#codesample code{
+    background: #fff;
+}
+
+#codesample>div{ display: none; float: left; }
+#codesample>div.n0{ display: block; }
+
+
+
+code{
+    display: block;
+    background: #f6f6f6;
+}
+code.line {
+    display: inline;
+    padding: 0 6px !important;
+    margin: 0 !important;
+}
+code ,
+code * {
+    color: #888;
+    font-size: 16px;
+    line-height: 18px;
+    font-family: Consolas, "Liberation Mono", Courier, monospace;
+}
+code span{ color: #bbb; font-size: 14px; }
+code b{ color: #619ED6; }
+code i{ color: #619ED6; font-size: 14px; }
+code u{ color: #1BA143; }
+code n{ color: #AC1A01; }
+code v{ color: #CF8F2D; }

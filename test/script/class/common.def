@@ -12,13 +12,13 @@ type Class (
     Int y
     ; 成员函数
     fun setX(Int v)(
-		x+=v
+        x+=v
     )
     ; 静态成员（未使用成员变量的函数自动为静态成员）
     fun Class add(Class a Class b)(
         Class
-			(a.x)+(b.x)
-			(a.y)+(b.y)
+            (a.x)+(b.x)
+            (a.y)+(b.y)
     )
     fun puts()( ; 打印
         putchar x
@@ -53,9 +53,9 @@ elmdef Complex (
         a:puts
         b:puts
         ; putchar 10 putchar 45 putchar 45 putchar 45 putchar 10
-		ret this
+        ret this
     )
-	; ... 其它成员函数
+    ; ... 其它成员函数
 )
 
 
@@ -66,11 +66,11 @@ c3 := Class 96 97
 com := Complex c1 c2
 
 fun putchar(Class p)(
-	putchar p.x
-	putchar p.y
+    putchar p.x
+    putchar p.y
 )
 fun putchar(Complex p)(
-	p:puts
+    p:puts
 )
 
 
