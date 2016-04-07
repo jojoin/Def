@@ -7,8 +7,8 @@ type Construct (
     Int y
     ; 无参构造函数
     fun Construct()(
-		set x 97
-		set y 97
+        set x 97
+        set y 97
     )
     ; 单参构造函数
     fun Construct(Int a)(
@@ -25,11 +25,11 @@ type Construct (
         set x elmget c x
         set y elmget c y
     )
-	; 打印
-	fun puts()(
-		putchar x
-		putchar y
-	)
+    ; 打印
+    fun puts()(
+        putchar x
+        putchar y
+    )
 )
 
 

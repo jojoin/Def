@@ -17,7 +17,7 @@
         <div class="motto">符号绑定等自定义语法</div>
         <div class="motto">缩减代码长度提升编码和编译效率</div>
         <p>通过编译强类型、完全类型推导、函数模板、嵌套函数、函数重载、类模板、扩展宏、模式匹配、 lambda表达式、闭包、操作符绑定等等一系列特征完成 Def 的目标：</p>
-        <p><b>将 C++ 的高效抽象和 Lisp 的强力表达融为一体</b>。</p>
+        <p><b>将 C++ 的高效抽象和 Lisp 的元编程融为一体</b>。</p>
     </div>
 
     <div id="codesample"><div class="n0"><code><span>;;; 声明 Point 类型</span>
@@ -110,6 +110,11 @@ setInterval(function(){
 <br>
 
 <!--友言评论-->
+<script type="text/javascript">
+var uyan_config = {
+     'du':'http://www.deflang.org', 
+};
+</script>
 <div id="uyan_frame"></div>
 <script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=2043454"></script>
 </div>

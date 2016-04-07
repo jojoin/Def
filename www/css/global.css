@@ -4,8 +4,8 @@
 
 *{
   margin:0; padding:0; border:0; outline:0; font-size:13px; text-decoration:none; cursor: default;
-    font: 12px/150% Arial,Verdana,"宋体";
-    // font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Zen Hei", Arial, sans-serif;
+  font: 14px/150% Arial,Verdana,"宋体";
+  // font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Zen Hei", Arial, sans-serif;
 }
 
 html { width: 100%; height: 100%; }
@@ -74,6 +74,7 @@ a:link,a:visited,a:active,a:hover{ color: #0077AA; text-decoration:none; cursor:
 }
 
 #navigation img.item {
+  position: relative; left: -10px;
   vertical-align: middle;
   height: 80px; line-height: 80px;
 }
@@ -99,6 +100,31 @@ a:link,a:visited,a:active,a:hover{ color: #0077AA; text-decoration:none; cursor:
 }
 
 
+/* 页面标题 */
+#ptitle {
+  display: block;
+  text-align: center;
+  margin-bottom: 30px;
+}
+#ptitle p{
+  display: inline-block;
+  border-left: 3px #ddd solid;
+  border-right: 3px #ddd solid;
+}
+#ptitle i{
+  display: inline-block;
+  padding: 0 15px;
+  margin: 0 2px;
+  font-size: 18px;
+  line-height: 26px;
+  font-weight: bold;
+  border-left: 1px #ddd solid;
+  border-right: 1px #ddd solid;
+  // background: #f9f9f9;
+  color: #666;
+}
+
+
 
 /***  手机自适应  ***/
 
@@ -117,6 +143,16 @@ a:link,a:visited,a:active,a:hover{ color: #0077AA; text-decoration:none; cursor:
 
 /*  footer  */
 
+.botline{
+  display: block;
+  width: 100%; height: 1px;
+  border-top: 1px #ddd solid;
+}
+#footer{
+  border-top: 1px #ddd dashed;
+  padding: 20px 0;
+}
+
 #footer .quickgo *{
   font-size: 13px;
   
@@ -126,18 +162,42 @@ a:link,a:visited,a:active,a:hover{ color: #0077AA; text-decoration:none; cursor:
   color: #999;
   
 }
-#footer .quickgo p{
-  margin-top: 18px;
-  padding: 10px 15px;
-  color: #666;
-  background: #f3f3f3;
-  border-radius: 4px;
-
-  
+#footer .quickgo a{
+  margin-right: 16px;
+  font-size: 13px;
+}
+#footer .quickgo a:hover{
+  text-decoration: underline;
 }
 
 
 
+
+
+
+code{
+    display: block;
+    white-space: pre-wrap;
+    background: #f6f6f6;
+}
+code.line {
+    display: inline;
+    padding: 0 6px !important;
+    margin: 0 !important;
+}
+code ,
+code * {
+    color: #888;
+    font-size: 16px;
+    line-height: 18px;
+    font-family: Consolas, "Liberation Mono", Courier, monospace;
+}
+code span, code em{ color: #bbb; font-size: 14px; }
+code b{ color: #619ED6; }
+code i{ color: #619ED6; font-size: 14px; }
+code u{ color: #1BA143; }
+code n{ color: #AC1A01; }
+code v{ color: #CF8F2D; }
 
 
 

@@ -43,10 +43,10 @@ putchar name 7
 ;;
 
 fun retAry(Int a)(
-	arr := array 2 Int
-	arr[0]= a
-	arr[1]=98
-	ret arr
+    arr := array 2 Int
+    arr[0]= a
+    arr[1]=98
+    ret arr
 )
 
 

@@ -1,17 +1,17 @@
 ;-
-	类引用型布局
+    类引用型布局
 -;
 
 include "../macro/std.def"
 
 ;; 类成员包含引用类型
 type QNode (
-	refer QNode self ; 引用成员
-	Int num
-	refer QNode other ; 引用成员
-	fun QNode(Int n)(
-		set num n
-	)
+    refer QNode self ; 引用成员
+    Int num
+    refer QNode other ; 引用成员
+    fun QNode(Int n)(
+    set num n
+    )
 )
 
 

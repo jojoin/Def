@@ -18,13 +18,13 @@
     <h1 class="item">Def</h1>
     <div class="item ">
         <a href="/">首页</a>
-        <a href="/">教程</a>
-        <a href="/">手册</a>
-        <a href="/">下载</a>
+        <a href="/manual">教程</a>
+        <a href="/document">文档</a>
+        <a href="/download">下载</a>
         <a href="http://weibo.com/deflanguage" target="_blank">新闻</a>
         <a href="http://zhuanlan.zhihu.com/deflang" target="_blank">文章</a>
-        <a href="/" class="red">￥捐助</a>
-        <a href="/">关于</a>
+        <a href="/donate" class="red">￥捐助</a>
+        <a href="/about.php">关于</a>
     </div>
 
 

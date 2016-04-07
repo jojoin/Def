@@ -1,0 +1,56 @@
+/**
+ * 捐助页面
+ */
+
+#donate {
+
+
+
+}
+
+#donate p.strong{
+    color: #FF8442;
+    font-weight: bold;
+
+}
+
+#donate p.donate{
+    text-align: center;
+}
+
+ul.purpose{
+    padding-left: 60px;
+    color: #999;
+
+}
+
+.ptitle{
+    padding-left: 5px;
+    border-left: 4px #ddd solid;
+
+}
+
+#roster{
+    border-top: 1px #999 solid;
+    border-left: 1px #999 solid;
+}
+#roster td{
+    width: 180px;
+    padding: 0px 10px;
+    border-bottom: 1px #999 solid;
+    border-right: 1px #999 solid;
+}
+#roster thead{
+    background: #ddd;
+}
+#roster thead td{
+    font-weight: bold;
+}
+
+#roster tbody td{
+    text-align: center;
+}
+
+
+
+

@@ -1,0 +1,47 @@
+/**
+ * 使用手册
+ */
+
+#manual>h4{
+    margin: 20px 0;
+    font-size: 19px;
+}
+#manual>h4:before{
+    content: "❈ ";
+}
+
+
+#manual>p, #manual>code{
+    display: block;
+    margin: 0 0 16px 26px;
+    color: #555;
+}
+#manual>p>b{
+    font-weight: bold;
+}
+
+#manual>p.menu a{
+    display: inline-block;
+    margin: 0 8px 8px 0;
+    padding: 0 8px;
+    background: #f6f6f6;
+    border-radius: 5px;
+}
+#manual>p.menu a:hover{
+    background: #eee;
+}
+#manual>p.menu b{
+    color: #999;
+}
+
+#manual>p cd{
+    padding: 0 5px;
+    background: #eee;
+
+}
+code {
+    padding: 6px 10px;
+}
+
+
+
