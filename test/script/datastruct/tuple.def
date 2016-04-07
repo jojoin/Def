@@ -46,13 +46,19 @@ putchar (tup.2).y
 ;; 宏定义  _v 为值   _i 为循环索引
 
 let upk(names val)(
-	mcrfor(names)( var _v elmget val _i )
+	uvnnew _
+	var uvnget _ val
+	mcrfor(names)( var _v elmget uvnget _ _i )
+	uvnclear
 )
 
 
 ;; 使用解包宏
 
-upk (upk_a upk_b upk_c) tup
+upk (upk_a upk_b upk_c) tup        ; 拆包变量
+upk (upka1 upka2) (getTuple 1 2)   ; 拆包函数调用返回值
+upk (upka3 upka4) (getTuple 3 4)
+
 
 
 ;- 重载函数 打印 Point

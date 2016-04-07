@@ -12,6 +12,7 @@
     <a href="#syntax">语法</a>
     <a href="#overload">函数重载</a>
     <a href="#macro">宏</a>
+    <a href="#more">更多</a>
 </p>
 
 
@@ -147,7 +148,7 @@ x<i>,</i> y <i>=</i> getTuple<i>();</i>
 <b>var</b> num elmget tp <n>0</n>  <em>; num = tp[0] </em>
 
 <em>;; 定义元组拆包宏 </em>
-<b>let</b> upk<i>(</i><u>names val</u><i>)(</i>
+<b>let</b> upk<i>(</i><u>names val</u><i>)(</i>  <em>;  upk 为 unpack 的缩写</em>
     <b>mcrfor</b><i>(</i><u>names</u><i>)(</i> <b>var</b> <v>_v</v> <b>elmget</b> <u>val</u> <v>_i</v> <i>)</i>
     <em>; mcrfor 表示宏参数循环  _v 为值  _i 为循环索引</em>
 <i>)</i>
@@ -202,25 +203,28 @@ upk<i>(</i>a b c<i>)</i> tp
 
 <p>如果让宏内部定义的变量仅局部可见，那么我们定义的 <cd>a,b,c</cd> 变量在宏调用结束后仍然无法使用，这是我们的拆包宏便失去了原本应有的功能。</p>
 
-<p>现在的问题变成了：能不能让宏内部的变量，某一部分局部可见，另一部分向上层作用域开放？</p>
+<p>现在的问题变成了：能不能让宏内部的变量，某一部分局部可见，另一部分向上层作用域开放？这样的需求好像很奇怪，这破坏了程序语言的设计原则，很可能带来难以调试的错误。</p>
+
+<p>我们换一种思维方式：如果能定义一个全局唯一的变量名，不就解决了变量名冲突的问题了？答案是肯定的，而且 Def 也对这种需求进行了支持。下面我们通过定义全局唯一的变量名来改写上面的拆包宏：</p>
+
+<code><em>;; 添加全局唯一变量名</em>
+<b>let</b> upk<i>(</i><u>names val</u><i>)(</i>
+    <b>uvnnew</b> _  <em>; 创建全局唯一名称，通过 _ 标识（ _ 可替换为任何合法的变量名称）</em>
+    <b>var</b> <b>uvnget</b> _ val <em>; 定义名称全局唯一的中间变量，缓存函数调用结果</em>
+    <b>mcrfor</b><i>(</i><u>names</u><i>)(</i> <b>var</b> <v>_v</v> <b>elmget</b> <b>uvnget</b> _ <v>_i</v>
+    <b>uvnclear</b>   <em>;  清空所有全局唯一名称</em>
+ <i>)</i>
+</code>
+
+<p>通过定义和使用名称全局唯一的变量，我们解决了函数调用多次和变量名称冲突的问题。你可以放心的将改写完成的 <cd>upk</cd> 元组拆包宏放进你的库里，供大家使用了。</p>
+
+
+<a name="more"></a>
+
+<h4>更多</h4>
 
 
 
-
-
-
-
-
-
-
-
-
-uvnnew abc ; 创建全局唯一名称
-
-uvnget abc ; 获取全局唯一名称
-
-uvndel abc ; 删除
-uvnclear   ; 清空
 
 
 
