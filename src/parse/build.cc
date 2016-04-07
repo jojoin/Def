@@ -2070,7 +2070,73 @@ AST* Build::build_copy()
     return new ASTCopy(obj);
 }
 
+/**
+ * 全局唯一名称 定义
+ */
+AST* Build::build_uvnnew()
+{
+    auto word = getWord();
+    string key = word.value;
+    
+    // 检查是否重定义
+    auto it = uq_var_names.find(key);
+    if(it != uq_var_names.end()){
+        FATAL("Repeated initializat unique variable name : "+key)
+    }
 
+    // 自增量
+    uq_var_autoincrement++;
+    string uvn =  "%" + key + Str::l2s(uq_var_autoincrement);
+    uq_var_names[key] = uvn;
+
+    // 返回 AST
+    return new ASTUVNnew(key, uvn);
+}
+
+/**
+ * 全局唯一名称 获取
+ */
+AST* Build::build_uvnget()
+{
+    // 回去唯一名称
+    Word wd = getUniqueVariableName(getWord().value);
+
+    // 缓存
+    prepareWord(wd);
+
+    // 重新开始
+    return build();
+}
+
+/**
+ * 全局唯一名称 删除
+ */
+AST* Build::build_uvndel()
+{
+    auto word = getWord();
+    string key = word.value;
+    
+    // 检查是否重定义
+    auto it = uq_var_names.find(key);
+    if(it == uq_var_names.end()){
+        FATAL("Cannot to delete not exist unique variable name : "+key)
+    }
+
+    // 删除
+    uq_var_names.erase(it);
+
+    return new ASTUVNdel(key);
+}
+
+/**
+ * 全局唯一名称 清空
+ */
+AST* Build::build_uvnclear()
+{
+    uq_var_names.clear();
+
+    return new ASTUVNclear();
+}
 
 
 /**
@@ -2382,6 +2448,7 @@ Word Build::expectIdName(const string & error)
         FATAL(error)
     }
 
+    // 宏连接
     if (word.value == "mcrlnk") {
         Word word1 = getWord();
         Word word2 = getWord();
@@ -2389,8 +2456,32 @@ Word Build::expectIdName(const string & error)
         return word1;
     }
 
+    // 全局唯一名
+    if(word.value == "uvnget"){
+        Word word1 = getWord();
+        return getUniqueVariableName(word1.value);
+    }
+
     return word;
 }
+
+/**
+ * 全局唯一名称获取
+ */
+Word Build::getUniqueVariableName(const string & n)
+{
+    auto it = uq_var_names.find(n);
+    if(it == uq_var_names.end()){
+        FATAL("Not initialized unique variable name : "+n)
+        // return "";
+    }
+    Word wd = Word(
+        Tokenizer::State::Character, 
+        it->second
+    );
+    return wd;
+}
+
 
 
 /********************************************************/

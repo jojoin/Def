@@ -5,7 +5,7 @@
 ;; 测试单元
 
 
-;-
+;
 
 
 ;; 类型
@@ -26,6 +26,7 @@ include "script/function/recurse.def"     ; 递归函数
 include "script/macro/common.def"
 include "script/macro/std.def"
 include "script/macro/stdtest.def"
+include "script/macro/uvn.def"        ; 全局唯一名称
 
 ;; 类
 include "script/class/common.def"      ; 
@@ -44,10 +45,9 @@ include "script/stl/vector1.def"    ; 基于宏的 vector
 include "script/stl/vector2.def"    ; 基于类模板的 vector
 include "script/stl/tpltype.def"    ; 类模板，类型重命名
 
--;
+;
 
 
-;include "script/datastruct/tuple.def"    ; 元组
 
 
 

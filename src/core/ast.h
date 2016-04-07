@@ -402,6 +402,31 @@ AST_HEAD(Let)
 };
 
 
+// uvnnew
+AST_HEAD(UVNnew)
+    string key;
+    string uvn;
+    ASTUVNnew(const string & k, const string & n)
+        : key(k)
+        , uvn(n)
+    {}
+};
+
+
+// uvndel
+AST_HEAD(UVNdel)
+    string key;
+    ASTUVNdel(const string & k)
+        : key(k)
+    {}
+};
+
+
+// uvnclear
+AST_HEAD(UVNclear)
+    ASTUVNclear(){}
+};
+
 
 
 

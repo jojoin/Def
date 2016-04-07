@@ -558,3 +558,18 @@ FUNC_HEAD_PRINT(TemplateTypeDefine)
     }
     cout << endl;
 }
+
+
+
+// uvnnew
+FUNC_HEAD_PRINT(UVNnew)
+    cout << "unv define '"<< key <<"' = " << uvn << endl;
+}
+// uvndel
+FUNC_HEAD_PRINT(UVNdel)
+    cout << "unv delete '"<< key << endl;
+}
+// uvnclear
+FUNC_HEAD_PRINT(UVNclear)
+    cout << "unv clear " << endl;
+}

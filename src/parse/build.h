@@ -79,6 +79,11 @@ protected:
     
 protected:
 
+    // 全局唯一名称
+    size_t uq_var_autoincrement = 0;
+    map<string, string> uq_var_names;
+    Tokenizer::Word getUniqueVariableName(const string &);
+
 protected:
 
     // 建立函数调用，up=是否向上查找
