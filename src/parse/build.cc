@@ -142,9 +142,23 @@ AST* Build::build(bool spread)
     if (ISSIGN(";")) {
         return build();
         
-    // block
+    // group
     } else if(ISSIGN("(")){
+        //cout << "create new scope !" << endl;
+        // 新建分析栈
+        //auto * old_stack = stack;
+        //stack = new Stack(old_stack);
         ASTGroup* grp = buildGroup();
+        // 打印语法分析栈
+        //DEBUG_WITH("als_stack", \
+        //    cout << endl << endl << "==== Analysis stack ( child scope ) ===" << endl << endl; \
+        //    stack->print(); \
+        //    cout << endl << "====== end ======" << endl << endl; \
+        //    )
+        // 复位分析栈
+        //delete stack;
+        //stack = old_stack;
+        // 结束验证
         word = getWord();
         if (NOTSIGN(")")) {
             FATAL("Group build not right end !")

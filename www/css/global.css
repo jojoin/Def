@@ -89,7 +89,8 @@ a:link,a:visited,a:active,a:hover{ color: #0077AA; text-decoration:none; cursor:
   background: #fff;
   border-radius: 5px;
 }
-#navigation a:hover{
+#navigation a:hover,
+#navigation a.active{
   background: #f6f6f6;
 }
 #navigation a.red{

@@ -5,7 +5,7 @@
 ;; 测试单元
 
 
-;-
+;
 
 
 ;; 类型
@@ -45,13 +45,28 @@ include "script/stl/vector1.def"    ; 基于宏的 vector
 include "script/stl/vector2.def"    ; 基于类模板的 vector
 include "script/stl/tpltype.def"    ; 类模板，类型重命名
 
+;
+
+
+;-
+
+var x 97
+
+;; 嵌套作用域
+scope(
+	putchar x
+	var x add x 1
+	var y add x 1
+	putchar x
+	putchar y
+)
+
+putchar x
+;; putchar y
+
 -;
 
 
-
-;include "script/macro/uvn.def"        ; 全局唯一名称
-
-include "script/datastruct/tuple.def"    ; 元组
 
 
 

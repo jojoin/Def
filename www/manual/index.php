@@ -1,5 +1,7 @@
 <?php include "../header.php"; ?>
 
+<script>$('#nav_manual').addClass('active');</script>
+
 <link rel="stylesheet" type="text/css" href="/css/manual.css" />
 
 <div id="ptitle"><p><i>入门使用教程</i></p></div>
@@ -211,7 +213,7 @@ upk<i>(</i>a b c<i>)</i> tp
 <b>let</b> upk<i>(</i><u>names val</u><i>)(</i>
     <b>uvnnew</b> _  <em>; 创建全局唯一名称，通过 _ 标识（ _ 可替换为任何合法的变量名称）</em>
     <b>var</b> <b>uvnget</b> _ val <em>; 定义名称全局唯一的中间变量，缓存函数调用结果</em>
-    <b>mcrfor</b><i>(</i><u>names</u><i>)(</i> <b>var</b> <v>_v</v> <b>elmget</b> <b>uvnget</b> _ <v>_i</v>
+    <b>mcrfor</b><i>(</i><u>names</u><i>)(</i> <b>var</b> <v>_v</v> <b>elmget</b> <b>uvnget</b> _ <v>_i</v> <i>)</i>
     <b>uvnclear</b>   <em>;  清空所有全局唯一名称</em>
  <i>)</i>
 </code>
@@ -223,7 +225,13 @@ upk<i>(</i>a b c<i>)</i> tp
 
 <h4>更多</h4>
 
+<p>关于拆包宏的更多的细节，请查看示例：<a href="https://github.com/jojoin/Def/blob/master/test/script/macro/uvn.def" target="_blank">uvn</a> 以及 <a href="https://github.com/jojoin/Def/blob/master/test/script/datastruct/tuple.def" target="_blank">tuple</a> 。</p>
 
+<p>也许你会有疑问：为什么要通过如此复杂拐弯抹角的宏，来实现别的语言轻松内置的功能？</p>
+
+<p>Def 的设计目标是：<b>功能正交的精简内核 + 强大的宏 + 泛型   =  可扩展的编程语言</b>，换句话说，你可以将 Def 亲手打造成任何你想要的语言！</p>
+
+<p>本文通过简单的示例，仅表现了 Def 的一鳞半爪，你可以在官方的 <a href="https://github.com/jojoin/Def/blob/master/test/script/" target="_blank">标准测试代码</a> 中更加详细地了解 Def 所有强大的功能。</p>
 
 
 

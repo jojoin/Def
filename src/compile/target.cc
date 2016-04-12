@@ -115,8 +115,6 @@ void def::compile::Target::output(const string & file, TargetMachine::CodeGenFil
 
     setFunctionAttributes(CPUStr, FeaturesStr, *M);
     
-
-
     bool isbin = isBinaryOutput(ety);
     std::error_code cd;
     sys::fs::OpenFlags OpenFlags = sys::fs::F_Text;
@@ -124,6 +122,7 @@ void def::compile::Target::output(const string & file, TargetMachine::CodeGenFil
         // cout << "isbin F_None" << endl;
         OpenFlags = sys::fs::F_None;
     }
+
     // 新建文件输出流
     auto raw = new raw_fd_ostream(file, cd, OpenFlags);
     

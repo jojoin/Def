@@ -1,5 +1,7 @@
 <?php include "header.php"; ?>
 
+<script>$('#nav_about').addClass('active');</script>
+
 <link rel="stylesheet" type="text/css" href="/css/about.css" />
 
 

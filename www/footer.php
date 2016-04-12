@@ -24,17 +24,15 @@
 
     </div><!-- end wrap -->
 
-
     <script>/* 百度统计代码 */
-        var _hmt = _hmt || [];
-        (function() {
-          var hm = document.createElement("script");
-          hm.src = "//hm.baidu.com/hm.js?de0e12251d89b0b4eb3199f3f7dce17c";
-          var s = document.getElementsByTagName("script")[0]; 
-          s.parentNode.insertBefore(hm, s);
-        })();
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?e89ad0df92fb13602337d9289e1e89bb";
+      var s = document.getElementsByTagName("script")[0]; 
+      s.parentNode.insertBefore(hm, s);
+    })();
     </script>
-
-
+    
 </body>
 </html>

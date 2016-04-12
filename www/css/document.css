@@ -1,0 +1,62 @@
+/**
+ * 标准文档
+ */
+
+#document{
+    display: block;
+    // max-width: 960px !important;
+    padding: 0 20px;
+    border: 1px #eee solid;
+    // box-shadow: 0 0 6px rgba(0,0,0,0.16);
+    max-width: 1960px;
+    margin: 0 10px;
+}
+
+#document>h4{
+    display: block;
+    font-size: 21px;
+    margin: 25px 0 16px 0;
+}
+
+#document>p{
+    display: block;
+    font-size: 14px;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+#document>p.menu{
+    color: #999;
+    margin-bottom: 5px;
+}
+
+
+#document>p.menu b{
+    display: inline-block;
+    width: 100px;
+    text-align: right;
+}
+
+#document>p.menu a{
+    display: inline-block;
+    width: 80px;
+    margin-left: 10px;
+    color: #119ccf;
+    font-size: 17px;
+    // background: #ddd;
+}
+#document>p.menu a:hover{
+    text-decoration: underline;
+}
+#document>p.menu a i{
+    padding-left: 5px;
+    font-size: 12px;
+    color: #999;
+}
+#document>p.menu.link a{
+    display: inline-block;
+    width: auto;
+    margin-right: 20px;
+    font-size: 14px;
+    vertical-align: middle;
+}

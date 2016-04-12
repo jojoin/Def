@@ -1,0 +1,42 @@
+/**
+ * 下载
+ */
+
+#download {
+
+}
+
+#download>h5 {
+    margin: 30px 0 15px 0;
+}
+
+#download>p {
+    margin-bottom: 15px;
+}
+
+
+#download a:hover{
+    text-decoration: underline;
+}
+
+#download ul{
+    margin-left: 40px;
+}
+
+#download a.downzip{
+    background: #eee;
+    padding: 6px 22px;
+    border: 1px #ddd solid;
+}
+#download a.downzip:hover{
+    text-decoration: none;
+    border-color: #ccc;
+}
+
+code {
+    background: #fff;
+}
+
+
+
+

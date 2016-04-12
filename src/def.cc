@@ -69,7 +69,7 @@ void addArgvOption(argv::OptionParser & parser)
     // 打印 llvm ir
     parser.add_option("-p", "--print")
         // .action("store_true")
-        .help("print llvm IR(ir) in console");
+        .help("print llvm IR(ir), assembly file(asm) in console");
     // 输出内容到文件
     parser.add_option("-e", "--emit")
         .set_default("obj")
@@ -195,7 +195,7 @@ int run(const string & file, argv::Values & options)
             ofile << gen.module;
             ofile.close();
         // 汇编
-        } else if(emit=="obj") {
+        } else if(emit=="obj" || emit=="asm") {
             def::compile::Target tar(context, gen.module);
             TargetMachine::CodeGenFileType cgft;
             // 输出类型
