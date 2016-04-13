@@ -22,7 +22,7 @@ Def 致力于提供：
 
 ### 代码示例
 
-```bash
+```INI
 ;; 自定义类型
 type Point (
     Int x
