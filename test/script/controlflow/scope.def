@@ -101,11 +101,13 @@ scope N2 (
 
 ;; 分析栈合并 ！
 scope N1 (
+	putchar num
 	var count 100
 	scope N2 (
 		var count 103
 	)
 )
+
 
 ;; 使用名字空间
 
