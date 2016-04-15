@@ -573,3 +573,15 @@ FUNC_HEAD_PRINT(UVNdel)
 FUNC_HEAD_PRINT(UVNclear)
     cout << "unv clear " << endl;
 }
+
+
+/**
+ * ChildScope
+ */
+FUNC_HEAD_PRINT(ChildScope)
+    cout << "child scope, len = " << childs.size() << " : " << endl;
+    PRINT_CHILDS(childs)
+}
+FUNC_HEAD_GETTYPE(ChildScope)
+    return childs.back()->getType();
+}

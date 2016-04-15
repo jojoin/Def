@@ -1,0 +1,73 @@
+;-
+    嵌套子作用域
+-;
+
+
+;; 匿名名字空间
+
+scope (
+
+    var x 97
+
+    putchar x
+
+    ;; 嵌套作用域
+    scope (
+        putchar x
+        var x add x 1
+        var y add x 1
+        putchar x
+        putchar y
+
+        ;; 嵌套作用域
+        scope (
+            putchar y
+            var y add y 1
+            var z add y 1
+            putchar y
+            putchar z
+        )
+
+        putchar y
+        ; z 不可见
+        ; putchar z
+
+    )
+
+    putchar x
+    ; y 不可见
+    ; putchar y
+
+)
+
+
+
+
+;; 函数内部匿名
+
+fun childScope()(
+    var x 111
+    scope (
+        putchar x
+        var x add x 1
+        putchar x
+        var y add x 1
+        putchar y
+    )
+    putchar x
+    ; y 不可见
+    ; putchar y
+
+    ;; y 可重定义
+    var y add x 1
+    putchar y
+)
+
+
+;; 执行
+
+childScope
+
+
+
+

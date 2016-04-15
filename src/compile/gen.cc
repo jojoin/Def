@@ -26,7 +26,7 @@ vector<Value*> Gen::getGEPidxary(int i1, int i2)
 
 /**
  * 获取变量
- */
+ *
 Value* Gen::getValue(const string & name)
 {
     auto rel = values.find(name);
@@ -36,19 +36,19 @@ Value* Gen::getValue(const string & name)
     // FATAL("codegen: Cannot find variable '"+name+"' !")
     return nullptr;
 }
-
+*/
 
 /**
  * 放置变量
  * 返回旧变量
- */
+ *
 Value* Gen::putValue(const string & name, Value* v)
 {
     Value* old = getValue(name);
     values[name] = v;
     return old;
 }
-
+*/
 
 /**
  * 将 AST 处理成可以作为函数参数使用
@@ -62,7 +62,7 @@ Value* Gen::varyPointer(AST* ast)
 
     // 如果是变量，则重赋值
     if (auto *vari = dynamic_cast<ASTVariable*>(ast)) {
-        putValue(vari->name, val);
+        values->put(vari->name, val);
     }
 
     return val;
@@ -173,7 +173,7 @@ Function* Gen::createFunction(AST* p)
     
     // 保存旧的变量
     auto old_values = values;
-    values.clear();
+    values = new Scope();
 
     // 变量栈
     vector<string> cpt_name;
@@ -216,7 +216,7 @@ Function* Gen::createFunction(AST* p)
             idx2++;
         }
         Arg.setName(name);
-        values[name] = &Arg;
+        values->put(name, &Arg);
         idx++;
         // cout << "values[name]: " << name << endl;
     }
@@ -254,6 +254,7 @@ Function* Gen::createFunction(AST* p)
     builder.SetInsertPoint(old_block);
     
     // 复位变量栈
+    delete values;
     values = old_values;
 
     return func;

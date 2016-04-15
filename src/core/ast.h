@@ -428,6 +428,13 @@ AST_HEAD(UVNclear)
 };
 
 
+// ChildScope
+AST_CODE_HEAD(ChildScope)
+    vector<AST*> childs;
+    ASTChildScope(){}
+};
+
+
 
 
 

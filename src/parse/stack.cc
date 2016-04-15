@@ -178,9 +178,9 @@ Element* Stack::find(const string & name, bool up)
     // 查询父栈
 	if(up&&parent){
         auto res = parent->find(name);
-        // 记录函数捕获的捕获的变量
+        // 记录函数捕获的外层变量
         if (auto *ev = dynamic_cast<ElementVariable*>(res)) {
-            if (fndef) {
+            if (fndef && !child_scope) {
                 // cout << fndef->ftype->name << "  capture the variable: " << name << endl;
                 fndef->cptvar[name] = ev->type;
             }

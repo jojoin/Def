@@ -8,6 +8,7 @@
 
 #include "../global.h"
 #include "../core/type.h"
+#include "./scope.h"
 
 
 namespace def {
@@ -44,6 +45,8 @@ public:
         main = Function::Create(fty, Function::ExternalLinkage, "main", &module);
         entry = BasicBlock::Create(context, "entry", main);
         builder.SetInsertPoint(entry);
+        // 变量栈
+        values = new Scope();
     }
 
     // codegen 完成后的收尾工作
@@ -73,8 +76,8 @@ public:
     Function* createFunction(AST*);    
 
     // 变量操作
-    Value* getValue(const string &);
-    Value* putValue(const string &, Value*); // 返回旧变量
+    // Value* getValue(const string &);
+    // Value* putValue(const string &, Value*); // 返回旧变量
     
     // 获取子元素指针选择器
     vector<Value*> getGEPidxary(int=0,int=-1);
@@ -89,7 +92,8 @@ public:
 public:
     
     // 当前可见作用域创建的变量
-    map<string, Value*> values;
+    // map<string, Value*> values;
+    Scope *values;
 
 };
 

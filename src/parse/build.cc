@@ -585,6 +585,50 @@ AST* Build::buildMacro(ElementLet* let, const string & name)
     return build();
 }
 
+/**
+ * 解析子作用域
+ */
+AST* Build::buildChildScope()
+{
+    // cout << "create new scope !" << endl;
+    auto* scope = new ASTChildScope();
+    // 新建分析栈
+    auto * old_stack = stack;
+    stack = new Stack(old_stack);
+    stack->child_scope = true; // 子分析栈
+
+    // 开始验证
+    auto word = getWord();
+    if (ISSIGN("(")) {
+        while (1) {
+            AST* li = build();
+            if (nullptr==li) {
+                break;
+            }
+            scope->childs.push_back(li);
+        }
+        word = getWord();
+        if (NOTSIGN(")")) {
+            FATAL("Child scope not right end !")
+        }
+    } else {
+        prepareWord(word);
+        AST* li = build();
+        scope->childs.push_back(li);
+    }
+    // 打印语法分析栈
+    DEBUG_WITH("als_stack", \
+            cout << endl << endl << "==== Analysis stack ( child scope ) ===" << endl << endl; \
+            stack->print(); \
+            cout << endl << "====== end ======" << endl << endl; \
+            )
+    // 复位分析栈
+    delete stack;
+    stack = old_stack;
+    // 返回子作用域对象
+    return scope;
+}
+
 
 /********************************************************/
 
@@ -1330,13 +1374,13 @@ AST* Build::build_if()
     // 新建 if 节点
     ASTIf *astif = new ASTIf(cond);
 
-    // if 语句
-    astif->pthen = build();
+    // if 语句，子作用域
+    astif->pthen = buildChildScope(); // build();
 
-    // 检查 else
+    // 检查 else，子作用域
     auto word = getWord();
     if (ISCHA("else")) {
-        astif->pelse = build();
+        astif->pelse = buildChildScope(); // build();
     } else {
         prepareWord(word); // 复位
     }
@@ -1382,8 +1426,8 @@ AST* Build::build_while()
     // 新建 while 节点
     ASTWhile *astwhile = new ASTWhile(cond);
 
-    // while 语句
-    astwhile->body = build();
+    // while 语句，子作用域
+    astwhile->body = buildChildScope(); //build();
 
     // 返回 if 节点 
     return astwhile;
@@ -2152,6 +2196,14 @@ AST* Build::build_uvnclear()
     return new ASTUVNclear();
 }
 
+/**
+ * scope 局部作用域
+ */
+AST* Build::build_scope()
+{
+    return buildChildScope();
+}
+
 
 /**
  * link 得到变量的引用
@@ -2614,7 +2666,6 @@ def::core::Type* Build::_autoAddFuncRet(ASTFunctionDefine* fndef)
     RETUTN
 #undef RETUTN
 }
-
 
 /**
  * 解析模板得到新的类型

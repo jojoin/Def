@@ -421,7 +421,7 @@ Value* ASTFunctionCall::codegen(Gen & gen)
     for (auto &p : fndef->cptvar) {
         string name = p.first;
         Value *pv = gen.varyPointer(
-            gen.getValue(name)
+            gen.values->get(name)
             );
         argvs.push_back(pv);
         // pv->dump();
@@ -648,7 +648,7 @@ Value* ASTVariableDefine::codegen(Gen & gen)
         val = gen.varyPointer(val);
     }*/
     val = gen.varyPointer(val);
-    gen.putValue(name, val); // 放入
+    gen.values->put(name, val); // 放入
     return val;
 }
 
@@ -660,14 +660,14 @@ Value* ASTVariableAssign::codegen(Gen & gen)
     
     Value *val = value->codegen(gen);
 
-    Value *old = gen.getValue(name);
+    Value *old = gen.values->get(name);
     old = gen.varyPointer(old);
 
     // 赋值
     Value * sto = gen.builder.CreateStore(val, old);
 
     // 放入（必须为 Store 节点！）
-    gen.putValue(name, sto);
+    gen.values->put(name, sto);
 
     return val;
 }
@@ -677,7 +677,7 @@ Value* ASTVariableAssign::codegen(Gen & gen)
  */
 Value* ASTVariable::codegen(Gen & gen)
 {
-    Value* v = gen.getValue(name);
+    Value* v = gen.values->get(name);
     if (!v) {
         FATAL("codegen: Cannot find variable '"+name+"' !")
     }
@@ -793,4 +793,24 @@ Value* ASTWhile::codegen(Gen & gen)
 
 
 
+}
+
+/**
+ * 子作用域
+ */
+Value* ASTChildScope::codegen(Gen & gen)
+{
+    // 栈重置
+    auto *ostk = gen.values;
+    auto *nstk = new Scope(ostk);
+    gen.values = nstk;
+    // 解析子句
+    Value* last(nullptr);
+    for(auto li : childs){
+        last = li->codegen(gen);
+    }
+    // 栈复位
+    delete nstk;
+    gen.values = ostk;
+    return last;
 }

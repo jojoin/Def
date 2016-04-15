@@ -5,7 +5,7 @@
 ;; 测试单元
 
 
-;
+
 
 
 ;; 类型
@@ -13,6 +13,7 @@ include "script/type.def"                 ; 类型
 include "script/variable.def"             ; 变量
 
 ;; 控制流结构
+include "script/controlflow/scope.def"    ; 子作用域
 include "script/controlflow/if.def"       ; if
 include "script/controlflow/while.def"    ; while
 
@@ -45,26 +46,12 @@ include "script/stl/vector1.def"    ; 基于宏的 vector
 include "script/stl/vector2.def"    ; 基于类模板的 vector
 include "script/stl/tpltype.def"    ; 类模板，类型重命名
 
-;
 
 
-;-
 
-var x 97
 
-;; 嵌套作用域
-scope(
-	putchar x
-	var x add x 1
-	var y add x 1
-	putchar x
-	putchar y
-)
 
-putchar x
-;; putchar y
 
--;
 
 
 

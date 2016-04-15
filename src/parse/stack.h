@@ -23,14 +23,12 @@ using namespace std;
 class Stack
 {
 public:
-public:
     
     Stack(Stack*p=nullptr);
 
+
     // 初始化基础分析栈
     void Initialize();
-
-
     
 public:
 
@@ -54,6 +52,9 @@ public:
     Stack* parent = nullptr; // 父分析栈
 
     ElementStack stack;     // 当前分析栈
+
+    // 是否是子分析栈
+    bool child_scope = false;
     
     ASTFunctionDefine* fndef = nullptr; // 当前正在定义的函数
     ASTTypeDefine*    tydef  = nullptr; // 当前正在定义的类型

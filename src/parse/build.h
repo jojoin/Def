@@ -68,6 +68,7 @@ protected:
     // 变量构造函数调用
     AST* buildConstruct(TypeStruct*, AST* v=nullptr);
     AST* buildMacro(ElementLet*, const string &);
+    AST* buildChildScope();
 
 protected:
 
