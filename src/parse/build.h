@@ -68,7 +68,8 @@ protected:
     // 变量构造函数调用
     AST* buildConstruct(TypeStruct*, AST* v=nullptr);
     AST* buildMacro(ElementLet*, const string &);
-    AST* buildChildScope(const string & n="", const string &t="");
+    AST* buildChildScope(const string & n = "", const string &t = "");
+
 
 protected:
 
@@ -96,12 +97,17 @@ protected:
     // 解析模板得到新的类型
     TypeStruct* _templateType(ASTTemplateTypeDefine*);
 
+    // 加载与卸载名字空间
+    bool _useScope(const string &);
+    bool _delScope(const string &);
+
     
 
 // 功能函数
 protected:
-    // 缓存单词段（包含括号内部所有内容）
-    void cacheWordSegment(list<Tokenizer::Word>&, bool pure=true);
+    // 缓存单词段（包含括号内部所有内容）  strip 是否剥掉外层括号
+    void cacheWordSegment(list<Tokenizer::Word>&, bool strip=true);
+    void cacheWordCell(list<Tokenizer::Word>&, bool strip=true);
     // 获得类型标注
     Type* expectTypeState();
     // 获得有效的标示符名称

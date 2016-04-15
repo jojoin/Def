@@ -590,3 +590,8 @@ FUNC_HEAD_GETTYPE(ChildScope)
 FUNC_HEAD_PRINT(UseScope)
     cout << "use scope: "<< name << endl;
 }
+
+// delete scope
+FUNC_HEAD_PRINT(DeleteScope)
+    cout << "delete scope: "<< name << endl;
+}

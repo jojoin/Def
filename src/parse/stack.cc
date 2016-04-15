@@ -180,7 +180,7 @@ Element* Stack::find(const string & name, bool up)
     if(up){
         for(auto one : uscps){
             // 不搜索名字空间的父空间
-            auto *elm = one->find(name, false);
+            auto *elm = std::get<1>(one)->find(name, false);
             if(elm) return elm;
         }
     }
@@ -237,7 +237,7 @@ Element* Stack::set(const string & name, Element* elem, bool up)
     if(up){
         for(auto one : uscps){
             // 不搜索名字空间的父空间
-            auto *elm = one->set(name, elem, false);
+            auto *elm = std::get<1>(one)->set(name, elem, false);
             if(elm) return elm;
         }
     }
@@ -259,6 +259,11 @@ Stack* Stack::use(const string & name)
     auto it = spaces.find(name);
     if(it!=spaces.end()){
         return it->second; // 找到了
+    }
+    // 查名字空间，有限
+    for(auto one : uscps){
+        auto *elm =std::get<1>(one)->use(name);
+        if(elm) return elm;
     }
     // 查询父级栈
     if(parent){

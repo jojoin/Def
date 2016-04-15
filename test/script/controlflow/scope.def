@@ -76,6 +76,67 @@ scope B (
 
 
 
+
+
+;;;;;;;;;;;;;; 嵌套定义与加载 ;;;;;;;;;;;;;;
+
+
+
+
+
+;; 
+
+scope N1 (
+	var num 97
+	; 嵌套名字空间
+	scope N2 (
+		var num 98
+	)
+)
+
+scope N2 (
+	var num 99
+	var count 101
+)
+
+;; 分析栈合并 ！
+scope N1 (
+	var count 100
+	scope N2 (
+		var count 103
+	)
+)
+
+;; 使用名字空间
+
+scope U1 (
+
+	uscp N1
+	putchar num ; N1.num
+	putchar count ; N1.count
+	
+
+	uscp N2 ; ? 到底是哪一个N2 ？
+	putchar num ; N1.N2.num
+	putchar count  ; N1.N2.count 而不是 N2.count
+
+
+	;;; 卸载名字空间
+	delscp (N1 N2) ; uscp (N1 N2) 也可用
+	; 等同于:
+	;        delscp N1 
+	;        delscp N2
+
+	
+	;; 重新加载名字空间
+	uscp N2 ; ? 到底是哪一个N2 ？
+	putchar count  ; N2.count 而不是 N1.N2.count
+
+)
+
+
+
+
 ;;;;;;;;;;;;;;;;;;;;  函数内部子作用域  ;;;;;;;;;;;;;;;;;;;
 
 

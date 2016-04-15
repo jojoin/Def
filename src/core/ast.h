@@ -452,6 +452,14 @@ AST_HEAD(UseScope)
     {}
 };
 
+// Delete Scope
+AST_HEAD(DeleteScope)
+    string name;
+    ASTDeleteScope(const string & n)
+        : name(n)
+    {}
+};
+
 
 
 

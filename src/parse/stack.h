@@ -2,6 +2,7 @@
 
 
 #include <vector>
+#include <tuple>
 #include <list>
 #include <set>
 #include <string>
@@ -37,7 +38,7 @@ public:
 
     // 名字空间子分析栈
     map<string, Stack*> spaces; // @函数栈  #匿名栈  具名栈
-    list<Stack*> uscps; // 正在使用的分析栈
+    list<tuple<string, Stack*>> uscps; // 正在使用的分析栈
 
     ElementStack stack;     // 当前分析栈
     

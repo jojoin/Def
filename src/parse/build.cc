@@ -594,21 +594,23 @@ AST* Build::buildChildScope(const string & name, const string & tip)
 {
     // cout << "create new scope !" << endl;
     auto* scope = new ASTChildScope(name);
-    // 新建分析栈
     auto * old_stack = stack;
-    stack = new Stack(old_stack, Stack::Mod::Namespace);
     // 名字空间
     string scopename = name;
+    // 判断重定义
+    auto it = old_stack->spaces.find(scopename);
+    if(it!=old_stack->spaces.end()){
+        // FATAL("Namespaces '"+scopename+"' cannot redefinition ！")
+        stack = it->second; // 分析栈合并
+    } else {
+        // 新建分析栈
+        stack = new Stack(old_stack, Stack::Mod::Namespace);
+    }
     if(name==""){
         static int anyidx = 0; // 匿名标记
         anyidx++;
         scopename = "#" + tip + Str::l2s(anyidx);
         stack->mod = Stack::Mod::Anonymous; // 匿名分析栈
-    }
-    // 判断重定义
-    auto it = old_stack->spaces.find(scopename);
-    if(it!=old_stack->spaces.end()){
-        FATAL("Namespaces '"+scopename+"' cannot redefinition ！")
     }
     // 添加子栈
     old_stack->spaces[scopename] = stack;
@@ -2244,28 +2246,39 @@ AST* Build::build_scope()
 }
 
 /**
- * uscp 使用名字空间
+ * uscp 加载名字空间
  */
 AST* Build::build_uscp()
 {
-    Word word = getWord();
-    if(NOTWS(Character)){
-        FATAL("Use namespace need a valid name !")
+    string name("");
+    list<Word> wds;
+    cacheWordCell(wds, true);
+    for(auto w : wds){
+        _useScope(w.value);
+        name += " " + w.value;
     }
-    string name = word.value;
-    // 开始查找分析栈
-    Stack * stk = stack->use(name);
-    if(!stk){
-        FATAL("Cannot find the namespace '"+name+"' !")
-    }
-    // 添加到使用的分析栈
-    // 最后添加的栈，最新使用
-    stack->uscps.push_front(stk);
+    name[0] = '(';
 
     // 返回
-    return new ASTUseScope(name);
+    return new ASTUseScope(name+")");
 }
 
+/**
+ * build_delscp 卸载名字空间
+ */
+AST* Build::build_delscp()
+{
+    string name("");
+    list<Word> wds;
+    cacheWordCell(wds, true);
+    for(auto w : wds){
+        _delScope(w.value);
+        name += " " + w.value;
+    }
+    name[0] = '(';
+    // 返回
+    return new ASTDeleteScope(name+")");
+}
 
 
 /**
@@ -2477,7 +2490,7 @@ list<Word> Build::spreadOperatorBind(list<Word>*pwds)
 /**
  * 缓存单词段（包含括号内部所有内容）
  */
-void Build::cacheWordSegment(list<Word>& cache, bool pure)
+void Build::cacheWordSegment(list<Word>& cache, bool strip)
 {
     int down = 1;
     while (true) {
@@ -2490,8 +2503,18 @@ void Build::cacheWordSegment(list<Word>& cache, bool pure)
         if (ISSIGN(")")) down--;
         if (0 == down) break;
     }
-    if (pure) {
+    if (strip) {
         cache.pop_back(); // 去掉尾部括号
+    }
+}
+void Build::cacheWordCell(list<Tokenizer::Word>& wds, bool strip)
+{
+    Word word = getWord();
+    if(ISSIGN("(")){
+        if(!strip) wds.push_back(word);
+        cacheWordSegment(wds, strip); // 需要括号
+    } else {
+        wds.push_back(word);
     }
 }
 
@@ -2804,6 +2827,35 @@ TypeStruct* Build::_templateType(ASTTemplateTypeDefine* tptydef)
 }
 
 
+/**
+ * 加载与卸载名字空间
+ */
+bool Build::_useScope(const string & n)
+{
+    string name = n;
+    // 开始查找分析栈
+    Stack * stk = stack->use(name);
+    if(!stk){
+        FATAL("Cannot find the namespace '"+name+"' !")
+    }
+    // 添加到使用的分析栈
+    // 最后添加的栈，最新使用
+    stack->uscps.push_front(make_tuple(name, stk));
+    return true;
+}
+bool Build::_delScope(const string & n)
+{
+    string name = n;
+    // 查找
+    for(auto one : stack->uscps){
+        if(std::get<0>(one)==name){
+            // 查找成功，卸载
+            stack->uscps.remove(one);
+            return true;
+        }
+    }
+    FATAL("Cannot Cancer the not existence namespace '"+name+"' !")
+}
 
 
 
