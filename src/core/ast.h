@@ -270,6 +270,7 @@ AST_VALUE_CODE_HEAD(TypeConstruct)
 // 变量
 AST_VALUE_CODE_HEAD(Variable)
     string name; // 名称
+    string unique_name; // 变量的全局唯一名称
     Type* type;  // 类型
     AST* origin;  // 起源节点
     ASTVariable(const string&n, Type*t)
@@ -282,17 +283,23 @@ AST_VALUE_CODE_HEAD(Variable)
 // 变量定义
 AST_VALUE_CODE_HEAD(VariableDefine)
     string name;
+    string unique_name; // 变量的全局唯一名称
     AST* value; // 
     ASTVariableDefine(const string &n = "", AST*v = nullptr)
         : name(n)
         , value(v)
-    {}
+    {
+        static int nameidx = 0;
+        nameidx++;
+        unique_name = "#" + Str::l2s(nameidx);
+    }
 };
 
 
 // 变量赋值
 AST_VALUE_CODE_HEAD(VariableAssign)
     string name;
+    string unique_name; // 变量的全局唯一名称
     AST* value; // 
     ASTVariableAssign(const string &n = "", AST*v = nullptr)
         : name(n)
@@ -430,10 +437,20 @@ AST_HEAD(UVNclear)
 
 // ChildScope
 AST_CODE_HEAD(ChildScope)
+    string name;
     vector<AST*> childs;
-    ASTChildScope(){}
+    ASTChildScope(const string & n="")
+    : name(n)
+    {}
 };
 
+// Use Scpoe
+AST_HEAD(UseScope)
+    string name;
+    ASTUseScope(const string & n)
+        : name(n)
+    {}
+};
 
 
 

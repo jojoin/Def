@@ -648,7 +648,8 @@ Value* ASTVariableDefine::codegen(Gen & gen)
         val = gen.varyPointer(val);
     }*/
     val = gen.varyPointer(val);
-    gen.values->put(name, val); // 放入
+    gen.values->put(name, val); // 放入真实名字
+    gen.unique_values->put(unique_name, val); // 放入全局唯一名字
     return val;
 }
 
@@ -657,17 +658,26 @@ Value* ASTVariableDefine::codegen(Gen & gen)
  */
 Value* ASTVariableAssign::codegen(Gen & gen)
 {
-    
+    string vname = name; // 变量名
+
     Value *val = value->codegen(gen);
 
-    Value *old = gen.values->get(name);
+    Value *old = gen.values->get(vname);
+    if(!old){
+        // 支持从名字空间导入不在当前作用域的变量
+        old = gen.unique_values->get(unique_name);
+        if(!old){
+            FATAL("ASTVariableAssign::codegen: Cannot find variable '"+vname+"' !")
+        }
+        vname = unique_name;
+    }
     old = gen.varyPointer(old);
 
     // 赋值
     Value * sto = gen.builder.CreateStore(val, old);
 
     // 放入（必须为 Store 节点！）
-    gen.values->put(name, sto);
+    gen.values->put(vname, sto);
 
     return val;
 }
@@ -679,7 +689,11 @@ Value* ASTVariable::codegen(Gen & gen)
 {
     Value* v = gen.values->get(name);
     if (!v) {
-        FATAL("codegen: Cannot find variable '"+name+"' !")
+        // 支持从名字空间导入不在当前作用域的变量
+        v = gen.unique_values->get(unique_name);
+        if(!v){
+            FATAL("codegen: Cannot find variable '" + name + "' !")
+        }
     }
     return v;
 }

@@ -22,8 +22,9 @@ using namespace def::compile;
 /**
  * 获取一个单词
  */
-Stack::Stack(Stack* p)
+Stack::Stack(Stack* p, Mod t)
     : parent(p)
+    , mod(t)
 {
     // 顶级分析栈则初始化
     if (!p) {
@@ -175,12 +176,20 @@ Element* Stack::find(const string & name, bool up)
     if(it!=stack.end()){
         return it->second; // 找到
     }
+    // 查名字空间
+    if(up){
+        for(auto one : uscps){
+            // 不搜索名字空间的父空间
+            auto *elm = one->find(name, false);
+            if(elm) return elm;
+        }
+    }
     // 查询父栈
-	if(up&&parent){
+	if(up && parent){
         auto res = parent->find(name);
         // 记录函数捕获的外层变量
         if (auto *ev = dynamic_cast<ElementVariable*>(res)) {
-            if (fndef && !child_scope) {
+            if (fndef && mod==Mod::Function) {
                 // cout << fndef->ftype->name << "  capture the variable: " << name << endl;
                 fndef->cptvar[name] = ev->type;
             }
@@ -224,9 +233,37 @@ Element* Stack::set(const string & name, Element* elem, bool up)
         stack[name] = elem;
         return old;
     }
-    if(up&&parent){
-        return parent->set(name, elem, true); // 查父块
+    // 查名字空间
+    if(up){
+        for(auto one : uscps){
+            // 不搜索名字空间的父空间
+            auto *elm = one->set(name, elem, false);
+            if(elm) return elm;
+        }
     }
-    return nullptr; // 没找到
+    // 查父栈
+    if(up && parent){
+        return parent->set(name, elem, true);
+    }
+    // 没找到
+    return nullptr;
 }
 
+
+
+/**
+ * 查找名字空间
+ */
+Stack* Stack::use(const string & name)
+{
+    auto it = spaces.find(name);
+    if(it!=spaces.end()){
+        return it->second; // 找到了
+    }
+    // 查询父级栈
+    if(parent){
+        return parent->use(name);
+    }
+    // 没找到
+    return nullptr;
+}

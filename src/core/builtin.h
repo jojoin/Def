@@ -5,7 +5,8 @@
 // 内建语言核心定义
 #define BUILTIN_DEFINES_LIST(D) \
     D(include)    /*文件包含*/ \
-    D(namespace)  /*名字空间*/ \
+    D(scope) /*声明名字空间*/ \
+    D(uscp) /*使用名字空间*/ \
     \
     D(var) /*变量定义*/ \
     D(set) /*变量赋值*/ \
@@ -24,7 +25,6 @@
     D(new) /*内存申请*/ \
     D(delete) /*内存释放*/ \
     D(copy) /*拷贝对象*/ \
-    D(scope) /*局部作用域*/ \
     \
     D(if) /*if else*/ \
     D(while) /*while*/ \

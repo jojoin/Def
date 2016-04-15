@@ -400,7 +400,7 @@ FUNC_HEAD_PRINT(ExternalMemberFunctionDefine)
  * Variable
  */
 FUNC_HEAD_PRINT(Variable)
-    cout << "$" << name << ": " << type->getIdentify() << endl;
+    cout << "$" << name << "("+unique_name+"): " << type->getIdentify() << endl;
 }
 FUNC_HEAD_GETTYPE(Variable)
     return type;
@@ -410,7 +410,7 @@ FUNC_HEAD_GETTYPE(Variable)
  * VariableDefine
  */
 FUNC_HEAD_PRINT(VariableDefine)
-    cout << "variable define $" << name << ":" << endl;
+    cout << "variable define $" << name << "("+unique_name+"):" << endl;
     PRINT_ONE_CHILD(value)
 }
 FUNC_HEAD_GETTYPE(VariableDefine)
@@ -567,7 +567,7 @@ FUNC_HEAD_PRINT(UVNnew)
 }
 // uvndel
 FUNC_HEAD_PRINT(UVNdel)
-    cout << "unv delete: '"<< key << endl;
+    cout << "unv delete: "<< key << endl;
 }
 // uvnclear
 FUNC_HEAD_PRINT(UVNclear)
@@ -579,9 +579,14 @@ FUNC_HEAD_PRINT(UVNclear)
  * ChildScope
  */
 FUNC_HEAD_PRINT(ChildScope)
-    cout << "child scope, len = " << childs.size() << " : " << endl;
+    cout << "child scope " << name << ", len = " << childs.size() << " : " << endl;
     PRINT_CHILDS(childs)
 }
 FUNC_HEAD_GETTYPE(ChildScope)
     return childs.back()->getType();
+}
+
+// use scope
+FUNC_HEAD_PRINT(UseScope)
+    cout << "use scope: "<< name << endl;
 }

@@ -32,6 +32,7 @@ struct Element##T : Element \
 
 ELEMENT_HEAD(Variable, Type, type) // 变量
     AST* origin = nullptr;
+    string unique_name = ""; // 全局唯一名字
 };
 ELEMENT_HEAD(Type, Type, type) // 类型名
 };

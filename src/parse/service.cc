@@ -99,7 +99,7 @@ void Service::verifyFunctionReturnType(Type* ret)
 /**
  * 查询名字
  * up: 是否向上查找
- */
+ *
 string Service::fixNamespace(const string & name)
 {
     if (defspace=="") {
@@ -108,7 +108,7 @@ string Service::fixNamespace(const string & name)
 
     return defspace + "_" + name;
 }
-
+*/
 
 
 

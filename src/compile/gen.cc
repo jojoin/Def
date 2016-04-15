@@ -173,7 +173,7 @@ Function* Gen::createFunction(AST* p)
     
     // 保存旧的变量
     auto old_values = values;
-    values = new Scope();
+    unique_values = values = new Scope();
 
     // 变量栈
     vector<string> cpt_name;
@@ -255,7 +255,7 @@ Function* Gen::createFunction(AST* p)
     
     // 复位变量栈
     delete values;
-    values = old_values;
+    unique_values = values = old_values;
 
     return func;
 }

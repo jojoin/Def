@@ -20,9 +20,6 @@ using namespace std;
 using namespace def::core;
 
 
-#define Namespace vector<string>
-
-
 /**
  * 语法分析服务类
  */
@@ -51,7 +48,7 @@ public: // 功能型函数
 
 public:
 
-    string fixNamespace(const string &); // 追加名字空间
+    // string fixNamespace(const string &); // 追加名字空间
     // 检查并设置 include 文件的绝对路径
     bool checkSetInclude(const string&);
 
@@ -90,8 +87,8 @@ public:
 
     set<string> includes; // 已经 include 包含的文件
 
-    string defspace;       // 当前定义的名字空间
-    Namespace usespaces;   // 正在使用的名字空间
+    // string defspace;       // 当前定义的名字空间
+    // vector<string> usespaces;   // 正在使用的名字空间
     
 };
 

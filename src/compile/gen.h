@@ -46,7 +46,7 @@ public:
         entry = BasicBlock::Create(context, "entry", main);
         builder.SetInsertPoint(entry);
         // 变量栈
-        values = new Scope();
+        unique_values = values = new Scope();
     }
 
     // codegen 完成后的收尾工作
@@ -94,6 +94,7 @@ public:
     // 当前可见作用域创建的变量
     // map<string, Value*> values;
     Scope *values;
+    Scope *unique_values; // 函数作用域的全局唯一名称变量
 
 };
 

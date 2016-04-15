@@ -2,6 +2,7 @@
 
 
 #include <vector>
+#include <list>
 #include <set>
 #include <string>
 
@@ -23,9 +24,29 @@ using namespace std;
 class Stack
 {
 public:
-    
-    Stack(Stack*p=nullptr);
 
+    enum class Mod
+    {
+        Namespace,   //   名字空间
+        Class,       // % 类型栈
+        Function,    // @ 函数栈
+        Anonymous,   // # 匿名栈
+    } mod = Mod::Anonymous;
+    
+    Stack* parent = nullptr; // 父分析栈
+
+    // 名字空间子分析栈
+    map<string, Stack*> spaces; // @函数栈  #匿名栈  具名栈
+    list<Stack*> uscps; // 正在使用的分析栈
+
+    ElementStack stack;     // 当前分析栈
+    
+    ASTFunctionDefine* fndef = nullptr; // 当前正在定义的函数
+    ASTTypeDefine*    tydef  = nullptr; // 当前正在定义的类型
+
+public:
+    
+    Stack(Stack*p=nullptr, Mod t=Mod::Anonymous);
 
     // 初始化基础分析栈
     void Initialize();
@@ -39,6 +60,8 @@ public:
     Element* put(const string &, Element*); // 放入当前栈
     Element* set(const string &, Element*, bool up = true);
     Element* find(const string &, bool up = true);
+    // 查找名字空间
+    Stack * use(const string &);
     // 查询函数是否定义，返回定义
     ASTFunctionDefine* findFunction(TypeFunction*);
     
@@ -46,19 +69,6 @@ public:
     void addFunction(TypeFunction*, ASTGroup*);
     void addFunction(ASTFunctionDefine*);
     void addBuiltinFunction(const string &); // 通过字符串添加内建函数
-
-public:
-    
-    Stack* parent = nullptr; // 父分析栈
-
-    ElementStack stack;     // 当前分析栈
-
-    // 是否是子分析栈
-    bool child_scope = false;
-    
-    ASTFunctionDefine* fndef = nullptr; // 当前正在定义的函数
-    ASTTypeDefine*    tydef  = nullptr; // 当前正在定义的类型
-
 
 };
 

@@ -272,6 +272,8 @@ AST* Build::buildVaribale(Element* elm, const string & name)
     if (auto gr = dynamic_cast<ElementVariable*>(elm)) {
         auto *val = new ASTVariable( name, gr->type );
         val->origin = gr->origin;
+        // 全局唯一名称
+        val->unique_name = gr->unique_name;
         return val;
     }
 
@@ -340,9 +342,9 @@ AST* Build::buildTemplateFuntion(const string & name, ElementTemplateFuntion* tp
 
     // 创建新分析栈
     Stack* old_stack = stack;
-    Stack new_stack(stack);
+    auto * new_stack = new Stack(stack, Stack::Mod::Function); // 函数分析栈
     fndef->wrap = stack->fndef; // wrap
-    new_stack.fndef = fndef; // 当前定义的函数
+    new_stack->fndef = fndef; // 当前定义的函数
 
     // 实参入栈
     for (auto &pn : tpf->tpfdef->params) {
@@ -350,11 +352,11 @@ AST* Build::buildTemplateFuntion(const string & name, ElementTemplateFuntion* tp
         fncall->addparam(p);
         Type *ty = p->getType();
         functy->add(ty, pn); // 参数类型
-        new_stack.put(pn, new ElementVariable(ty)); // 加实参
+        new_stack->put(pn, new ElementVariable(ty)); // 加实参
     }
 
     // 替换新栈帧
-    stack = & new_stack;
+    stack = new_stack;
     
     // 预备函数体词组
     prepareWord(tpf->tpfdef->bodywords);
@@ -381,7 +383,7 @@ AST* Build::buildTemplateFuntion(const string & name, ElementTemplateFuntion* tp
     // 打印语法分析栈
     DEBUG_WITH("als_stack", \
         cout << endl << endl << "==== Analysis stack ( template function "+name+" ) ===" << endl << endl; \
-        new_stack.print(); \
+        new_stack->print(); \
         cout << endl << "====== end ======" << endl << endl; \
         )
 
@@ -588,14 +590,28 @@ AST* Build::buildMacro(ElementLet* let, const string & name)
 /**
  * 解析子作用域
  */
-AST* Build::buildChildScope()
+AST* Build::buildChildScope(const string & name, const string & tip)
 {
     // cout << "create new scope !" << endl;
-    auto* scope = new ASTChildScope();
+    auto* scope = new ASTChildScope(name);
     // 新建分析栈
     auto * old_stack = stack;
-    stack = new Stack(old_stack);
-    stack->child_scope = true; // 子分析栈
+    stack = new Stack(old_stack, Stack::Mod::Namespace);
+    // 名字空间
+    string scopename = name;
+    if(name==""){
+        static int anyidx = 0; // 匿名标记
+        anyidx++;
+        scopename = "#" + tip + Str::l2s(anyidx);
+        stack->mod = Stack::Mod::Anonymous; // 匿名分析栈
+    }
+    // 判断重定义
+    auto it = old_stack->spaces.find(scopename);
+    if(it!=old_stack->spaces.end()){
+        FATAL("Namespaces '"+scopename+"' cannot redefinition ！")
+    }
+    // 添加子栈
+    old_stack->spaces[scopename] = stack;
 
     // 开始验证
     auto word = getWord();
@@ -623,7 +639,6 @@ AST* Build::buildChildScope()
             cout << endl << "====== end ======" << endl << endl; \
             )
     // 复位分析栈
-    delete stack;
     stack = old_stack;
     // 返回子作用域对象
     return scope;
@@ -635,7 +650,7 @@ AST* Build::buildChildScope()
 
 /**
  * namespace 定义名字空间
- */
+ *
 AST* Build::build_namespace()
 {
 
@@ -664,6 +679,8 @@ AST* Build::build_namespace()
 
     return block;
 }
+*/
+
 
 /**
  * include 包含并展开文件
@@ -742,13 +759,16 @@ AST* Build::build_var()
 
     auto vardef = new ASTVariableDefine( name, value );
 
-    // 添加变量到栈
+    // 如果值是变量
     auto *var = new ElementVariable(value->getType());
     if (auto*astv=dynamic_cast<ASTVariable*>(value)) {
         var->origin = astv->origin;
     } else {
         var->origin = value;
     }
+    //全局唯一名字
+    var->unique_name = vardef->unique_name;
+    // 添加变量到栈
     stack->put(name, var);
 
     return vardef;
@@ -834,7 +854,10 @@ AST* Build::build_set()
     // 添加变量到栈
     // stack->set(name, new ElementVariable(vty));
 
-    return new ASTVariableAssign( name, value );
+    auto * ret = new ASTVariableAssign( name, value );
+    // 全局唯一名称
+    ret->unique_name = ev->unique_name;
+    return ret;
 
 }
 
@@ -880,12 +903,14 @@ AST* Build::build_type()
 
     // 新栈
     Stack *old_stk = stack;
-    Stack *new_stk = new Stack(stack);
+    Stack *new_stk = new Stack(stack, Stack::Mod::Class);
     // 添加到当前栈帧 支持函数参数
     new_stk->put(typeName, elmty);
     new_stk->tydef = tydef;
     new_stk->fndef = nullptr; // 类成员函数不属于任何包裹函数
     stack = new_stk;
+    // 添加子栈
+    old_stk->spaces["%" + typeName] = new_stk;
 
 
 #define TCADD(N) \
@@ -1138,10 +1163,13 @@ AST* Build::build_fun()
 
     // 创建新分析栈
     Stack* old_stack = stack;
-    Stack new_stack(stack);
-    new_stack.fndef = fndef; // 当前定义的函数
+    auto *new_stack = new Stack(stack, Stack::Mod::Function); // 函数分析栈
+    new_stack->fndef = fndef; // 当前定义的函数
     // 提前 添加函数 支持递归
-    new_stack.addFunction(fndef);
+    new_stack->addFunction(fndef);
+
+    // 添加子栈
+    old_stack->spaces[funcname] = stack;
 
     // 函数定义环境
     fndef->wrap = stack->fndef; // wrap
@@ -1151,11 +1179,11 @@ AST* Build::build_fun()
     int i(0);
     for (auto &pty : functy->types) {
         string pn(functy->tabs[i]);
-        new_stack.put(pn, new ElementVariable(pty)); // 加实参
+        new_stack->put(pn, new ElementVariable(pty)); // 加实参
         i++;
     }
     // 替换新栈帧
-    stack = & new_stack;
+    stack = new_stack;
 
     // 新建函数体
     ASTGroup *body;
@@ -1199,7 +1227,7 @@ AST* Build::build_fun()
     // 打印语法分析栈
     DEBUG_WITH("als_stack", \
         cout << endl << endl << "==== Analysis stack ( function " + funcname + " ) ===" << endl << endl; \
-        new_stack.print(); \
+        new_stack->print(); \
         cout << endl << "====== end ======" << endl << endl; \
     )
 
@@ -1375,12 +1403,12 @@ AST* Build::build_if()
     ASTIf *astif = new ASTIf(cond);
 
     // if 语句，子作用域
-    astif->pthen = buildChildScope(); // build();
+    astif->pthen = buildChildScope("", "if_then"); // build();
 
     // 检查 else，子作用域
     auto word = getWord();
     if (ISCHA("else")) {
-        astif->pelse = buildChildScope(); // build();
+        astif->pelse = buildChildScope("", "if_else"); // build();
     } else {
         prepareWord(word); // 复位
     }
@@ -1427,7 +1455,7 @@ AST* Build::build_while()
     ASTWhile *astwhile = new ASTWhile(cond);
 
     // while 语句，子作用域
-    astwhile->body = buildChildScope(); //build();
+    astwhile->body = buildChildScope("", "while"); //build();
 
     // 返回 if 节点 
     return astwhile;
@@ -2197,12 +2225,47 @@ AST* Build::build_uvnclear()
 }
 
 /**
- * scope 局部作用域
+ * scope 局部作用域，名字空间声明
  */
 AST* Build::build_scope()
 {
-    return buildChildScope();
+    Word word = getWord();
+    string space = "";
+
+    // 名字空间
+    if(ISWS(Character)){
+        space = word.value;
+    } else {
+        prepareWord(word);
+    }
+
+    // 建立
+    return buildChildScope(space);
 }
+
+/**
+ * uscp 使用名字空间
+ */
+AST* Build::build_uscp()
+{
+    Word word = getWord();
+    if(NOTWS(Character)){
+        FATAL("Use namespace need a valid name !")
+    }
+    string name = word.value;
+    // 开始查找分析栈
+    Stack * stk = stack->use(name);
+    if(!stk){
+        FATAL("Cannot find the namespace '"+name+"' !")
+    }
+    // 添加到使用的分析栈
+    // 最后添加的栈，最新使用
+    stack->uscps.push_front(stk);
+
+    // 返回
+    return new ASTUseScope(name);
+}
+
 
 
 /**
