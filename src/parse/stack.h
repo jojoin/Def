@@ -55,7 +55,7 @@ public:
 public:
 
     // 打印分析栈
-    void print();
+    void print(const string &ind="");
     
     // 操作分析栈
     Element* put(const string &, Element*); // 放入当前栈

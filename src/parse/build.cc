@@ -149,12 +149,6 @@ AST* Build::build(bool spread)
         //auto * old_stack = stack;
         //stack = new Stack(old_stack);
         ASTGroup* grp = buildGroup();
-        // 打印语法分析栈
-        //DEBUG_WITH("als_stack", \
-        //    cout << endl << endl << "==== Analysis stack ( child scope ) ===" << endl << endl; \
-        //    stack->print(); \
-        //    cout << endl << "====== end ======" << endl << endl; \
-        //    )
         // 复位分析栈
         //delete stack;
         //stack = old_stack;
@@ -380,13 +374,6 @@ AST* Build::buildTemplateFuntion(const string & name, ElementTemplateFuntion* tp
 
     // 复位旧栈帧
     stack = old_stack;
-    // 打印语法分析栈
-    DEBUG_WITH("als_stack", \
-        cout << endl << endl << "==== Analysis stack ( template function "+name+" ) ===" << endl << endl; \
-        new_stack->print(); \
-        cout << endl << "====== end ======" << endl << endl; \
-        )
-
 
     // 复位旧栈帧
     stack = old_stack;
@@ -634,12 +621,6 @@ AST* Build::buildChildScope(const string & name, const string & tip)
         AST* li = build();
         scope->childs.push_back(li);
     }
-    // 打印语法分析栈
-    DEBUG_WITH("als_stack", \
-            cout << endl << endl << "==== Analysis stack ( child scope ) ===" << endl << endl; \
-            stack->print(); \
-            cout << endl << "====== end ======" << endl << endl; \
-            )
     // 复位分析栈
     stack = old_stack;
     // 返回子作用域对象
@@ -1169,10 +1150,10 @@ AST* Build::build_fun()
     auto *new_stack = new Stack(stack, Stack::Mod::Function); // 函数分析栈
     new_stack->fndef = fndef; // 当前定义的函数
     // 提前 添加函数 支持递归
-    new_stack->addFunction(fndef);
+    stack->addFunction(fndef);
 
     // 添加子栈
-    old_stack->spaces[funcname] = stack;
+    old_stack->spaces["@"+funcname] = new_stack;
 
     // 函数定义环境
     fndef->wrap = stack->fndef; // wrap
@@ -1232,13 +1213,6 @@ AST* Build::build_fun()
     
     // 复位旧栈帧
     stack = old_stack;
-    // 打印语法分析栈
-    DEBUG_WITH("als_stack", \
-        cout << endl << endl << "==== Analysis stack ( function " + funcname + " ) ===" << endl << endl; \
-        new_stack->print(); \
-        cout << endl << "====== end ======" << endl << endl; \
-    )
-
 
     // 构造函数入栈
     if (status_construct) {
@@ -2773,6 +2747,7 @@ TypeStruct* Build::_templateType(ASTTemplateTypeDefine* tptydef)
     // auto * tptydef = tpty->tptydef;
     
     // 类型名称生成
+    string tptyid("");
     string tptyname("");
 
     // 获取类模板实参
@@ -2785,23 +2760,27 @@ TypeStruct* Build::_templateType(ASTTemplateTypeDefine* tptydef)
         if(auto*elm=dynamic_cast<ElementType*>(stack->find(word.value))){
             args[k] = word;
             tptyname += "," + elm->type->getIdentify(); // 名称
+            tptyid += "," + Str::l2s((int)(elm->type)); // 内存id
         } else{
             FATAL("Type template call need a valid type name !")
         }
     }
+    tptyid[0] = '<';
     tptyname[0] = '<';
+    tptyid = Str::l2s((int)(tptydef)) + tptyid + ">";
     tptyname = tptydef->name + tptyname + ">";
 
-    // 是否有生成的类型
-    if(auto *elmty = dynamic_cast<ElementType*>(stack->find(tptyname))){
+    // 检查类模板分析栈，是否有生成的类型
+    if(auto *elmty = dynamic_cast<ElementType*>(tpty_stk->find(tptyid))){
         // 无需重新生成
+        // cout << "_templateType cache: " << tptyid << endl;
         return (TypeStruct*)elmty->type;
     }
     
 
     // 解析类模板正文，实参替换
     list<Word> body;
-    body.push_back(Word(Tokenizer::State::Character,tptyname));
+    body.push_back(Word(Tokenizer::State::Character, tptyname));
     body.push_back(Word(Tokenizer::State::Sign,"("));
     for (auto &word : tptydef->bodywords) {
         if(NOTWS(Character)){
@@ -2823,13 +2802,16 @@ TypeStruct* Build::_templateType(ASTTemplateTypeDefine* tptydef)
 
     // 设定模板状态
     tpl_ty_name = tptydef->name;
-    // 创建新类型
-    auto *tydef = (ASTTypeDefine*)build_type();
+    // 创建新类型至类模板栈
+    auto ty = ((ASTTypeDefine*)build_type())->type;
     // 清除状态
-    tpl_ty_name = tptydef->name;
+    tpl_ty_name = "";
+    
+    // 添加到类模板栈做缓存 
+    tpty_stk->put(tptyid, new ElementType(ty));
 
     // 返回类型
-    return tydef->type;
+    return ty;
 }
 
 

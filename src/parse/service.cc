@@ -26,6 +26,8 @@ Service::Service(Tokenizer * t)
 {
     // 初始化分析栈
     stack = new Stack(nullptr);
+    tpf_stk = new Stack(nullptr);  // 函数模板
+    tpty_stk = new Stack(nullptr); // 类模板
 }
 
 

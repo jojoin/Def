@@ -55,10 +55,10 @@ FUNC_HEAD_STR(TemplateType)
 
 
 FUNC_HEAD_STR(Group)
-    string s("<group> ");
-    for (auto &li : elms) {
-        s += "\n  " + li.first + ": " + li.second->str();
-    }
+    string s("<group> ...");
+    /*for (auto &li : elms) {
+        s += "\n  " +  + li.first + ": " + li.second->str();
+    }*/
     return s;
 }
 

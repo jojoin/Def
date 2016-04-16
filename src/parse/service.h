@@ -33,9 +33,14 @@ public:
     
     Tokenizer * tkz; // 词法分析器
     
-    Stack * stack; // 当前分析栈
+    // 分析栈
+    Stack * stack;    // 当前栈
+    Stack * tpf_stk;  // 模板函数栈
+    Stack * tpty_stk; // 模板类栈
+    // 空间
     map<TypeStruct*, Stack*> type_member_stack; // 类成员栈
     map<TypeStruct*, ASTTypeDefine*> type_define;  // 类成员栈
+
 
     // 获取一个单词
     Tokenizer::Word getWord();

@@ -30,8 +30,7 @@ tpty TplClass (T I) (
 ;; 类型重命名
 tydef Pt Point
 tydef TCPI TplClass Pt Int 
-tydef TCMI TplClass MyInt Int 
-
+tydef TCMI TplClass MyInt Int
 
 ;; 新类型使用
 ; var tplp TplClass Pt Int Pt 97 98

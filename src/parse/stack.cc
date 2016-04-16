@@ -152,11 +152,24 @@ ASTFunctionDefine* Stack::findFunction(TypeFunction* ftype)
 /**
  * 打印分析栈
  */
-void Stack::print()
+void Stack::print(const string & indent)
 {
+    // 打印栈元素
     for (auto &li : stack) {
         if (!li.second) continue;
-        cout << li.first << ": " << li.second->str() << endl;
+        cout << indent << li.first << ": " << li.second->str() << endl;
+        // 组
+        if(auto * gr=dynamic_cast<ElementGroup*>(li.second)){
+            for (auto &one : gr->elms) {
+                cout << indent + "  " + one.first + ": " + one.second->str() << endl;
+            }
+        }
+    }
+    // 打印子栈
+    for(auto one : spaces){
+        cout << indent << one.first << " {" << endl;
+        one.second->print(indent+"|   ");
+        cout << indent << "}" << endl;
     }
 }
 

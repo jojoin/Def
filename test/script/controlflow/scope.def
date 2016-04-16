@@ -84,7 +84,9 @@ scope B (
 
 
 
-;; 
+;; 名字空间与函数任意嵌套使用 ！
+
+
 
 scope N1 (
 	var num 97
@@ -100,14 +102,18 @@ scope N1 (
 	fun putchar(Point p)(
 		putchar elmget p x
 		putchar elmget p y
-		scope A (
-			var nnn 1
-			fun ppp(Int n)(
-				putchar add n add nnn 97
+		var c 1
+		scope A ( 
+			var d 1
+			fun ppp(Int n)(  ; 名字空间与函数嵌套定义
+				putchar add n add c add d 97
+				var px elmget p x    ; p捕获
+				putchar px
 			)
 		)
 		scope A (
-			ppp 2
+			var x 2
+			ppp x
 		)
 	)
 )
