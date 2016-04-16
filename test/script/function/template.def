@@ -23,6 +23,19 @@ tpf add(a b)
 )
 
 
+;; 多个子作用域使用同一个模板函数，只需要实例化一次
+scope(
+	add Point 1 2 Point 3 4
+	scope(
+		add Point 1 2 Point 3 4
+	)
+)
+scope(
+	add Point 1 2 Point 3 4
+)
+
+
+
 ;; 模板函数定义
 tpf putchar(a)(
     putchar elmget a x
@@ -46,6 +59,6 @@ type Position(
 )
 
 ;; 其它类型调用
-;putchar add p1 p2
-;putchar add p1 Position 5 7 9
+putchar add p1 p2
+putchar add p1 Position 5 7 9
 

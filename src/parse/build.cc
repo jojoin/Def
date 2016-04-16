@@ -325,21 +325,17 @@ AST* Build::buildCoreDefine(const string & name)
  */
 AST* Build::buildTemplateFuntion(const string & name, ElementTemplateFuntion* tpf)
 {
+    // 查询 tpf_stk 函数模板栈缓存
+    string tpfid("");
     // 新函数类型
     TypeFunction* functy = new TypeFunction(name);
-    
     // 创建新函数
     auto *fndef = new ASTFunctionDefine(functy);
-
     // 创建模板函数调用
     auto *fncall = new ASTFunctionCall(fndef);
-
     // 创建新分析栈
     Stack* old_stack = stack;
     auto * new_stack = new Stack(stack, Stack::Mod::Function); // 函数分析栈
-    fndef->wrap = stack->fndef; // wrap
-    new_stack->fndef = fndef; // 当前定义的函数
-
     // 实参入栈
     for (auto &pn : tpf->tpfdef->params) {
         AST* p = build();
@@ -347,40 +343,52 @@ AST* Build::buildTemplateFuntion(const string & name, ElementTemplateFuntion* tp
         Type *ty = p->getType();
         functy->add(ty, pn); // 参数类型
         new_stack->put(pn, new ElementVariable(ty)); // 加实参
+        // 缓存key
+        tpfid += "," + Str::l2s((int)ty);
     }
+    tpfid[0] = '(';
+    tpfid = Str::l2s((int)tpf->tpfdef) + tpfid + ")";
 
+
+    // 查询缓存
+    if(auto elmfdef=dynamic_cast<ElementFunction*>(tpf_stk->find(tpfid))){
+        // 无需重新生成
+        // cout << "return buildTemplateFuntion cache: " << tpfid << endl;
+        delete functy;
+        delete fndef;
+        fncall->fndef = elmfdef->fndef;
+        // 缓存到当前栈
+        stack->addFunction(elmfdef->fndef);
+        return fncall;
+    }
+    
+    // 新建函数定义
+    fndef->wrap = stack->fndef; // wrap
+    new_stack->fndef = fndef; // 当前定义的函数
     // 替换新栈帧
     stack = new_stack;
-    
     // 预备函数体词组
     prepareWord(tpf->tpfdef->bodywords);
-
     // 解析函数体
     ASTGroup *body = createAST();
     auto word = getWord(); 
     if(NOTSIGN(")")){
         FATAL("Error format function body !)")
     } 
-    
     // 加上 Body
     fndef->body = body;
-
     // 自动添加返回值语句， 检查返回值类型一致性
     Type* tyret = _autoAddFuncRet(fndef);
-
     // 设置可能标记的返回值
     functy->ret = tyret;
     fndef->ftype = functy;
-
     // 复位旧栈帧
     stack = old_stack;
-
-    // 复位旧栈帧
-    stack = old_stack;
-
     // 添加新函数
     stack->addFunction(fndef);
-
+    // 添加到 tpf_stk 函数模板缓存栈
+    // cout << "put cache: " << tpfid << endl;
+    tpf_stk->put(tpfid, new ElementFunction(fndef));
     // 返回函数调用
     return fncall;
 }

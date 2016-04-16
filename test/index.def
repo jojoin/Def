@@ -58,16 +58,6 @@ include "script/stl/tpltype.def"    ; 类模板，类型重命名
 
 
 
-
-
-
-
-
-
-
-
-
-
 ;-
 
 let (a==b)(eq a b)
