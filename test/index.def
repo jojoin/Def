@@ -21,7 +21,7 @@ include "script/controlflow/while.def"    ; while
 ;; 函数
 include "script/function/common.def"      ; 函数
 include "script/function/template.def"    ; 函数模板
-include "script/function/nested.def"      ; 嵌套函数(变量自动捕获)
+;include "script/function/nested.def"      ; 嵌套函数(变量自动捕获)
 include "script/function/recurse.def"     ; 递归函数
 
 ;; 宏，标准库
@@ -48,12 +48,7 @@ include "script/stl/vector2.def"    ; 基于类模板的 vector
 include "script/stl/tpltype.def"    ; 类模板，类型重命名
 
 
-
 ;
-
-
-
-
 
 
 

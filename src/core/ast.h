@@ -7,6 +7,7 @@
 
 #include <string>
 #include <vector>
+#include <tuple>
 #include <set>
 #include <map>
 #include <list>
@@ -289,9 +290,13 @@ AST_VALUE_CODE_HEAD(VariableDefine)
         : name(n)
         , value(v)
     {
+        unique_name = getUniqueName();
+    }
+    static string getUniqueName()
+    {
         static int nameidx = 0;
         nameidx++;
-        unique_name = "#" + Str::l2s(nameidx);
+        return "#" + Str::l2s(nameidx);
     }
 };
 
@@ -326,7 +331,7 @@ AST_HEAD(FunctionDefine)
     bool is_static_member  = true;    // 是否为静态成员函数
     bool is_construct  = false;    // 是否为构造函数
     set<string> cptmbr;        // 捕获使用的类成员名称
-    map<string, Type*> cptvar;  // 捕获外层作用域的变量
+    map<string, tuple<Type*, string>> cptvar;  // 捕获外层作用域的变量
     ASTFunctionDefine(TypeFunction*ft, ASTGroup *bd=nullptr)
         : ftype(ft)
         , body(bd)

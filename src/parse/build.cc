@@ -769,6 +769,7 @@ AST* Build::build_var()
         var->origin = value;
     }
     //全局唯一名字
+    ASSERT(vardef->unique_name!="", "")
     var->unique_name = vardef->unique_name;
     // 添加变量到栈
     stack->put(name, var);
@@ -1177,11 +1178,16 @@ AST* Build::build_fun()
     fndef->wrap = stack->fndef; // wrap
     fndef->belong = stack->tydef; // belong
 
-    // ElementStack nsk; // 缓存旧变量
+    // 添加函数实参到分析栈
     int i(0);
     for (auto &pty : functy->types) {
         string pn(functy->tabs[i]);
-        new_stack->put(pn, new ElementVariable(pty)); // 加实参
+        //string unpn = ASTVariableDefine::getUniqueName();
+        auto ev = new ElementVariable(pty);
+        // 设置全局唯一名称，用于内部函数作用域捕获
+        //ev->unique_name = unpn;
+        new_stack->put(pn, ev); // 加实参
+        //new_stack->put(unpn, ev); // 加全局唯一实参
         i++;
     }
     // 替换新栈帧

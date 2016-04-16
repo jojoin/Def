@@ -1,5 +1,5 @@
-#ifndef DEF_SYS_DEBUG_H
-#define DEF_SYS_DEBUG_H
+#pragma once
+
 /**
  * 调试打印类
  */
@@ -58,19 +58,23 @@ public:
 
 // 打印指定类型的错误
 #ifdef _DEBUG
-    #define DEBUG_WITH(T,D)\
-        if(Debug::CheckType(T)){\
-            D\
+#define DEBUG_WITH(T,D) \
+        if(Debug::CheckType(T)){ \
+            D \
         }
-    #define DEBUG_COUT(T,D)\
-        if(Debug::CheckType(T)){\
-            cout<<D<<endl;\
+#define DEBUG_COUT(T,D) \
+        if(Debug::CheckType(T)){ \
+            cout<<D<<endl; \
         }
+#define ASSERT(V,T) \
+        if(!(V)){ \
+            cout<<"Assert Error ("<<#V<<"): "<<T<<endl; \
+            throw T; \
+        }
+
 #else
     #define DEBUG_WITH(T,D)
     #define DEBUG_COUT(T,D)
+    #define ASSERT(V,T)
 #endif
 
-
-// DEF_SYS_DEBUG_H
-#endif

@@ -29,7 +29,6 @@ fun wrap(Int n)(
 wrap 97
 
 
-
 ;; 申明
 dcl Int getPxAdd(Point)
 
@@ -81,4 +80,3 @@ fun getPxAdd(Point p)(
 
 
 )
-

@@ -93,8 +93,8 @@ public:
     
     // 当前可见作用域创建的变量
     // map<string, Value*> values;
-    Scope *values;
-    Scope *unique_values; // 函数作用域的全局唯一名称变量
+    Scope * values;
+    Scope * unique_values; // 函数作用域的全局唯一名称变量
 
 };
 

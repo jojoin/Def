@@ -4,8 +4,9 @@
 
 #include "gen.h"
 
-#include "../core/ast.h"
+#include "../sys/debug.h"
 #include "../core/error.h"
+#include "../core/ast.h"
 #include "../parse/analysis.h"
 
 using namespace std;
@@ -173,7 +174,9 @@ Function* Gen::createFunction(AST* p)
     
     // 保存旧的变量
     auto old_values = values;
-    unique_values = values = new Scope();
+    auto old_unique_values = unique_values;
+    values = new Scope(old_values);
+    unique_values = values;
 
     // 变量栈
     vector<string> cpt_name;
@@ -188,7 +191,7 @@ Function* Gen::createFunction(AST* p)
     // 捕获的变量
     for (auto &p : call->fndef->cptvar) { // 设置参数名称
         cpt_name.push_back(p.first);
-        cpt_type.push_back(p.second);
+        cpt_type.push_back(get<0>(p.second));
     }
 
     // 创建函数类型
@@ -208,23 +211,21 @@ Function* Gen::createFunction(AST* p)
     for (auto &Arg : func->args()) { // 设置参数
         string name;
         if (idx<cptnum) {
-            // 捕获的外层变量
+            // 形式参数，捕获的外层变量，使用真实名字而非全局唯一名字
             name = cpt_name[idx];
         } else {
             // 实际参数
             name = call->fndef->ftype->tabs[idx2];
             idx2++;
         }
-        Arg.setName(name);
         values->put(name, &Arg);
+        Arg.setName(name);
         idx++;
         // cout << "values[name]: " << name << endl;
     }
     
     // 创建函数体
-    if (!call->fndef->body) {
-        FATAL("codegen: Cannot find function '"+fname+"' body !")
-    }
+    ASSERT(call->fndef->body, "codegen: Cannot find function '"+fname+"' body !")
 
     // 缓存旧的插入点
     BasicBlock *old_block = builder.GetInsertBlock();
@@ -253,9 +254,10 @@ Function* Gen::createFunction(AST* p)
     // 插入点 复位
     builder.SetInsertPoint(old_block);
     
-    // 复位变量栈
+    // 复位函数分析栈
     delete values;
-    unique_values = values = old_values;
+    values = old_values;
+    unique_values = old_unique_values;
 
     return func;
 }
@@ -367,6 +369,9 @@ llvm::Type* Gen::fixType(def::core::Type* ty, vector<def::core::Type*>* append)
 
         //return llty;
     }
+
+
+    ASSERT(0, "Cannot llvm::Type* Gen::fixType");
     
 
 

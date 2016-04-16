@@ -187,11 +187,15 @@ Element* Stack::find(const string & name, bool up)
     // 查询父栈
 	if(up && parent){
         auto res = parent->find(name);
-        // 记录函数捕获的外层变量
+        // 记录函数捕获的外层变量，只能使用真实名称，而不是唯一名称
         if (auto *ev = dynamic_cast<ElementVariable*>(res)) {
             if (fndef && mod==Mod::Function) {
                 // cout << fndef->ftype->name << "  capture the variable: " << name << endl;
-                fndef->cptvar[name] = ev->type;
+                string uqn = ev->unique_name;
+                fndef->cptvar[name] = make_tuple(ev->type, uqn);
+
+                //ASSERT(un!="", "Stack::find() set cptvar need a name !")
+                //fndef->cptvar[un] = ev->type;
             }
         }
         return res;

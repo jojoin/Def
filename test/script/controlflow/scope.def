@@ -92,6 +92,24 @@ scope N1 (
 	scope N2 (
 		var num 98
 	)
+	; 类型定义
+	type Point (
+		Int x
+		Int y
+	)
+	fun putchar(Point p)(
+		putchar elmget p x
+		putchar elmget p y
+		scope A (
+			var nnn 1
+			fun ppp(Int n)(
+				putchar add n add nnn 97
+			)
+		)
+		scope A (
+			ppp 2
+		)
+	)
 )
 
 scope N2 (
@@ -106,6 +124,13 @@ scope N1 (
 	scope N2 (
 		var count 103
 	)
+	; 使用类型定义
+	var p1 Point 50 51
+	var p2 Point 52 53
+	var p3 Point 54 55
+	putchar p1
+	putchar p2
+	putchar p3
 )
 
 

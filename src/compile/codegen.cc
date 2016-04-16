@@ -414,15 +414,18 @@ Value* ASTFunctionCall::codegen(Gen & gen)
     // 获得函数
     Function *func = gen.createFunction(this);
 
-
     // 解析参数
     std::vector<Value*> argvs;
-    // 捕获的变量
+    // 函数调用，捕获的变量，先查找真实名字，再查全局唯一名称
     for (auto &p : fndef->cptvar) {
-        string name = p.first;
-        Value *pv = gen.varyPointer(
-            gen.values->get(name)
-            );
+        string real_name = p.first;
+        string unique_name = get<1>(p.second);
+        Value *ov = gen.values->get(real_name);
+        if(!ov){
+            ov = gen.unique_values->get(unique_name);
+        }
+        ASSERT(ov, "ASTFunctionCall::codegen: cptvar '"+real_name+"' not find !")
+        Value *pv = gen.varyPointer(ov);
         argvs.push_back(pv);
         // pv->dump();
     }
@@ -642,6 +645,7 @@ Value* ASTTypeConstruct::codegen(Gen & gen)
 Value* ASTVariableDefine::codegen(Gen & gen)
 {
     Value *val = value->codegen(gen);
+    ASSERT(val, "Variable define null value : "+name)
     /*if (value->getType()->isAtomType()) {
         val = gen.createLoad(val); // 原子类型传值，类和数组传引用
     } else{
@@ -661,23 +665,26 @@ Value* ASTVariableAssign::codegen(Gen & gen)
     string vname = name; // 变量名
 
     Value *val = value->codegen(gen);
+    ASSERT(val, "Variable assign null value : "+name)
 
     Value *old = gen.values->get(vname);
     if(!old){
         // 支持从名字空间导入不在当前作用域的变量
         old = gen.unique_values->get(unique_name);
-        if(!old){
-            FATAL("ASTVariableAssign::codegen: Cannot find variable '"+vname+"' !")
-        }
         vname = unique_name;
     }
+    ASSERT(old, "Variable assign not find the value : "+vname)
     old = gen.varyPointer(old);
 
     // 赋值
     Value * sto = gen.builder.CreateStore(val, old);
+    ASSERT(sto, "Variable assign cannot CreateStore");
 
     // 放入（必须为 Store 节点！）
-    gen.values->put(vname, sto);
+    gen.values->put(name, sto);
+    if(unique_name!=""){ // 可能为参数赋值
+        gen.unique_values->put(unique_name, sto);
+    }
 
     return val;
 }
@@ -691,10 +698,8 @@ Value* ASTVariable::codegen(Gen & gen)
     if (!v) {
         // 支持从名字空间导入不在当前作用域的变量
         v = gen.unique_values->get(unique_name);
-        if(!v){
-            FATAL("codegen: Cannot find variable '" + name + "' !")
-        }
     }
+    ASSERT(v, "codegen: Cannot find variable: " + name)
     return v;
 }
 
@@ -724,6 +729,7 @@ Value* ASTRet::codegen(Gen & gen)
         retval = gen.createLoad(value);
     }
     // 返回
+    ASSERT(retval, "ASTRet null return value")
     return gen.builder.CreateRet( retval );
 }
 
@@ -815,8 +821,8 @@ Value* ASTWhile::codegen(Gen & gen)
 Value* ASTChildScope::codegen(Gen & gen)
 {
     // 栈重置
-    auto *ostk = gen.values;
-    auto *nstk = new Scope(ostk);
+    auto ostk = gen.values;
+    auto nstk = new Scope(ostk);
     gen.values = nstk;
     // 解析子句
     Value* last(nullptr);
