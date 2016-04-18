@@ -2236,7 +2236,7 @@ AST* Build::build_scope()
 /**
  * uscp 加载名字空间
  */
-AST* Build::build_uscp()
+AST* Build::build_scpuse()
 {
     string name("");
     list<Word> wds;
@@ -2254,7 +2254,7 @@ AST* Build::build_uscp()
 /**
  * build_delscp 卸载名字空间
  */
-AST* Build::build_delscp()
+AST* Build::build_scpdel()
 {
     string name("");
     list<Word> wds;

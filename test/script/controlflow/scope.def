@@ -57,7 +57,7 @@ scope Y (
 
 scope A (
 
-    uscp X  ; 声明使用名字空间
+    scpuse X  ; 声明使用名字空间
 
     putchar num ; 使用
     set num 100 ; 赋值
@@ -70,7 +70,7 @@ scope A (
 ;; 使用名字空间 Y
 
 scope B (
-    uscp Y 
+    scpuse Y 
     putchar num
 )
 
@@ -144,25 +144,25 @@ scope N1 (
 
 scope U1 (
 
-	uscp N1
+	scpuse N1
 	putchar num ; N1.num
 	putchar count ; N1.count
 	
 
-	uscp N2 ; ? 到底是哪一个N2 ？
+	scpuse N2 ; ? 到底是哪一个N2 ？
 	putchar num ; N1.N2.num
 	putchar count  ; N1.N2.count 而不是 N2.count
 
 
 	;;; 卸载名字空间
-	delscp (N1 N2) ; uscp (N1 N2) 也可用
+	scpdel (N1 N2) ; scpuse (N1 N2) 也可用
 	; 等同于:
 	;        delscp N1 
 	;        delscp N2
 
 	
 	;; 重新加载名字空间
-	uscp N2 ; ? 到底是哪一个N2 ？
+	scpuse N2 ; ? 到底是哪一个N2 ？
 	putchar count  ; N2.count 而不是 N1.N2.count
 
 )

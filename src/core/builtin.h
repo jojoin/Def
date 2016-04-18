@@ -6,8 +6,8 @@
 #define BUILTIN_DEFINES_LIST(D) \
     D(include)    /*文件包含*/ \
     D(scope) /*声明名字空间*/ \
-    D(uscp) /*使用名字空间*/ \
-    D(delscp) /*卸载取消使用名字空间*/ \
+    D(scpuse) /*使用名字空间*/ \
+    D(scpdel) /*卸载取消使用名字空间*/ \
     \
     D(var) /*变量定义*/ \
     D(set) /*变量赋值*/ \
