@@ -1,0 +1,40 @@
+;-
+	结构类型
+-;
+
+
+
+include "../type.def"
+include "../macro/std.def"
+
+
+
+
+;; 匿名结构，（便于函数返回多个值）
+
+fun getStruct(Int a Int b)(
+	var x add a 97
+	var y add b 98
+	var p Point 100 101
+	var stc struct ( ; 包含任意个数的结构
+		a x ; a 为结构名 x 为值
+		b x 
+		c p
+	)
+	elmset stc b y ; 结构元素赋值
+	ret stc ; 函数返回结构
+)
+
+
+;; 使用返回结构
+
+var stc getStruct 1 1
+
+putchar stc.a
+putchar stc.b
+
+;;
+putchar stc.c.x
+putchar stc.c.y
+
+

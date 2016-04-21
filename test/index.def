@@ -41,6 +41,7 @@ include "script/datastruct/common.def"
 include "script/datastruct/infun.def"
 include "script/datastruct/inclass.def"
 include "script/datastruct/tuple.def"    ; 元组
+include "script/datastruct/struct.def"   ; 结构
 
 ;; 标准模板库
 include "script/stl/vector1.def"    ; 基于宏的 vector

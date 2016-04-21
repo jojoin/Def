@@ -33,7 +33,7 @@
     D(refer) /*引用类型*/ \
     D(array) /*数组类型*/ \
     D(tuple) /*元组类型*/ \
-    /*D(struct) /*结构类型*/ \
+    D(struct) /*结构类型*/ \
     \
     D(arrget) /*数组成员访问*/ \
     D(arrset) /*数组成员赋值*/ \

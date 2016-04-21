@@ -1973,6 +1973,39 @@ AST* Build::build_tuple()
 }
 
 /**
+ * struct 结构对象
+ */
+AST* Build::build_struct()
+{
+    Word word; //
+    
+    // 检查括号
+    CHECKLPAREN("struct define need a sign ( to belong !")
+        
+    // 新建结构类型（匿名）
+    auto *stcty = new TypeStruct("");
+    auto *stcval = new ASTTypeConstruct(stcty);
+
+    // 结构元素
+    while(true){
+        word = getWord();
+        if(ISSIGN(")")){
+            break;
+        }
+        AST* li = build();
+        if (nullptr==li) {
+            break;
+        }
+        stcval->add(li);
+        stcty->add(li->getType(), word.value);
+    }
+    
+    // 返回结构值
+    return stcval;
+
+}
+
+/**
  * array 数组成员访问
  */
 AST* Build::build_arrget()
