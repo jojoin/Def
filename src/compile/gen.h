@@ -73,7 +73,9 @@ public:
     Value* createLoad(AST*);
     Value* createLoad(Value*);
 
-    Function* createFunction(AST*);    
+    Function* createFunction(AST*);
+    Function* createFunctionByCall(AST*); 
+    Function* createFunctionByDefine(AST*); 
 
     // 变量操作
     // Value* getValue(const string &);

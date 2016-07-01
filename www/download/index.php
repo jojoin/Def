@@ -29,16 +29,16 @@
 <p>每一个版本发布，我们将提供主流平台的预编译版本。如果在以下的列表中未找到您对应的系统环境，请 <a target="_blank" href="https://github.com/jojoin/Def/archive/master.zip">下载源码</a> 并通过 <a target="_blank" href="https://github.com/jojoin/Def/blob/master/test/def.bat">build脚本</a> 在您的机器上编译。<p>
 
 <ul>
-    <li><a target="_blank" href="">
+    <li><a target="_blank" href="/build/Windows-x64-Release-v0.1.7.exe">
         Windows-x64-Release-v0.1.7.exe
     </a></li>
-    <li><a target="_blank" href="">
+    <li><a target="_blank" href="/build/Windows-x86-Release-v0.1.7.exe">
         Windows-x86-Release-v0.1.7.exe
     </a></li>
-    <li><a target="_blank" href="">
+    <li><a target="_blank" href="/build/Windows-x64-Debug-v0.1.7.exe">
         Windows-x64-Debug-v0.1.7.exe
     </a></li>
-    <li><a target="_blank" href="">
+    <li><a target="_blank" href="/build/Windows-x86-Debug-v0.1.7.exe">
         Windows-x86-Debug-v0.1.7.exe
     </a></li>
 </ul>

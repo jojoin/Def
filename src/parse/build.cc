@@ -263,7 +263,28 @@ AST* Build::build(bool spread)
  */
 AST* Build::buildVaribale(Element* elm, const string & name)
 {
-    if (auto gr = dynamic_cast<ElementVariable*>(elm)) {
+    auto gr = dynamic_cast<ElementVariable*>(elm);
+
+    // 是否为 lambda 表达式参数
+    auto fd = stack->lambda_funcs.find(name);
+    bool isLambda = fd != stack->lambda_funcs.end();
+
+    if(gr && isLambda){
+        auto lbdthis = dynamic_cast<ElementVariable*>(stack->find(".lbdthis"));
+        auto ftype = fd->second->clone();
+        auto lbdcall = new ASTLambdaCall(nullptr);
+        lbdcall->params.push_back(new ASTVariable(".lbdthis", lbdthis->type));
+        for(auto &ty : ftype->types){
+            auto li = build();
+            lbdcall->params.push_back(li);
+        }
+        ftype->front(Type::get("Int"), ".lbdthis");
+        lbdcall->ftype = ftype;
+        lbdcall->address = new ASTVariable(name, gr->type);
+        return lbdcall;
+    }
+    
+    if (gr) {
         auto *val = new ASTVariable( name, gr->type );
         val->origin = gr->origin;
         // 全局唯一名称
@@ -1103,18 +1124,38 @@ AST* Build::build_fun()
     }
     TypeFunction *functy = new TypeFunction(cstc_funcname);
     TypeFunction *constructfuncty = new TypeFunction(cstc_funcname);
-
+    
+    // 创建新分析栈
+    Stack* old_stack = stack;
+    auto *new_stack = new Stack(stack, Stack::Mod::Function); // 函数分析栈
 
     // 函数参数解析
+    bool hasLambdaFuncParam = false; // 函数包含 lambda 参数
+    size_t i = 0;
     while (true) {
+        TypeFunction* lbdfty = nullptr;
         Type *pty = expectTypeState(); // 参数类型
         if (!pty) {
             word = getWord();
+            // 是否是函数名称（支持 lambda 表达式）
+            Element *func = stack->find(word.value);
+            if (auto *efcgr = dynamic_cast<ElementGroup*>(func)) {
+                if(auto *efc = dynamic_cast<ElementFunction*>(
+                    efcgr->elms.begin()->second
+                )){
+                    // FATAL("Parameter format is ElementFunction !")
+                    pty = Type::get("Int");// efc->fndef->ftype; // Type::get("Int");
+                    stack->func_param_lambdas[funcname + Str::l2s(i)] = lbdfty = efc->fndef->ftype;
+                    hasLambdaFuncParam = true;
+                    goto PARSE_PARAM_NAME;
+                }
+            }
             if (ISSIGN(")")) {
                 break; // 函数参数列表结束
             }
             FATAL("Parameter format is not valid !")
         }
+        PARSE_PARAM_NAME:
         string pnm; // 参数名称
         word = getWord();
         if (NOTWS(Character)) {
@@ -1130,6 +1171,18 @@ AST* Build::build_fun()
         if (status_construct) {
             constructfuncty->add(pty, pnm);
         }
+        // lambda 注册
+        if(lbdfty){
+            new_stack->lambda_funcs[pnm] = lbdfty;
+            lbdfty = nullptr;
+        }
+        i++;
+    }
+
+    // 添加 lambda 捕获包
+    if(hasLambdaFuncParam){
+        // functy->add(new TypePointer(Type::get("Nil")), ".lbdthis");
+        functy->add(Type::get("Int"), ".lbdthis");
     }
 
     // 析构函数 不能有参数
@@ -1153,9 +1206,7 @@ AST* Build::build_fun()
         fndef = new ASTFunctionDefine(functy);
     }
 
-    // 创建新分析栈
-    Stack* old_stack = stack;
-    auto *new_stack = new Stack(stack, Stack::Mod::Function); // 函数分析栈
+    // 新栈
     new_stack->fndef = fndef; // 当前定义的函数
     // 提前 添加函数 支持递归
     stack->addFunction(fndef);
@@ -1168,7 +1219,7 @@ AST* Build::build_fun()
     fndef->belong = stack->tydef; // belong
 
     // 添加函数实参到分析栈
-    int i(0);
+    i = 0;
     for (auto &pty : functy->types) {
         string pn(functy->tabs[i]);
         //string unpn = ASTVariableDefine::getUniqueName();
@@ -2301,6 +2352,31 @@ AST* Build::build_scpdel()
     return new ASTDeleteScope(name+")");
 }
 
+/**
+ * lambda 表达式
+ */
+AST* Build::build_lambda()
+{
+    Word word;
+    // 检查括号
+    CHECKLPAREN("Lambda define need a sign ( to belong !")
+
+    auto *lbd = new ASTLambda();
+    // 解析参数
+    while(true){
+        word = getWord();
+        if (ISSIGN(")")) {
+            break; // 参数完毕
+        }
+        lbd->params.push_back(word.value);
+    }
+    // 检查括号
+    CHECKLPAREN("Lambda define need a sign ( to belong !")
+    // 缓存 body
+    cacheWordSegment(lbd->bodywords, false);
+    // 返回
+    return lbd;
+}
 
 /**
  * link 得到变量的引用
@@ -2672,7 +2748,7 @@ TypeFunction* Build::_functionType(bool declare)
 /**
  * 建立函数调用
  */
-ASTFunctionCall* Build::_functionCall(const string & fname, Stack* stack, bool up)
+ASTFunctionCall* Build::_functionCall(const string & fname, Stack* stk, bool up)
 {
     auto *fncall = new ASTFunctionCall(nullptr);
     ASTFunctionDefine *fndef(nullptr);
@@ -2682,18 +2758,28 @@ ASTFunctionCall* Build::_functionCall(const string & fname, Stack* stack, bool u
 
     // 临时用来查询函数的类型
     auto *tmpfty = new TypeFunction(fname);
-    filterFunction filter = filterFunction(stack, fname, up);
+    filterFunction filter = filterFunction(stk, fname, up);
     if (!filter.size()) {
         return nullptr; // 无函数
     }
 
+    bool is_lambda_func = false; // 是否为包含 lambda 参数的函数
+
     // 采用贪婪匹配模式
-    while (true) {
+    size_t i = 0;
+    while(true){
         // 匹配函数（第一次无参）
         int match = filter.match(tmpfty);
+        // lambda 表达式添加打包捕获的变量
+        if(match==1 && is_lambda_func && i+1==filter.funcs[0]->fndef->ftype->types.size()){
+            // cout << "match==1 && is_lambda_func && i+2== : " << endl;            fndef = filter.funcs[0]->fndef;
+            fndef = filter.funcs[0]->fndef;
+            // string idname = fndef->ftype->getIdentify();
+            break;
+        }
         if (match==1 && filter.unique) {
             fndef = filter.unique; // 找到唯一匹配
-            string idname = fndef->ftype->getIdentify();
+            // string idname = fndef->ftype->getIdentify();
             break;
         }
         // 无匹配
@@ -2705,6 +2791,7 @@ ASTFunctionCall* Build::_functionCall(const string & fname, Stack* stack, bool u
         }
         // 判断函数是否调用结束
         auto word = getWord();
+        // cout << "_function Call word : " << word.value << endl;
         prepareWord(word); // 上层处理括号
         if (ISWS(End) || ISSIGN(")")) { // 提前手动调用结束
             if (filter.unique) {
@@ -2720,12 +2807,85 @@ ASTFunctionCall* Build::_functionCall(const string & fname, Stack* stack, bool u
                 break;
             }
         }
-        cachebuilds.push_back(exp);
-        fncall->addparam(exp); // 加实参
-        auto *pty = validType(exp); // 合法的参数类型
-        // 重载函数名
-        tmpfty->add(pty); // 匿名
+        // 如果是 lambda 表达式
+        if(auto lbd = dynamic_cast<ASTLambda*>(exp)){
+            is_lambda_func = true;
+            auto fd = stk->func_param_lambdas.find(fname + Str::l2s(i));
+            if(fd!=stk->func_param_lambdas.end()){
+                // 创建 lambda 函数
+                auto ftype = fd->second->clone();
+                ftype->name = uniqueName("lambda_func");
+                size_t pmlen = ftype->types.size();
+                if(pmlen != lbd->params.size()){
+                    FATAL("No match lambda param length, function: "+fname)
+                }
+                // 新建分析栈
+                Stack* old_stack = stack;
+                auto *new_stack = new Stack(stk, Stack::Mod::Function); // 函数栈
+                while(pmlen--){
+                    auto elm = new ElementVariable(ftype->types[pmlen]);
+                    new_stack->put(lbd->params[pmlen], elm);
+                    ftype->tabs[pmlen] = lbd->params[pmlen];
+                }
+                // ftype->front(new TypePointer(Type::get("Nil")), ".lbdthis");
+                ftype->front(Type::get("Int"), ".lbdthis");
+                stack = new_stack;
+                stack->fndef = new ASTFunctionDefine(ftype);
+                // stack->print();
+                // 函数体
+                // 预备函数体词组
+                prepareWord(lbd->bodywords);
+                ASTGroup *body = buildGroup();
+                // 检查括号
+                CHECKRPAREN("Lambda define need a sign ) to belong !")
+                // body->print("","");
+                // FATAL("|||||||||||||||||||||||||||||||||");
+                // 打包捕获的变量 新建元组类型（匿名）
+                auto *pkgty = new TypeStruct("");
+                auto *pkgval = new ASTValPtrZip(pkgty);
+                for(auto &li : stack->fndef->cptvar){
+                    string vn = li.first;
+                    auto lity = std::get<0>(li.second);
+                    if(!dynamic_cast<TypePointer*>(lity)){
+                        lity = new TypePointer(lity);
+                    }
+                    pkgty->add(lity, vn);
+                    AST* liv = dynamic_cast<ElementVariable*>(stack->find(vn))->origin;
+                    pkgval->values.push_back(liv);
+                }
+                // 添加拆包
+                auto *pkgunzip = new ASTValPtrUnzip(pkgty);
+                pkgunzip->value = new ASTVariable(".lbdthis", Type::get("Int"));
+                body->childs.insert(body->childs.begin(), pkgunzip);
+                // 清除条件
+                stack->fndef->cptvar.clear(); // 防止如嵌套函数一样捕获
+                stack->fndef->body = body;
+                // 返回值验证与推断，自动添加返回值语句
+                auto retty = _autoAddFuncRet(stack->fndef);
+                fncall->addparam(new ASTLambdaDefine(stack->fndef)); // 加实参
+                fncall->addparam(pkgval); // 加打包变量
+                tmpfty->add(Type::get("Int")); // 必须为原始的
+                // 复位
+                delete stack;
+                stack = old_stack;
+            } else {
+                FATAL("Can't match lambda param, function: "+fname)
+            }
+        } else {
+            cachebuilds.push_back(exp);
+            fncall->addparam(exp); // 加实参
+            auto *pty = validType(exp); // 合法的参数类型
+            // 重载函数名
+            tmpfty->add(pty);
+        }
+        i++;
     }
+
+    // 
+    if(is_lambda_func){
+
+    }
+
 
     fncall->fndef = fndef; // elmfn->fndef;
        

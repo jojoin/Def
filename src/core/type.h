@@ -256,6 +256,10 @@ EXTEND_TYPE(Struct, Type)
         tabs.push_back(n);
         types.push_back(t);
     }
+    virtual void front(Type* t, const string&n="") { // 增加 type
+        tabs.insert(tabs.begin(), n);
+        types.insert(types.begin(), t);
+    }
     virtual size_t len() {  // type 长度
         return types.size();
     };
@@ -335,8 +339,16 @@ EXTEND_TYPE(Function,TypeStruct)
         }
         return identify;
     }
+    TypeFunction* clone() {  // 克隆
+        auto *clnew = new TypeFunction("", ret);
+        size_t len = types.size();
+        for(int i = 0; i < len; i++){
+            clnew->tabs.push_back(tabs[i]);
+            clnew->types.push_back(types[i]);
+        }
+        return clnew;
+    };
 };
-
 
 
 #undef EXTEND_TYPE

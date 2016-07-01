@@ -400,7 +400,7 @@ FUNC_HEAD_PRINT(ExternalMemberFunctionDefine)
  * Variable
  */
 FUNC_HEAD_PRINT(Variable)
-    cout << "$" << name << "("+unique_name+"): " << type->getIdentify() << endl;
+    cout << "$" << name << " " << unique_name+": " << type->getIdentify() << endl;
 }
 FUNC_HEAD_GETTYPE(Variable)
     return type;
@@ -486,8 +486,16 @@ FUNC_HEAD_PRINT(FuntionDeclare)
  * FuntionDefine
  */
 FUNC_HEAD_PRINT(FunctionDefine)
-    cout << "function define: " << ftype->getIdentify() << endl;
-    PRINT_CHILDS(body->childs)
+    cout << "function define: " << ftype->name <<"(";
+    size_t leng = ftype->types.size();
+    for(int i = 0; i < leng; i++){
+        if(i > 0) cout << ", ";
+        cout << ftype->types[i]->getIdentify() << " " << ftype->tabs[i] ;
+    }
+    cout << ")" << endl;
+    if(body){
+        PRINT_CHILDS(body->childs)
+    }
 }
 // 获取外层函数前缀
 string ASTFunctionDefine::getWrapPrefix()
@@ -594,4 +602,63 @@ FUNC_HEAD_PRINT(UseScope)
 // delete scope
 FUNC_HEAD_PRINT(DeleteScope)
     cout << "delete scope: "<< name << endl;
+}
+
+// lambda
+FUNC_HEAD_PRINT(Lambda)
+    cout << "lambda( " ;
+    for (auto &it : params) {
+        cout << it << " ";
+    }
+    cout << ")( ";
+    for (auto &it : bodywords) {
+        cout << it.str() << " ";
+    }
+    cout << endl;
+}
+
+// lambda call
+FUNC_HEAD_PRINT(LambdaCall)
+    cout << "lambda call: " << endl;
+    string indent = ind;
+    ind = indent + INDLIN;
+    // cond
+    cout << indent+INDCON << "address: " << endl;
+    PRINT_ONE_CHILD(address)
+    // then
+    ind = indent + IND;
+    cout << indent+INDEND << "params: " << endl;
+    PRINT_CHILDS(params)
+}
+FUNC_HEAD_GETTYPE(LambdaCall)
+    return ftype->ret;
+}
+
+// lambda define
+FUNC_HEAD_PRINT(LambdaDefine)
+    cout << "lambda define: " << endl;
+    if(func){
+        PRINT_ONE_CHILD(func)
+    }
+}
+FUNC_HEAD_GETTYPE(LambdaDefine)
+    return Type::get("Int");
+}
+
+// value pointer package
+FUNC_HEAD_PRINT(ValPtrZip)
+    cout << "value pointer package: " << type->getIdentify() << endl;
+    PRINT_CHILDS(values)
+}
+FUNC_HEAD_GETTYPE(ValPtrZip)
+    return Type::get("Int");
+}
+
+// value pointer package unzip
+FUNC_HEAD_PRINT(ValPtrUnzip)
+    cout << "value pointer package unzip: " << type->getIdentify() << endl;
+    PRINT_ONE_CHILD(value)
+}
+FUNC_HEAD_GETTYPE(ValPtrUnzip)
+    return Type::get("Int");
 }

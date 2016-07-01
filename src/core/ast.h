@@ -465,7 +465,48 @@ AST_HEAD(DeleteScope)
     {}
 };
 
+// Lambda
+AST_HEAD(Lambda)
+    vector<string> params;
+    list<Tokenizer::Word> bodywords; // 函数体
+    ASTLambda(){}
+};
 
+// Lambda Call
+AST_VALUE_CODE_HEAD(LambdaDefine)
+    ASTFunctionDefine* func;  // 
+    ASTLambdaDefine(ASTFunctionDefine* f)
+        : func(f)
+    {}
+};
+
+// Lambda Call
+AST_VALUE_CODE_HEAD(LambdaCall)
+    AST* address; // 函数地址
+    TypeFunction* ftype; // 函数类型
+    vector<AST*> params;  // 实参值表
+    ASTLambdaCall(TypeFunction* t)
+        : ftype(t)
+    {}
+};
+
+// Value Pointer Package 打包
+AST_VALUE_CODE_HEAD(ValPtrZip)
+    TypeStruct* type;
+    vector<AST*> values;  // 值
+    ASTValPtrZip(TypeStruct* t)
+        : type(t)
+    {}
+};
+
+// Value Pointer Package 拆包
+AST_VALUE_CODE_HEAD(ValPtrUnzip)
+    TypeStruct* type;
+    AST* value;  // 值
+    ASTValPtrUnzip(TypeStruct* t)
+        : type(t)
+    {}
+};
 
 
 #undef AST_HEAD

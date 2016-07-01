@@ -22,6 +22,7 @@
     D(tpty) /*类模板*/ \
     \
     D(adt) /*适配器模式*/ \
+    D(lambda) /* lambda 表达式*/ \
     \
     D(new) /*内存申请*/ \
     D(delete) /*内存释放*/ \

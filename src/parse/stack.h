@@ -43,7 +43,9 @@ public:
     ElementStack stack;     // 当前分析栈
     
     ASTFunctionDefine* fndef = nullptr; // 当前正在定义的函数
-    ASTTypeDefine*    tydef  = nullptr; // 当前正在定义的类型
+    ASTTypeDefine*     tydef = nullptr; // 当前正在定义的类型
+    map<string, TypeFunction*>  lambda_funcs; // lambda 函数参数表
+    map<string, TypeFunction*>  func_param_lambdas; // 带lambda参数的函数
 
 public:
     

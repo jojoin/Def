@@ -162,9 +162,22 @@ Value* Gen::createLoad(Value* val)
  */
 Function* Gen::createFunction(AST* p)
 {
-    ASTFunctionCall* call = (ASTFunctionCall*)p;
-    string fname = call->fndef->ftype->name;
-    string idname = call->fndef->getIdentify();
+    if(auto call = dynamic_cast<ASTFunctionCall*>(p)){
+        return createFunctionByCall(call);
+    } else if(auto fndef = dynamic_cast<ASTFunctionDefine*>(p)){
+        return createFunctionByDefine(fndef);
+    }
+    FATAL("Gen::createFunction can't create !");
+}
+Function* Gen::createFunctionByCall(AST* call)
+{
+    return createFunctionByDefine(((ASTFunctionCall*)call)->fndef);
+}
+Function* Gen::createFunctionByDefine(AST* fdf)
+{
+    auto fndef = (ASTFunctionDefine*)fdf;
+    string fname = fndef->ftype->name;
+    string idname = fndef->getIdentify();
     // 查找缓存
     Function *func = module.getFunction(idname);
     if(func){
@@ -183,20 +196,20 @@ Function* Gen::createFunction(AST* p)
     vector<def::core::Type*> cpt_type;
     
     // 类实例变量（非静态）
-    if (call->fndef->belong && ! call->fndef->is_static_member) {
+    if (fndef->belong && ! fndef->is_static_member) {
         cpt_name.push_back(DEF_MEMFUNC_ISTC_PARAM_NAME);
-        cpt_type.push_back(call->fndef->belong->type);
+        cpt_type.push_back(fndef->belong->type);
     }
 
     // 捕获的变量
-    for (auto &p : call->fndef->cptvar) { // 设置参数名称
+    for (auto &p : fndef->cptvar) { // 设置参数名称
         cpt_name.push_back(p.first);
         cpt_type.push_back(get<0>(p.second));
     }
 
     // 创建函数类型
     FunctionType *fty = (FunctionType*)fixType( 
-        call->fndef->ftype, 
+        fndef->ftype, 
         & cpt_type
     );
     
@@ -215,7 +228,7 @@ Function* Gen::createFunction(AST* p)
             name = cpt_name[idx];
         } else {
             // 实际参数
-            name = call->fndef->ftype->tabs[idx2];
+            name = fndef->ftype->tabs[idx2];
             idx2++;
         }
         values->put(name, &Arg);
@@ -225,7 +238,7 @@ Function* Gen::createFunction(AST* p)
     }
     
     // 创建函数体
-    ASSERT(call->fndef->body, "codegen: Cannot find function '"+fname+"' body !")
+    ASSERT(fndef->body, "codegen: Cannot find function '"+fname+"' body !")
 
     // 缓存旧的插入点
     BasicBlock *old_block = builder.GetInsertBlock();
@@ -233,8 +246,8 @@ Function* Gen::createFunction(AST* p)
     builder.SetInsertPoint(new_block);
     Value* last(nullptr);
     AST* tail(nullptr);
-    size_t len = call->fndef->body->childs.size();
-    for (auto &li : call->fndef->body->childs) {
+    size_t len = fndef->body->childs.size();
+    for (auto &li : fndef->body->childs) {
         if (Value* v = li->codegen(*this)) {
             last = v;
             tail = li;
@@ -242,7 +255,7 @@ Function* Gen::createFunction(AST* p)
     }
 
     // 是否为构造函数
-    if (! last || call->fndef->is_construct) {
+    if (! last || fndef->is_construct) {
         builder.CreateRetVoid();
     }else if ( ! isa<ReturnInst>(last)) {
         // 函数体最后一句自动成为返回值，除了指针，返回值必须 Load

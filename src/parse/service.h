@@ -83,7 +83,9 @@ public:
     void setModADT(bool); // 设置 adt 状态
     bool checkModADT(); // 检查并重设 adt 状态
     
-
+public:
+    
+    string uniqueName(const string&); // 全局唯一名称
 
     
 public:

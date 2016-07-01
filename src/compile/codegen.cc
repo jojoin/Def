@@ -834,3 +834,87 @@ Value* ASTChildScope::codegen(Gen & gen)
     gen.values = ostk;
     return last;
 }
+
+/**
+ * lambda 调用
+ */
+Value* ASTLambdaCall::codegen(Gen & gen)
+{
+    auto intv = address->codegen(gen);
+    auto fty = (FunctionType*)gen.fixType(ftype);
+    auto pfty = PointerType::get(fty, 0);
+    auto funcptr = gen.builder.CreateIntToPtr(intv, pfty);
+    // 解析函数参数
+    std::vector<Value*> argvs;
+    for(auto &li : params){
+        argvs.push_back(li->codegen(gen));
+    }
+    
+    auto result = gen.builder.CreateCall(funcptr, argvs); 
+    return result;
+
+    // return ConstantInt::get(gen.builder.getInt32Ty(), 1, false);
+}
+
+/**
+ * lambda 定义
+ */
+Value* ASTLambdaDefine::codegen(Gen & gen)
+{
+    auto fun = gen.createFunctionByDefine(func);
+    auto intv = gen.builder.CreatePtrToInt(fun, gen.builder.getInt32Ty());
+
+    return intv;
+    // return ConstantInt::get(gen.builder.getInt32Ty(), 1, false);
+    // return nullptr;
+}
+
+/**
+ * 数据打包
+ */
+Value* ASTValPtrZip::codegen(Gen & gen)
+{
+    // 创建包装类型
+    StructType *scty = (StructType*)gen.fixType( type );
+    Value *structval = gen.builder.CreateAlloca(scty);
+    int len = values.size();
+    for (int i = 0; i < len; i++) {
+        AST *child = values[i];
+        Value *val = gen.varyPointer( child );
+        Value *ptr = gen.builder.CreateStructGEP(
+            scty, structval, i);
+        gen.builder.CreateStore(val, ptr);
+    }
+    // 转换为 int
+    auto intv = gen.builder.CreatePtrToInt(
+        structval, gen.builder.getInt32Ty());
+    return intv; 
+
+}
+
+
+/**
+ * 数据拆包
+ */
+Value* ASTValPtrUnzip::codegen(Gen & gen)
+{
+    // 创建包装类型
+    auto scty = (StructType*)gen.fixType(type);
+    auto scptrty = PointerType::get(scty, 0);
+    auto lbdthis = gen.createLoad(value);
+    auto stptr = gen.builder.CreateIntToPtr(lbdthis, scptrty);
+
+    Value *last = nullptr;
+    int len = type->types.size();
+    for (int i = 0; i < len; i++) { // 全部解包
+        Value *liptr = gen.builder.CreateStructGEP(
+            scty, stptr, i);
+        last = gen.builder.CreateLoad(liptr);
+        // 注册变量
+        gen.values->put(type->tabs[i], last);
+    }
+
+    return last;
+    
+}
+

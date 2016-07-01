@@ -1,0 +1,32 @@
+;-
+  lambda 表达式
+-;
+
+;;;; lambda !!!!
+
+
+scope (  ; 匿名空间
+
+
+dcl Int lambdaFunc(Int Int)
+
+fun dismantle(Int x lambdaFunc func)(
+	var nnn 10
+	func x add nnn 1
+	func x 1
+)
+
+;; 捕获变量
+var num 1
+var nnn 1
+dismantle 97 lambda(a b)( putchar add nnn add num add a b )
+
+;; 重复调用
+dismantle 90  lambda(a b)( putchar add a b )
+dismantle 100 lambda(a b)( putchar add a add a b )
+dismantle 101 lambda(a b)( putchar add a add a add a b )
+
+
+
+)
+

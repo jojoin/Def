@@ -199,3 +199,15 @@ void Service::setModADT(bool s=true)
 {
     is_mod_adt = s;
 }
+
+
+
+/**
+ * 全局唯一名称
+ */
+string Service::uniqueName(const string& prefix)
+{
+    static long auto_idx = 0; // 自增唯一标识！！！
+    auto_idx++;
+    return prefix + "_" + Str::l2s(auto_idx);
+}
