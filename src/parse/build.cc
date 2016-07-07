@@ -2810,10 +2810,10 @@ ASTFunctionCall* Build::_functionCall(const string & fname, Stack* stk, bool up)
         // 如果是 lambda 表达式
         if(auto lbd = dynamic_cast<ASTLambda*>(exp)){
             is_lambda_func = true;
-            auto fd = stk->func_param_lambdas.find(fname + Str::l2s(i));
-            if(fd!=stk->func_param_lambdas.end()){
+            auto functype = stk->findLambda(fname + Str::l2s(i));
+            if(functype){
                 // 创建 lambda 函数
-                auto ftype = fd->second->clone();
+                auto ftype = functype->clone();
                 ftype->name = uniqueName("lambda_func");
                 size_t pmlen = ftype->types.size();
                 if(pmlen != lbd->params.size()){

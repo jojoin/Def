@@ -6,7 +6,7 @@
 
 
 
-;
+;-
 
 
 ;; 类型
@@ -23,7 +23,7 @@ include "script/function/common.def"      ; 函数
 include "script/function/template.def"    ; 函数模板
 include "script/function/nested.def"      ; 嵌套函数(变量自动捕获)
 include "script/function/recurse.def"     ; 递归函数
-include "script/function/lambda.def"     ; 递归函数
+include "script/function/lambda.def"      ; Lambda
 
 ;; 宏，标准库
 include "script/macro/common.def"
@@ -50,7 +50,36 @@ include "script/stl/vector2.def"    ; 基于类模板的 vector
 include "script/stl/tpltype.def"    ; 类模板，类型重命名
 
 
-;
+-;
+
+
+
+
+
+
+include "script/function/lambda.def"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

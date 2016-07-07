@@ -289,3 +289,20 @@ Stack* Stack::use(const string & name)
     // 没找到
     return nullptr;
 }
+
+/**
+ * 查找 Lambda
+ */
+TypeFunction* Stack::findLambda(const string & name, bool up)
+{
+    auto fd = func_param_lambdas.find(name);
+    if(fd != func_param_lambdas.end()){
+        return fd->second; // TypeFunction
+    }
+    // 查询父级栈
+    if(up && parent){
+        return parent->findLambda(name);
+    }
+    // 没找到
+    return nullptr;
+}

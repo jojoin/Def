@@ -63,6 +63,7 @@ public:
     Element* put(const string &, Element*); // 放入当前栈
     Element* set(const string &, Element*, bool up = true);
     Element* find(const string &, bool up = true);
+    TypeFunction* findLambda(const string &, bool up = true); // 查找 lambda
     // 查找名字空间
     Stack * use(const string &);
     // 查询函数是否定义，返回定义

@@ -5,7 +5,9 @@
 ;;;; lambda !!!!
 
 
-scope (  ; 匿名空间
+;;; 匿名空间
+
+scope (
 
 
 dcl Int lambdaFunc(Int Int)
@@ -19,12 +21,28 @@ fun dismantle(Int x lambdaFunc func)(
 ;; 捕获变量
 var num 1
 var nnn 1
-dismantle 97 lambda(a b)( putchar add nnn add num add a b )
+;dismantle 97 lambda(a b)( putchar add nnn add num add a b )
+
+fun fff(Int x)(
+	putchar x
+)
+
+; fff 100
+
+;; 子调用
+dismantle 90  lambda(a b)( 
+	; putchar add a b
+	fff 100
+	dismantle 90 lambda(a b)(
+		fff 100
+		putchar add a b
+	)
+)
 
 ;; 重复调用
-dismantle 90  lambda(a b)( putchar add a b )
-dismantle 100 lambda(a b)( putchar add a add a b )
-dismantle 101 lambda(a b)( putchar add a add a add a b )
+;dismantle 90  lambda(a b)( putchar add a b )
+;dismantle 100 lambda(a b)( putchar add a add a b )
+;dismantle 101 lambda(a b)( putchar add a add a add a b )
 
 
 
