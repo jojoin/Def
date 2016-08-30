@@ -11,10 +11,14 @@ let (a=b)   (set a b)
 ;; 算法
 let (a+b)  (add a b)
 let (a-b)  (sub a b)
+let (a*b)  (mul a b)
+let (a/b)  (div a b)
 let (a++)  (set a a+1) ; let 中包含符号
 let (a--)  (set a a-1)
 let (a+=b) (set a add a b)
 let (a-=b) (set a sub a b)
+let (a*=b) (set a mul a b)
+let (a/=b) (set a div a b)
 
 
 ;; 类型操作
