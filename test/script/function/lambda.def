@@ -20,8 +20,9 @@ fun dismantle(Int x lambdaFunc func)(
 
 ;; 捕获变量
 var num 1
-var nnn 1
-;dismantle 97 lambda(a b)( putchar add nnn add num add a b )
+var nnn 2
+
+dismantle 97 lambda(a b)( putchar add nnn add num add a b )
 
 fun fff(Int x)(
 	putchar x
@@ -30,19 +31,19 @@ fun fff(Int x)(
 ; fff 100
 
 ;; 子调用
-dismantle 90  lambda(a b)( 
+dismantle 90 lambda(a b)( 
 	; putchar add a b
-	fff 100
+	fff add num 100 ; 捕获外层函数和变量
 	dismantle 90 lambda(a b)(
-		fff 100
+		fff add nnn 100  ; 捕获外层函数和变量
 		putchar add a b
 	)
 )
 
 ;; 重复调用
-;dismantle 90  lambda(a b)( putchar add a b )
-;dismantle 100 lambda(a b)( putchar add a add a b )
-;dismantle 101 lambda(a b)( putchar add a add a add a b )
+; dismantle 90  lambda(a b)( putchar add a b )
+; dismantle 100 lambda(a b)( putchar add a add a b )
+; dismantle 101 lambda(a b)( putchar add a add a add a b )
 
 
 

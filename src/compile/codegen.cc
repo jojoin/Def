@@ -337,6 +337,13 @@ Value* ASTFunctionCall::codegen(Gen & gen)
         Value* res = gen.builder.CreateMul(v1, v2);
         return res;
     }
+    // 内置操作 /
+    if (idname=="div" X "Int" X "Int") {
+        Value* v1 = gen.createLoad(params[0]);
+        Value* v2 = gen.createLoad(params[1]);
+        Value* res = gen.builder.CreateSDiv(v1, v2);
+        return res;
+    }
     // 内置操作
     if (idname=="add" X "Float" X "Int") {
         Value *pv1 = gen.builder.CreateFPToSI(

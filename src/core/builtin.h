@@ -71,6 +71,7 @@
     B(add, "Int,Int,Int") \
     B(sub, "Int,Int,Int") \
     B(mul, "Int,Int,Int") \
+    B(div, "Int,Int,Int") \
     /* 条件判断 */ \
     B(eq, "Bool,Int,Int") \
     /* C 标准库函数 */ \

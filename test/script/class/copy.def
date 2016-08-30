@@ -6,7 +6,6 @@ include "../type.def"
 include "../macro/std.def"
 
 
-
 ;; 创建对象
 cp1 := Point 97 98
 
