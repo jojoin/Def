@@ -3,7 +3,7 @@ Def
 
 ### 可扩展的编程语言
 
-![Def Logo](http://www.deflang.org/image/logo_small.png)
+![Def Logo](http://www.deflang.org/img/logo_small.png)
 
 ### 简介
 
